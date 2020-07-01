@@ -1,16 +1,28 @@
+﻿#include <string>
+
 namespace smd {
-class Session {
+class SmdSession {
 public:
+	SmdSession(const std::string& guid)
+		: m_guid(guid) {}
+	~SmdSession() {}
+
+	void ResetAll() {}
+
 	//字符串
 	void Set(const std::string& key, const std::string& value) {}
-	std::string Get(const std::string& key) {}
+	std::pair<bool, std::string> Get(const std::string& key) {}
 	bool Del(const std::string& key) { return true; }
 	bool Exists(const std::string& key) { return true; }
 
 private:
+	const std::string m_guid;
 };
 
 static std::string CreateGuid() { return ""; }
-static Session* CreateSession(const std::string& guid) { return nullptr; }
+static SmdSession* CreateSession(const std::string& guid) {
+	auto session = new SmdSession(guid);
+	return session;
+}
 
 } // namespace smd
