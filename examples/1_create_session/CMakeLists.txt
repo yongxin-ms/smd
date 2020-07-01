@@ -38,6 +38,8 @@ set(INCLUDE_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/../../include/smd.h
 	${CMAKE_CURRENT_SOURCE_DIR}/../../include/smd_hash.h
 	${CMAKE_CURRENT_SOURCE_DIR}/../../include/smd_list.h
+	${CMAKE_CURRENT_SOURCE_DIR}/../../include/smd_defines.h
+	${CMAKE_CURRENT_SOURCE_DIR}/../../include/smd_alloc.h
 	)
 
 source_group(source FILES ${SOURCE_FILES})

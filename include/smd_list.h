@@ -1,4 +1,6 @@
-﻿#include <string>
+﻿#pragma once
+#include <string>
+#include "smd_defines.h"
 
 namespace smd {
 class SmdListNode {
@@ -12,11 +14,11 @@ public:
 	bool IsEnd() { return m_next == 0; }
 
 private:
-	uint64_t m_data;
+	SMD_POINTER m_data;
 	size_t m_len;
 
-	uint64_t m_next;
-	uint64_t m_prev;
+	SMD_POINTER m_next;
+	SMD_POINTER m_prev;
 };
 
 class SmdList {
@@ -37,6 +39,6 @@ public:
 private:
 	const std::string m_name;
 	size_t m_nodeNum;
-	uint64_t m_head;
+	SMD_POINTER m_head;
 };
 } // namespace smd
