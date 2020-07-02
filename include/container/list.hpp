@@ -1,8 +1,11 @@
 ﻿#pragma once
 #include <string>
 #include "../common/smd_defines.h"
+#include "pod.hpp"
 
 namespace smd {
+
+template <class _Alloc>
 class SmdListNode {
 public:
 	SmdListNode(const std::string& value)
@@ -14,13 +17,14 @@ public:
 	bool IsEnd() { return m_next == 0; }
 
 private:
-	SMD_POINTER m_data;
-	size_t m_len;
+	Pod<SMD_POINTER, _Alloc> m_data;
+	Pod<size_t, _Alloc> m_len;
 
-	SMD_POINTER m_next;
-	SMD_POINTER m_prev;
+	Pod<SMD_POINTER, _Alloc> m_next;
+	Pod<SMD_POINTER, _Alloc> m_prev;
 };
 
+template <class _Alloc>
 class SmdList {
 public:
 	SmdList(const std::string& name)
@@ -37,8 +41,8 @@ public:
 	void clear() {}
 
 private:
-	const std::string m_name;
-	size_t m_nodeNum;
-	SMD_POINTER m_head;
+	_Alloc& m_alloc;
+	Pod<size_t, _Alloc> m_nodeNum;
+	Pod<SMD_POINTER, _Alloc> m_head;
 };
 } // namespace smd
