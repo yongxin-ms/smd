@@ -36,19 +36,36 @@ set(SOURCE_FILES
 	
 set(INCLUDE_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/../../include/smd.h
-	${CMAKE_CURRENT_SOURCE_DIR}/../../include/smd_hash.h
-	${CMAKE_CURRENT_SOURCE_DIR}/../../include/smd_list.h
-	${CMAKE_CURRENT_SOURCE_DIR}/../../include/smd_defines.h
-	${CMAKE_CURRENT_SOURCE_DIR}/../../include/smd_alloc.h
+	)
+	
+set(COMMON_FILES
+	${CMAKE_CURRENT_SOURCE_DIR}/../../include/common/smd_defines.h
+	)
+	
+set(CONTAINER_FILES
+	${CMAKE_CURRENT_SOURCE_DIR}/../../include/container/hash.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/../../include/container/list.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/../../include/container/vector.hpp
+	)
+
+set(MEM_ALLOC_FILES
+	${CMAKE_CURRENT_SOURCE_DIR}/../../include/mem_alloc/buddy.hpp
 	)
 
 source_group(source FILES ${SOURCE_FILES})
 source_group(include FILES ${INCLUDE_FILES})
+
+source_group(include\\common FILES ${COMMON_FILES})
+source_group(include\\container FILES ${CONTAINER_FILES})
+source_group(include\\mem_alloc FILES ${MEM_ALLOC_FILES})
 
 add_definitions(-DASIO_STANDALONE)
 
 add_executable(${PROJECT_NAME}
 	${SOURCE_FILES}
 	${INCLUDE_FILES}
+	${COMMON_FILES}
+	${CONTAINER_FILES}
+	${MEM_ALLOC_FILES}
 	)
 

@@ -3,7 +3,7 @@
 #include <string.h>
 #include <assert.h>
 #include <stdio.h>
-#include "smd_defines.h"
+#include "../common/smd_defines.h"
 
 namespace smd {
 class SmdBuddyAlloc {
@@ -35,10 +35,12 @@ public:
 		if (s == 0) {
 			size = 1;
 		} else {
+			// 下一个2的倍数大小
 			size = (int)next_pow_of_2(s);
 		}
 		int length = 1 << self->level;
 
+		// 空间不够了
 		if (size > length)
 			return -1;
 
