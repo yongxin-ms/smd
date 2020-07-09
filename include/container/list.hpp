@@ -1,48 +1,108 @@
 ﻿#pragma once
 #include <string>
 #include "../common/smd_defines.h"
-#include "pod.hpp"
+#include "string.hpp"
 
 namespace smd {
 
 template <class _Alloc>
-class SmdListNode {
+class ListNode : public BaseObj {
 public:
-	SmdListNode(const std::string& value)
-		: m_data(0)
-		, m_len(0)
-		, m_next(0)
-		, m_prev(0) {}
+	friend class List;
+	ListNode(const std::string& value)
+		: m_value(value)
+		, m_next(nullptr)
+		, m_prev(nullptr) {}
 
-	bool IsEnd() { return m_next == 0; }
+	String<_Alloc>& value() { return m_value; }
+
+	ListNode<_Alloc>* next() { return m_next; }
+	ListNode<_Alloc>* prev() { return m_prev; }
+
+	bool is_tail() const { return m_next == nullptr; }
+	bool is_head() const { return m_prev == nullptr; }
+
+	virtual void serialize(std::string& to) override { m_value.serialize(to); }
+
+	virtual void deserialize(const std::string& from, size_t& pos) override {}
 
 private:
-	Pod<SMD_POINTER, _Alloc> m_data;
-	Pod<size_t, _Alloc> m_len;
+	void set_next(ListNode<_Alloc>* node) { m_next = node; }
+	void set_prev(ListNode<_Alloc>* node) { m_prev = node; }
 
-	Pod<SMD_POINTER, _Alloc> m_next;
-	Pod<SMD_POINTER, _Alloc> m_prev;
+private:
+	String<_Alloc> m_value;
+	ListNode<_Alloc>* m_next;
+	ListNode<_Alloc>* m_prev;
 };
 
 template <class _Alloc>
-class SmdList {
+class List {
 public:
-	SmdList(const std::string& name)
+	List(const std::string& name)
 		: m_name(name)
-		, m_nodeNum(0) {}
-	~SmdList() {}
+		, m_nodeNum(0)
+		, m_head(nullptr)
+		, m_tail(nullptr) {}
+	~List() { clear(); }
 
-	void append(const std::string& value) {}
-	SmdListNode begin();
+	// 往尾部添加元素
+	ListNode<_Alloc>* append(const std::string& value) {
+		auto node = new ListNode<_Alloc>(value);
+		if (m_tail == nullptr) {
+			// 这是一个空链表
+			assert(m_head == nullptr);
 
-	bool erase(const std::string& key) { return false; }
+			m_head = node;
+			m_tail = node;
+		} else {
+			m_tail->set_next(node);
+			node->set_prev(m_tail);
+			m_tail = node;
+		}
+
+		return node;
+	}
+
+	ListNode<_Alloc>* begin() { return m_head; }
+	ListNode<_Alloc>* tail() { return m_tail; }
+
+	// 删除一个元素（返回下一个元素）
+	ListNode<_Alloc>* erase(ListNode<_Alloc>* node) {
+		if (node->prev() != nullptr) {
+			node->prev()->set_next(node->next());
+
+			if (m_tail == node) {
+				m_tail = node->prev();
+			}
+		}
+
+		if (node->next() != nullptr) {
+			node->next()->set_prev(node->prev());
+
+			if (m_head == node) {
+				m_head = node->next();
+			}
+		}
+
+		auto next = node->next();
+		delete node;
+		m_nodeNum--;
+		return next;
+	}
+
 	bool empty() { return m_nodeNum == 0; }
 	size_t size() { return m_nodeNum; }
-	void clear() {}
+	void clear() {
+		while (m_head != nullptr) {
+			m_head = erase(m_head);
+		}
+	}
 
 private:
-	_Alloc& m_alloc;
-	Pod<size_t, _Alloc> m_nodeNum;
-	Pod<SMD_POINTER, _Alloc> m_head;
+	String<_Alloc> m_name;
+	size_t m_nodeNum;
+	ListNode<_Alloc>* m_head;
+	ListNode<_Alloc>* m_tail;
 };
 } // namespace smd

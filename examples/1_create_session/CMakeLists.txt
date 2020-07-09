@@ -46,7 +46,7 @@ set(CONTAINER_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/../../include/container/hash.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/../../include/container/list.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/../../include/container/string.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/../../include/container/pod.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/../../include/container/base_obj.hpp
 	)
 
 set(MEM_ALLOC_FILES
