@@ -9,6 +9,12 @@ template <class _Alloc>
 class ListNode : public BaseObj {
 public:
 	friend class List;
+	ListNode()
+		: BaseObj(BaseObj::ObjType::OBJ_LIST_NODE)
+		, m_value(nullptr)
+		, m_next(nullptr)
+		, m_prev(nullptr) {}
+
 	ListNode(const std::string& value)
 		: BaseObj(BaseObj::ObjType::OBJ_LIST_NODE)
 		, m_value(new String<_Alloc>(value))
@@ -18,6 +24,13 @@ public:
 		SetSize(3 * sizeof(SMD_POINTER));
 		auto ptr = _Alloc::Acquire(GetSize());
 		SetPtr(ptr);
+	}
+
+	~ListNode() {
+		if (m_value != nullptr) {
+			delete m_value;
+			m_value = nullptr;
+		}
 	}
 
 	String<_Alloc>& value() { return *m_value; }
@@ -30,11 +43,9 @@ public:
 
 	void Serialize(std::string& to) {
 		BaseObj::Serialize(to);
+		m_value->Serialize(to);
 
-		SMD_POINTER ptr = m_value.GetPtr();
-		to.append((const char*)&ptr, sizeof(ptr));
-
-		ptr = m_next != nullptr ? m_next->GetPtr() : 0;
+		SMD_POINTER ptr = m_next != nullptr ? m_next->GetPtr() : 0;
 		to.append((const char*)&ptr, sizeof(ptr));
 
 		ptr = m_prev != nullptr ? m_prev->GetPtr() : 0;
@@ -43,11 +54,10 @@ public:
 
 	void Deserialize(const char*& buf, size_t& len) {
 		BaseObj::Deserialize(buf, len);
+		m_value = new String<_Alloc>;
+		value->Deserialize(buf, len);
 
 		SMD_POINTER ptr = 0;
-		ReadStream(ptr, buf, len);
-		// 添加代码给m_value赋值
-
 		ReadStream(ptr, buf, len);
 		// 添加代码给m_next赋值
 
