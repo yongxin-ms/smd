@@ -10,11 +10,17 @@ class ListNode : public BaseObj {
 public:
 	friend class List;
 	ListNode(const std::string& value)
-		: m_value(value)
+		: BaseObj(BaseObj::ObjType::OBJ_LIST_NODE)
+		, m_value(new String<_Alloc>(value))
 		, m_next(nullptr)
-		, m_prev(nullptr) {}
+		, m_prev(nullptr) {
+		// 只需要存储三个指针
+		SetSize(3 * sizeof(SMD_POINTER));
+		auto ptr = _Alloc::Acquire(GetSize());
+		SetPtr(ptr);
+	}
 
-	String<_Alloc>& value() { return m_value; }
+	String<_Alloc>& value() { return *m_value; }
 
 	ListNode<_Alloc>* next() { return m_next; }
 	ListNode<_Alloc>* prev() { return m_prev; }
@@ -22,28 +28,54 @@ public:
 	bool is_tail() const { return m_next == nullptr; }
 	bool is_head() const { return m_prev == nullptr; }
 
-	virtual void serialize(std::string& to) override { m_value.serialize(to); }
+	void Serialize(std::string& to) {
+		BaseObj::Serialize(to);
 
-	virtual void deserialize(const std::string& from, size_t& pos) override {}
+		SMD_POINTER ptr = m_value.GetPtr();
+		to.append((const char*)&ptr, sizeof(ptr));
+
+		ptr = m_next != nullptr ? m_next->GetPtr() : 0;
+		to.append((const char*)&ptr, sizeof(ptr));
+
+		ptr = m_prev != nullptr ? m_prev->GetPtr() : 0;
+		to.append((const char*)&ptr, sizeof(ptr));
+	}
+
+	void Deserialize(const char*& buf, size_t& len) {
+		BaseObj::Deserialize(buf, len);
+
+		SMD_POINTER ptr = 0;
+		ReadStream(ptr, buf, len);
+		// 添加代码给m_value赋值
+
+		ReadStream(ptr, buf, len);
+		// 添加代码给m_next赋值
+
+		ReadStream(ptr, buf, len);
+		// 添加代码给m_prev赋值
+	}
 
 private:
 	void set_next(ListNode<_Alloc>* node) { m_next = node; }
 	void set_prev(ListNode<_Alloc>* node) { m_prev = node; }
 
 private:
-	String<_Alloc> m_value;
+	_Alloc& m_alloc;
+
+	String<_Alloc>* m_value;
 	ListNode<_Alloc>* m_next;
 	ListNode<_Alloc>* m_prev;
 };
 
 template <class _Alloc>
-class List {
+class List : public BaseObj {
 public:
 	List(const std::string& name)
-		: m_name(name)
-		, m_nodeNum(0)
+		: BaseObj(BaseObj::ObjType::OBJ_LIST)
+		, m_name(new String<_Alloc>(name))
 		, m_head(nullptr)
-		, m_tail(nullptr) {}
+		, m_tail(nullptr)
+		, m_nodeNum(0) {}
 	~List() { clear(); }
 
 	// 往尾部添加元素
@@ -100,9 +132,9 @@ public:
 	}
 
 private:
-	String<_Alloc> m_name;
-	size_t m_nodeNum;
+	String<_Alloc>* m_name;
 	ListNode<_Alloc>* m_head;
 	ListNode<_Alloc>* m_tail;
+	size_t m_nodeNum;
 };
 } // namespace smd
