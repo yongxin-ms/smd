@@ -1,6 +1,8 @@
 ﻿#pragma once
 #include <string>
 #include <map>
+#include <list>
+#include <set>
 #include <functional>
 #include <cstdarg>
 #include <time.h>
@@ -15,6 +17,8 @@ enum {
 };
 
 struct Head {
+	Head();
+
 	char guid[16];
 	time_t create_time;
 	uint32_t visit_num;
@@ -69,14 +73,90 @@ public:
 
 private:
 
-	void Serialize(std::string* to) const {}
-	void Deserialize(const std::string& from) {}
+	enum DataType : unsigned char{
+		STRINGS_NAME = 1,
+		STRINGS_VALUE,
+
+		LISTS_NAME,
+		LIST_VALUE,
+
+		MAPS_NAME,
+		MAPS_KEY,
+		MAPS_VALUE,
+
+		HASH_NAME,
+		HASH_VALUE,
+	};
+
+	static void Build(std::string& data, DataType type, const void* buf, uint32_t size) {
+		data.append((const char*)&type, sizeof(type));
+		data.append((const char*)&size, sizeof(size));
+		if (size > 0) {
+			data.append((const char*)buf, size);
+		}
+	}
+
+	void Serialize(std::string* to) const {
+		for (auto it : m_allStrings) {
+			const auto& name = it.first;
+			const auto& value = it.second;
+
+			Build(*to, STRINGS_NAME, name.data(), name.size());
+			Build(*to, STRINGS_VALUE, value.data(), value.size());
+		}
+
+		for (auto it : m_allLists) {
+			const auto& name = it.first;
+			const auto& this_list = it.second;
+
+			Build(*to, LISTS_NAME, name.data(), name.size());
+			for (auto& value : this_list) {
+				Build(*to, LIST_VALUE, value.data(), value.size());
+			}
+		}
+
+		for (auto it : m_allMaps) {
+			const auto& name = it.first;
+			const auto& this_map = it.second;
+
+			Build(*to, MAPS_NAME, name.data(), name.size());
+			for (auto it : this_map) {
+				const auto& key = it.first;
+				const auto& value = it.second;
+
+				Build(*to, MAPS_KEY, key.data(), key.size());
+				Build(*to, MAPS_VALUE, value.data(), value.size());
+			}
+		}
+
+		for (auto it : m_allHashes) {
+			const auto& name = it.first;
+			const auto& this_hash = it.second;
+
+			Build(*to, HASH_NAME, name.data(), name.size());
+			for (auto& value : this_hash) {
+				Build(*to, HASH_VALUE, value.data(), value.size());
+			}
+		}
+	}
+
+	void Deserialize(const std::string& from) {
+		struct StUnit {
+			DataType type;
+			size_t size;
+			
+		};
+	}
 
 private:
-	//Alloc m_alloc;
-	Head m_head;
 	EnvMgr& m_owner;
+	// Alloc m_alloc;
+	Head m_head;
+
 	std::map<std::string, std::string> m_allStrings;
+	std::map<std::string, std::list<std::string>> m_allLists;
+	std::map<std::string, std::map<std::string, std::string>> m_allMaps;
+	std::map<std::string, std::set<std::string>> m_allHashes;
 };
 
 class EnvMgr {
