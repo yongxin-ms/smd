@@ -40,6 +40,7 @@ set(INCLUDE_FILES
 	
 set(COMMON_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/../../include/common/smd_defines.h
+	${CMAKE_CURRENT_SOURCE_DIR}/../../include/common/slice.h
 	)
 	
 set(CONTAINER_FILES
@@ -51,6 +52,7 @@ set(CONTAINER_FILES
 
 set(MEM_ALLOC_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/../../include/mem_alloc/buddy.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/../../include/mem_alloc/alloc.hpp
 	)
 
 source_group(source FILES ${SOURCE_FILES})

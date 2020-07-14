@@ -22,7 +22,7 @@ public:
 
 	static buddy* buddy_new(int level) {
 		int size = 1 << level;
-		buddy* self = malloc(sizeof(buddy) + sizeof(uint8_t) * (size * 2 - 2));
+		buddy* self = (buddy*)malloc(sizeof(buddy) + sizeof(uint8_t) * (size * 2 - 2));
 		self->level = level;
 		memset(self->tree, NODE_UNUSED, size * 2 - 1);
 		return self;
