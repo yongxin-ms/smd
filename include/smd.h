@@ -43,7 +43,7 @@ public:
 		}
 	}
 
-	bool Get(const Slice& key, Slice* value) {
+	bool Get(const Slice& key, Slice* value) const {
 		auto strKey = key.ToString();
 		auto it = m_allStrings.find(strKey);
 		if (it == m_allStrings.end()) {
@@ -69,7 +69,7 @@ public:
 
 private:
 
-	void Serialize(std::string* to) {}
+	void Serialize(std::string* to) const {}
 	void Deserialize(const std::string& from) {}
 
 private:
