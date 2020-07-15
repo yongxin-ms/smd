@@ -1,25 +1,33 @@
 ﻿#pragma once
 #include <string>
+#include <set>
+#include "base_obj.hpp"
+#include "string.hpp"
+#include "../mem_alloc/alloc.hpp"
 
 namespace smd {
-class SmdHash {
-public:
-	SmdHash(const std::string& name, size_t capacity)
-		: m_name(name)
-		, m_capacity(capacity)
-		, m_nodeNum(0) {}
-	~SmdHash() {}
 
-	void insert(const std::string& key, const std::string& value) {}
-	bool find(const std::string& key, std::string& value) { return false; }
-	bool erase(const std::string& key) { return false; }
-	bool empty() { return m_nodeNum == 0; }
-	size_t size() { return m_nodeNum; }
-	void clear() {}
+class Hash : public BaseObj {
+public:
+	Hash(Alloc& alloc, const std::string& name)
+		: BaseObj(BaseObj::ObjType::OBJ_HASH)
+		, m_alloc(alloc)
+		, m_name(alloc, name) {}
+	~Hash() {}
+
+	std::set<String>& GetSet() { return m_set; }
+
+	bool empty() { return m_set.empty(); }
+	size_t size() { return m_set.size(); }
+	void clear() { m_set.clear(); }
+
+	virtual void serialize(std::string& to) {}
+	virtual void deserialize(const char*& buf, size_t& len) {}
 
 private:
-	const std::string m_name;
-	size_t m_capacity;
-	size_t m_nodeNum;
+	Alloc& m_alloc;
+	String m_name;
+	std::set<String> m_set;
 };
+
 } // namespace smd

@@ -2,7 +2,7 @@
 #include "buddy.hpp"
 #include "../common/smd_defines.h"
 
-//#define USE_SHARE_MEMORY
+#define USE_SHARE_MEMORY
 
 namespace smd {
 class Alloc {
@@ -29,10 +29,23 @@ public:
 
 	void Free(SMD_POINTER addr) {
 #ifdef USE_SHARE_MEMORY
-		SmdBuddyAlloc::buddy_free(m_buddy, addr);
+		SmdBuddyAlloc::buddy_free(m_buddy, (int)addr);
 #else
 		return free((void*)addr);
 #endif
+	}
+
+	static size_t GetExpectSize(size_t size) {
+		if (size <= 16)
+			return 16;
+		else if (size <= 64)
+			return size_t(size * 1.5);
+		else if (size <= 256)
+			return size_t(size * 1.4);
+		else if (size <= 1024)
+			return size_t(size * 1.3);
+		else
+			return size_t(size * 1.2);
 	}
 
 private:

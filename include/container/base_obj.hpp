@@ -18,39 +18,31 @@ inline void ReadStream(T& t, const char*& buf, size_t& len) {
 class BaseObj {
 public:
 	enum class ObjType {
-		OBJ_BASE_STRING = 1,
 		OBJ_STRING,
-		OBJ_LIST_NODE,
 		OBJ_LIST,
+		OBJ_HASH,
+		OBJ_MAP,
 	};
 
-	BaseObj(ObjType type, SMD_POINTER ptr = SMD_NULL_PTR, size_t size = 0)
-		: m_ptr(ptr)
-		, m_type(type)
-		, m_size(size){};
-
-	ObjType GetType() const { return m_type; }
-	SMD_POINTER GetPtr() { return m_ptr; }
-	size_t GetSize() { return m_size; }
-
-	void SetPtr(SMD_POINTER ptr) { m_ptr = ptr; }
-	void SetSize(size_t size) { m_size = size; }
-
-	void Serialize(std::string& to) {
-		to.append((const char*)&m_ptr, sizeof(m_ptr));
-		to.append((const char*)&m_type, sizeof(m_type));
-		to.append((const char*)&m_size, sizeof(m_size));
+	BaseObj(ObjType type)
+		: m_type(type) {
+		m_ptr = SMD_NULL_PTR;
+		m_capacity = 0;
+		m_size = 0;
 	}
 
-	void Deserialize(const char*& buf, size_t& len) {
-		ReadStream(m_ptr, buf, len);
-		ReadStream(m_type, buf, len);
-		ReadStream(m_size, buf, len);
-	}
+	char* data() { return (const char*)m_ptr; }
+	size_t size() { return m_size; }
+	bool empty() { return m_size > 0; }
+	size_t capacity() { return m_capacity; }
+
+	virtual void serialize(std::string& to) = 0;
+	virtual void deserialize(const char*& buf, size_t& len) = 0;
 
 protected:
+	const ObjType m_type;
 	SMD_POINTER m_ptr; //在共享内存中的地址，可作为唯一id
-	ObjType m_type;
-	size_t m_size;	//除了上面两个字段外还需要的存储空间
+	size_t m_capacity;
+	size_t m_size;
 };
 } // namespace smd
