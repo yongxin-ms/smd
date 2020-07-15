@@ -3,9 +3,11 @@
 #include <list>
 #include "string.hpp"
 #include "base_obj.hpp"
+#include "../mem_alloc/alloc.hpp"
 
 namespace smd {
 
+template <class T>
 class List : public BaseObj {
 public:
 	List(Alloc& alloc, const std::string& name)
@@ -14,7 +16,7 @@ public:
 		, m_name(alloc, name) {}
 	~List() {}
 
-	std::list<String>& GetList() { return m_list; }
+	std::list<T>& GetList() { return m_list; }
 
 	bool empty() { return m_list.empty(); }
 	size_t size() { return m_list.size(); }
@@ -26,7 +28,7 @@ public:
 private:
 	Alloc& m_alloc;
 	String m_name;
-	std::list<String> m_list;
+	std::list<T> m_list;
 };
 
 } // namespace smd

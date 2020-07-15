@@ -1,26 +1,26 @@
 ﻿#pragma once
 #include <string>
-#include <set>
-#include "base_obj.hpp"
+#include <map>
 #include "string.hpp"
+#include "base_obj.hpp"
 #include "../mem_alloc/alloc.hpp"
 
 namespace smd {
 
 template <class T>
-class Hash : public BaseObj {
+class Map : public BaseObj {
 public:
-	Hash(Alloc& alloc, const std::string& name)
-		: BaseObj(BaseObj::ObjType::OBJ_HASH)
+	Map(Alloc& alloc, const std::string& name)
+		: BaseObj(BaseObj::ObjType::OBJ_MAP)
 		, m_alloc(alloc)
 		, m_name(alloc, name) {}
-	~Hash() {}
+	~Map() {}
 
-	std::set<T>& GetSet() { return m_set; }
+	std::map<String, T>& GetMap() { return m_map; }
 
-	bool empty() { return m_set.empty(); }
-	size_t size() { return m_set.size(); }
-	void clear() { m_set.clear(); }
+	bool empty() { return m_map.empty(); }
+	size_t size() { return m_map.size(); }
+	void clear() { m_map.clear(); }
 
 	virtual void serialize(std::string& to) {}
 	virtual void deserialize(const char*& buf, size_t& len) {}
@@ -28,7 +28,7 @@ public:
 private:
 	Alloc& m_alloc;
 	String m_name;
-	std::set<T> m_set;
+	std::map<String, T> m_map;
 };
 
 } // namespace smd

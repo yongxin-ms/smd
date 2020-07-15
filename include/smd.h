@@ -7,7 +7,10 @@
 #include <cstdarg>
 #include <time.h>
 
-//#include "container/string.hpp"
+#include "container/string.hpp"
+#include "container/list.hpp"
+#include "container/hash.hpp"
+#include "container/map.hpp"
 #include "mem_alloc/alloc.hpp"
 #include "common/slice.h"
 
@@ -33,40 +36,44 @@ class EnvMgr;
 class Env {
 public:
 	Env(EnvMgr& owner)
-		: m_owner(owner) {}
+		: m_owner(owner)
+		, m_allStrings(m_alloc, "")
+		, m_allLists(m_alloc, "")
+		, m_allMaps(m_alloc, "")
+		, m_allHashes(m_alloc, "") {}
 	~Env() {}
 
 	//字符串
 	void SSet(const Slice& key, const Slice& value) {
-		auto strKey = key.ToString();
-		auto it = m_allStrings.find(strKey);
-		if (it == m_allStrings.end()) {
-			m_allStrings[strKey] = value.ToString();
+		String strKey(m_alloc, key.ToString());
+		auto it = m_allStrings.GetMap().find(strKey);
+		if (it == m_allStrings.GetMap().end()) {
+			m_allStrings.GetMap()[strKey] = value.ToString();
 		} else {
 			it->second = value.ToString();
 		}
 	}
 
-	bool SGet(const Slice& key, Slice* value) const {
-		auto strKey = key.ToString();
-		auto it = m_allStrings.find(strKey);
-		if (it == m_allStrings.end()) {
+	bool SGet(const Slice& key, Slice* value) {
+		String strKey(m_alloc, key.ToString());
+		auto it = m_allStrings.GetMap().find(strKey);
+		if (it == m_allStrings.GetMap().end()) {
 			return false;
 		} else {
 			if (value != nullptr) {
-				*value = it->second;
+				//*value = it->second;
 			}
 			return true;
 		}
 	}
 
 	bool SDel(const Slice& key) {
-		auto strKey = key.ToString();
-		auto it = m_allStrings.find(strKey);
-		if (it == m_allStrings.end()) {
+		String strKey(m_alloc, key.ToString());
+		auto it = m_allStrings.GetMap().find(strKey);
+		if (it == m_allStrings.GetMap().end()) {
 			return false;
 		} else {
-			it = m_allStrings.erase(it);
+			it = m_allStrings.GetMap().erase(it);
 			return true;
 		}
 	}
@@ -99,47 +106,47 @@ private:
 	}
 
 	void Serialize(std::string* to) const {
-		for (auto it : m_allStrings) {
-			const auto& name = it.first;
-			const auto& value = it.second;
-
-			Build(*to, STRINGS_NAME, name.data(), name.size());
-			Build(*to, STRINGS_VALUE, value.data(), value.size());
-		}
-
-		for (auto it : m_allLists) {
-			const auto& name = it.first;
-			const auto& this_list = it.second;
-
-			Build(*to, LISTS_NAME, name.data(), name.size());
-			for (auto& value : this_list) {
-				Build(*to, LIST_VALUE, value.data(), value.size());
-			}
-		}
-
-		for (auto it : m_allMaps) {
-			const auto& name = it.first;
-			const auto& this_map = it.second;
-
-			Build(*to, MAPS_NAME, name.data(), name.size());
-			for (auto it : this_map) {
-				const auto& key = it.first;
-				const auto& value = it.second;
-
-				Build(*to, MAPS_KEY, key.data(), key.size());
-				Build(*to, MAPS_VALUE, value.data(), value.size());
-			}
-		}
-
-		for (auto it : m_allHashes) {
-			const auto& name = it.first;
-			const auto& this_hash = it.second;
-
-			Build(*to, HASH_NAME, name.data(), name.size());
-			for (auto& value : this_hash) {
-				Build(*to, HASH_VALUE, value.data(), value.size());
-			}
-		}
+// 		for (auto it : m_allStrings.GetMap()) {
+// 			const auto& name = it.first;
+// 			const auto& value = it.second;
+// 
+// 			Build(*to, STRINGS_NAME, name.data(), name.size());
+// 			Build(*to, STRINGS_VALUE, value.data(), value.size());
+// 		}
+// 
+// 		for (auto it : m_allLists) {
+// 			const auto& name = it.first;
+// 			const auto& this_list = it.second;
+// 
+// 			Build(*to, LISTS_NAME, name.data(), name.size());
+// 			for (auto& value : this_list) {
+// 				Build(*to, LIST_VALUE, value.data(), value.size());
+// 			}
+// 		}
+// 
+// 		for (auto it : m_allMaps) {
+// 			const auto& name = it.first;
+// 			const auto& this_map = it.second;
+// 
+// 			Build(*to, MAPS_NAME, name.data(), name.size());
+// 			for (auto it : this_map) {
+// 				const auto& key = it.first;
+// 				const auto& value = it.second;
+// 
+// 				Build(*to, MAPS_KEY, key.data(), key.size());
+// 				Build(*to, MAPS_VALUE, value.data(), value.size());
+// 			}
+// 		}
+// 
+// 		for (auto it : m_allHashes) {
+// 			const auto& name = it.first;
+// 			const auto& this_hash = it.second;
+// 
+// 			Build(*to, HASH_NAME, name.data(), name.size());
+// 			for (auto& value : this_hash) {
+// 				Build(*to, HASH_VALUE, value.data(), value.size());
+// 			}
+// 		}
 	}
 
 	void Deserialize(const std::string& from) {
@@ -155,10 +162,10 @@ private:
 	Alloc m_alloc;
 	Head m_head;
 
-	std::map<std::string, std::string> m_allStrings;
-	std::map<std::string, std::list<std::string>> m_allLists;
-	std::map<std::string, std::map<std::string, std::string>> m_allMaps;
-	std::map<std::string, std::set<std::string>> m_allHashes;
+	Map<String> m_allStrings;
+	Map<List<String>> m_allLists;
+	Map<Map<String>> m_allMaps;
+	Map<Hash<String>> m_allHashes;
 };
 
 class EnvMgr {

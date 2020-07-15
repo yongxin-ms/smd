@@ -31,10 +31,11 @@ public:
 		m_size = 0;
 	}
 
-	char* data() { return (const char*)m_ptr; }
-	size_t size() { return m_size; }
+	char* data() { return (char*)m_ptr; }
+	const char* data() const{ return (const char*)m_ptr; }
+	size_t size() const { return m_size; }
 	bool empty() { return m_size > 0; }
-	size_t capacity() { return m_capacity; }
+	size_t capacity() const { return m_capacity; }
 
 	virtual void serialize(std::string& to) = 0;
 	virtual void deserialize(const char*& buf, size_t& len) = 0;

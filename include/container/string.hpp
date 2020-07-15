@@ -52,6 +52,17 @@ public:
 	}
 
 	String& operator=(const std::string& r) { return assign(r); }
+	int compare(const String& b) const {
+		const size_t min_len = (size() < b.size()) ? size() : b.size();
+		int r = memcmp(data(), b.data(), min_len);
+		if (r == 0) {
+			if (size() < b.size())
+				r = -1;
+			else if (size() > b.size())
+				r = +1;
+		}
+		return r;
+	}
 
 	void clear(bool deep = false) {
 		if (deep && m_ptr != SMD_NULL_PTR) {
@@ -69,5 +80,13 @@ public:
 private:
 	Alloc& m_alloc;
 };
+
+inline bool operator==(const String& x, const String& y) {
+	return ((x.size() == y.size()) && (memcmp(x.data(), y.data(), x.size()) == 0));
+}
+
+inline bool operator!=(const String& x, const String& y) { return !(x == y); }
+
+inline bool operator<(const String& x, const String& y) { return x.compare(y) < 0; }
 
 } // namespace smd

@@ -49,6 +49,7 @@ set(CONTAINER_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/../../include/container/list.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/../../include/container/string.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/../../include/container/base_obj.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/../../include/container/map.hpp
 	)
 
 set(MEM_ALLOC_FILES
