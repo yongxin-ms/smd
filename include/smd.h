@@ -8,7 +8,7 @@
 #include <time.h>
 
 //#include "container/string.hpp"
-//#include "mem_alloc/alloc.hpp"
+#include "mem_alloc/alloc.hpp"
 #include "common/slice.h"
 
 namespace smd {
@@ -37,7 +37,7 @@ public:
 	~Env() {}
 
 	//字符串
-	void Set(const Slice& key, const Slice& value) {
+	void SSet(const Slice& key, const Slice& value) {
 		auto strKey = key.ToString();
 		auto it = m_allStrings.find(strKey);
 		if (it == m_allStrings.end()) {
@@ -47,7 +47,7 @@ public:
 		}
 	}
 
-	bool Get(const Slice& key, Slice* value) const {
+	bool SGet(const Slice& key, Slice* value) const {
 		auto strKey = key.ToString();
 		auto it = m_allStrings.find(strKey);
 		if (it == m_allStrings.end()) {
@@ -60,7 +60,7 @@ public:
 		}
 	}
 
-	bool Del(const Slice& key) {
+	bool SDel(const Slice& key) {
 		auto strKey = key.ToString();
 		auto it = m_allStrings.find(strKey);
 		if (it == m_allStrings.end()) {
@@ -70,6 +70,8 @@ public:
 			return true;
 		}
 	}
+
+	// 还需要一个遍历接口
 
 private:
 
@@ -150,7 +152,7 @@ private:
 
 private:
 	EnvMgr& m_owner;
-	// Alloc m_alloc;
+	Alloc m_alloc;
 	Head m_head;
 
 	std::map<std::string, std::string> m_allStrings;

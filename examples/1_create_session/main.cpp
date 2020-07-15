@@ -31,19 +31,19 @@ int main() {
 
 	std::string key("Alice");
 	smd::Slice value;
-	assert(!env->Get(key, nullptr));
-	assert(!env->Get(key, &value));
-	assert(!env->Del(key));
+	assert(!env->SGet(key, nullptr));
+	assert(!env->SGet(key, &value));
+	assert(!env->SDel(key));
 
-	env->Set(key, "age 18");
-	assert(env->Get(key, nullptr));
-	assert(env->Get(key, &value));
+	env->SSet(key, "age 18");
+	assert(env->SGet(key, nullptr));
+	assert(env->SGet(key, &value));
 	assert(value == "age 18");
-	env->Del(key);
+	env->SDel(key);
 
-	assert(!env->Get(key, nullptr));
-	assert(!env->Get(key, &value));
-	assert(!env->Del(key));
+	assert(!env->SGet(key, nullptr));
+	assert(!env->SGet(key, &value));
+	assert(!env->SDel(key));
 
 	return 0;
 }
