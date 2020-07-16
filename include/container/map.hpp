@@ -10,7 +10,7 @@ namespace smd {
 template <class T>
 class Map : public BaseObj {
 public:
-	Map(Alloc& alloc, const std::string& name)
+	Map(Alloc& alloc, const std::string& name = "")
 		: BaseObj(BaseObj::ObjType::OBJ_MAP)
 		, m_alloc(alloc)
 		, m_name(alloc, name) {}
@@ -34,7 +34,8 @@ public:
 		}
 	}
 
-	virtual void deserialize(const char*& buf, size_t& len) final { m_name.deserialize(buf, len);
+	virtual void deserialize(const char*& buf, size_t& len) final {
+		m_name.deserialize(buf, len);
 		size_t size = 0;
 		ReadStream(size, buf, len);
 		for (int i = 0; i < size; i++) {
@@ -44,7 +45,7 @@ public:
 			T t(m_alloc);
 			t.deserialize(buf, len);
 
-			m_map.insert(std::make_pair(key, t));
+			m_map.emplace(std::make_pair(key, t));
 		}
 	}
 

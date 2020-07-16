@@ -10,7 +10,7 @@ namespace smd {
 template <class T>
 class Hash : public BaseObj {
 public:
-	Hash(Alloc& alloc, const std::string& name)
+	Hash(Alloc& alloc, const std::string& name = "")
 		: BaseObj(BaseObj::ObjType::OBJ_HASH)
 		, m_alloc(alloc)
 		, m_name(alloc, name) {}
@@ -24,9 +24,9 @@ public:
 
 	virtual void serialize(std::string& to) final {
 		m_name.serialize(to);
-		size_t size = m_map.size();
+		size_t size = m_set.size();
 		to.append((const char*)&size, sizeof(size));
-		for (auto& t : m_set) {
+		for (auto t : m_set) {
 			t.serialize(to);
 		}
 	}
@@ -38,8 +38,7 @@ public:
 		for (int i = 0; i < size; i++) {
 			T t(m_alloc);
 			t.deserialize(buf, len);
-
-			m_set.insert(t);
+			m_set.emplace(t);
 		}
 	}
 

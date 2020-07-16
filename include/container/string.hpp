@@ -24,7 +24,7 @@ public:
 		: String(alloc, 0) {
 		m_capacity = m_alloc.GetExpectSize(r.size() + 1);
 		m_ptr = m_alloc.Malloc(m_capacity);
-		
+
 		memcpy(data(), r.data(), r.size());
 		*(data() + m_size) = '\0';
 		m_size = r.size();
