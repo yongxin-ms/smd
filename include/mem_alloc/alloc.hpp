@@ -21,7 +21,7 @@ public:
 
 	SMD_POINTER Malloc(size_t size) {
 #ifdef USE_SHARE_MEMORY
-		SmdBuddyAlloc::buddy_alloc(m_buddy, size);
+		return SmdBuddyAlloc::buddy_alloc(m_buddy, size);
 #else
 		return (SMD_POINTER)malloc(size);
 #endif
@@ -31,7 +31,7 @@ public:
 #ifdef USE_SHARE_MEMORY
 		SmdBuddyAlloc::buddy_free(m_buddy, (int)addr);
 #else
-		return free((void*)addr);
+		free((void*)addr);
 #endif
 	}
 

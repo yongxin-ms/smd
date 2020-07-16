@@ -48,7 +48,8 @@ public:
 		String strKey(m_alloc, key.ToString());
 		auto it = m_allStrings.GetMap().find(strKey);
 		if (it == m_allStrings.GetMap().end()) {
-			m_allStrings.GetMap()[strKey] = value.ToString();
+			String strValue(m_alloc, value.ToString());
+			m_allStrings.GetMap().insert(std::make_pair(strKey, strValue));
 		} else {
 			it->second = value.ToString();
 		}
