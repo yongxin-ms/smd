@@ -41,7 +41,7 @@ public:
 	virtual void deserialize(const char*& buf, size_t& len) = 0;
 
 protected:
-	const ObjType m_type;
+	ObjType m_type;
 	SMD_POINTER m_ptr; //在共享内存中的地址，可作为唯一id
 	size_t m_capacity;
 	size_t m_size;

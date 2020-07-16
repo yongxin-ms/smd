@@ -39,8 +39,9 @@ public:
 		: m_owner(owner)
 		, m_allStrings(m_alloc, "")
 		, m_allLists(m_alloc, "")
-		, m_allMaps(m_alloc, "")
-		, m_allHashes(m_alloc, "") {}
+		//, m_allMaps(m_alloc, "")
+		//, m_allHashes(m_alloc, "")
+	{}
 	~Env() {}
 
 	//字符串
@@ -165,8 +166,8 @@ private:
 
 	Map<String> m_allStrings;
 	Map<List<String>> m_allLists;
-	Map<Map<String>> m_allMaps;
-	Map<Hash<String>> m_allHashes;
+	//Map<Map<String>> m_allMaps;
+	//Map<Hash<String>> m_allHashes;
 };
 
 class EnvMgr {

@@ -7,7 +7,7 @@ namespace smd {
 
 class String : public BaseObj {
 public:
-	String(Alloc& alloc, size_t capacity)
+	String(Alloc& alloc, size_t capacity = 0)
 		: BaseObj(BaseObj::ObjType::OBJ_STRING)
 		, m_alloc(alloc) {
 		m_capacity = capacity;
@@ -74,8 +74,19 @@ public:
 		m_size = 0;
 	}
 
-	virtual void serialize(std::string& to) {}
-	virtual void deserialize(const char*& buf, size_t& len) {}
+	virtual void serialize(std::string& to) final {
+		to.append((const char*)&m_type, sizeof(m_type));
+		to.append((const char*)&m_ptr, sizeof(m_ptr));
+		to.append((const char*)&m_size, sizeof(m_size));
+		to.append((const char*)&m_capacity, sizeof(m_capacity));
+	}
+
+	virtual void deserialize(const char*& buf, size_t& len) final {
+		ReadStream(m_type, buf, len);
+		ReadStream(m_ptr, buf, len);
+		ReadStream(m_size, buf, len);
+		ReadStream(m_capacity, buf, len);
+	}
 
 private:
 	Alloc& m_alloc;
