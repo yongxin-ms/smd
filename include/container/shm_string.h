@@ -5,10 +5,10 @@
 
 namespace smd {
 
-class String : public BaseObj {
+class ShmString : public ShmObj {
 public:
-	String(Alloc& alloc, size_t capacity = 0)
-		: BaseObj(BaseObj::ObjType::OBJ_STRING)
+	ShmString(Alloc& alloc, size_t capacity = 0)
+		: ShmObj(ShmObj::ObjType::OBJ_STRING)
 		, m_alloc(alloc) {
 		m_capacity = capacity;
 		if (m_capacity > 0) {
@@ -20,8 +20,8 @@ public:
 		m_size = 0;
 	}
 
-	String(Alloc& alloc, const std::string& r)
-		: String(alloc, 0) {
+	ShmString(Alloc& alloc, const std::string& r)
+		: ShmString(alloc, 0) {
 		m_capacity = m_alloc.GetExpectSize(r.size() + 1);
 		m_ptr = m_alloc.Malloc(m_capacity);
 
@@ -30,9 +30,9 @@ public:
 		m_size = r.size();
 	}
 
-	~String() { clear(true); }
+	~ShmString() { clear(true); }
 
-	String& assign(const std::string& r) {
+	ShmString& assign(const std::string& r) {
 		if (r.size() < m_capacity) {
 			memcpy(data(), r.data(), r.size());
 			*(data() + m_size) = '\0';
@@ -51,8 +51,8 @@ public:
 		return *this;
 	}
 
-	String& operator=(const std::string& r) { return assign(r); }
-	int compare(const String& b) const {
+	ShmString& operator=(const std::string& r) { return assign(r); }
+	int compare(const ShmString& b) const {
 		const size_t min_len = (size() < b.size()) ? size() : b.size();
 		int r = memcmp(data(), b.data(), min_len);
 		if (r == 0) {
@@ -92,12 +92,12 @@ private:
 	Alloc& m_alloc;
 };
 
-inline bool operator==(const String& x, const String& y) {
+inline bool operator==(const ShmString& x, const ShmString& y) {
 	return ((x.size() == y.size()) && (memcmp(x.data(), y.data(), x.size()) == 0));
 }
 
-inline bool operator!=(const String& x, const String& y) { return !(x == y); }
+inline bool operator!=(const ShmString& x, const ShmString& y) { return !(x == y); }
 
-inline bool operator<(const String& x, const String& y) { return x.compare(y) < 0; }
+inline bool operator<(const ShmString& x, const ShmString& y) { return x.compare(y) < 0; }
 
 } // namespace smd

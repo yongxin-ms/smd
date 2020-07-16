@@ -8,13 +8,13 @@
 namespace smd {
 
 template <class T>
-class Hash : public BaseObj {
+class ShmHash : public ShmObj {
 public:
-	Hash(Alloc& alloc, const std::string& name = "")
-		: BaseObj(BaseObj::ObjType::OBJ_HASH)
+	ShmHash(Alloc& alloc, const std::string& name = "")
+		: ShmObj(ShmObj::ObjType::OBJ_HASH)
 		, m_alloc(alloc)
 		, m_name(alloc, name) {}
-	~Hash() {}
+	~ShmHash() {}
 
 	std::set<T>& GetSet() { return m_set; }
 
@@ -44,7 +44,7 @@ public:
 
 private:
 	Alloc& m_alloc;
-	String m_name;
+	ShmString m_name;
 	std::set<T> m_set;
 };
 

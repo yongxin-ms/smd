@@ -8,15 +8,15 @@
 namespace smd {
 
 template <class T>
-class Map : public BaseObj {
+class ShmMap : public ShmObj {
 public:
-	Map(Alloc& alloc, const std::string& name = "")
-		: BaseObj(BaseObj::ObjType::OBJ_MAP)
+	ShmMap(Alloc& alloc, const std::string& name = "")
+		: ShmObj(ShmObj::ObjType::OBJ_MAP)
 		, m_alloc(alloc)
 		, m_name(alloc, name) {}
-	~Map() {}
+	~ShmMap() {}
 
-	std::map<String, T>& GetMap() { return m_map; }
+	std::map<ShmString, T>& GetMap() { return m_map; }
 
 	bool empty() { return m_map.empty(); }
 	size_t size() { return m_map.size(); }
@@ -27,7 +27,7 @@ public:
 		size_t size = m_map.size();
 		to.append((const char*)&size, sizeof(size));
 		for (auto it : m_map) {
-			String key = it.first;
+			ShmString key = it.first;
 			T& value = it.second;
 			key.serialize(to);
 			value.serialize(to);
@@ -39,7 +39,7 @@ public:
 		size_t size = 0;
 		ReadStream(size, buf, len);
 		for (int i = 0; i < size; i++) {
-			String key(m_alloc);
+			ShmString key(m_alloc);
 			key.deserialize(buf, len);
 
 			T t(m_alloc);
@@ -51,8 +51,8 @@ public:
 
 private:
 	Alloc& m_alloc;
-	String m_name;
-	std::map<String, T> m_map;
+	ShmString m_name;
+	std::map<ShmString, T> m_map;
 };
 
 } // namespace smd

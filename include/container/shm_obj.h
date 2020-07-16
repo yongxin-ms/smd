@@ -15,7 +15,7 @@ inline void ReadStream(T& t, const char*& buf, size_t& len) {
 	}
 }
 
-class BaseObj {
+class ShmObj {
 public:
 	enum class ObjType {
 		OBJ_STRING,
@@ -24,7 +24,7 @@ public:
 		OBJ_MAP,
 	};
 
-	BaseObj(ObjType type)
+	ShmObj(ObjType type)
 		: m_type(type) {
 		m_ptr = SMD_NULL_PTR;
 		m_capacity = 0;

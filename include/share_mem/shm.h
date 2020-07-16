@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include <cstddef>
-#include "../common/smd_defines.h"
+#include "../common/shm_defines.h"
 #include "../common/log.h"
 
 #ifdef _WIN32
@@ -16,8 +16,8 @@ public:
 	ShmHandle(Log& log)
 		: m_shm(log) {}
 
-	SMD_POINTER acquire(const std::string& name, std::size_t size, unsigned mode = create | open) {
-		m_shm.acquire(name, size, mode);
+	bool acquire(const std::string& name, std::size_t size, unsigned mode = create | open) {
+		return m_shm.acquire(name, size, mode);
 	}
 
 	void* get_mem(std::size_t* size) { m_shm.get_mem(size); }

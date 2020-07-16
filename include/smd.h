@@ -29,10 +29,10 @@ public:
 
 	//字符串
 	void SSet(const Slice& key, const Slice& value) {
-		String strKey(m_alloc, key.ToString());
+		ShmString strKey(m_alloc, key.ToString());
 		auto it = m_allStrings.GetMap().find(strKey);
 		if (it == m_allStrings.GetMap().end()) {
-			String strValue(m_alloc, value.ToString());
+			ShmString strValue(m_alloc, value.ToString());
 			m_allStrings.GetMap().insert(std::make_pair(strKey, strValue));
 		} else {
 			it->second = value.ToString();
@@ -40,7 +40,7 @@ public:
 	}
 
 	bool SGet(const Slice& key, Slice* value) {
-		String strKey(m_alloc, key.ToString());
+		ShmString strKey(m_alloc, key.ToString());
 		auto it = m_allStrings.GetMap().find(strKey);
 		if (it == m_allStrings.GetMap().end()) {
 			return false;
@@ -53,7 +53,7 @@ public:
 	}
 
 	bool SDel(const Slice& key) {
-		String strKey(m_alloc, key.ToString());
+		ShmString strKey(m_alloc, key.ToString());
 		auto it = m_allStrings.GetMap().find(strKey);
 		if (it == m_allStrings.GetMap().end()) {
 			return false;
@@ -86,10 +86,10 @@ private:
 	Alloc m_alloc;
 	ShmHead m_head;
 
-	Map<String> m_allStrings;
- 	Map<List<String>> m_allLists;
- 	Map<Map<String>> m_allMaps;
- 	Map<Hash<String>> m_allHashes;
+	ShmMap<ShmString> m_allStrings;
+	ShmMap<ShmList<ShmString>> m_allLists;
+	ShmMap<ShmMap<ShmString>> m_allMaps;
+	ShmMap<ShmHash<ShmString>> m_allHashes;
 };
 
 class EnvMgr {

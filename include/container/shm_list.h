@@ -8,13 +8,13 @@
 namespace smd {
 
 template <class T>
-class List : public BaseObj {
+class ShmList : public ShmObj {
 public:
-	List(Alloc& alloc, const std::string& name = "")
-		: BaseObj(BaseObj::ObjType::OBJ_LIST)
+	ShmList(Alloc& alloc, const std::string& name = "")
+		: ShmObj(ShmObj::ObjType::OBJ_LIST)
 		, m_alloc(alloc)
 		, m_name(alloc, name) {}
-	~List() {}
+	~ShmList() {}
 
 	std::list<T>& GetList() { return m_list; }
 
@@ -44,7 +44,7 @@ public:
 
 private:
 	Alloc& m_alloc;
-	String m_name;
+	ShmString m_name;
 	std::list<T> m_list;
 };
 
