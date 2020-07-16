@@ -22,7 +22,7 @@ public:
 	size_t size() { return m_set.size(); }
 	void clear() { m_set.clear(); }
 
-	virtual void serialize(std::string& to) final {
+	virtual void serialize(std::string& to) override {
 		m_name.serialize(to);
 		size_t size = m_set.size();
 		to.append((const char*)&size, sizeof(size));
@@ -31,7 +31,7 @@ public:
 		}
 	}
 
-	virtual void deserialize(const char*& buf, size_t& len) final {
+	virtual void deserialize(const char*& buf, size_t& len) override {
 		m_name.deserialize(buf, len);
 		size_t size = 0;
 		ReadStream(size, buf, len);

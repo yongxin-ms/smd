@@ -83,79 +83,18 @@ public:
 
 private:
 
-	enum DataType : unsigned char{
-		STRINGS_NAME = 1,
-		STRINGS_VALUE,
-
-		LISTS_NAME,
-		LIST_VALUE,
-
-		MAPS_NAME,
-		MAPS_KEY,
-		MAPS_VALUE,
-
-		HASH_NAME,
-		HASH_VALUE,
-	};
-
-	static void Build(std::string& data, DataType type, const void* buf, uint32_t size) {
-		data.append((const char*)&type, sizeof(type));
-		data.append((const char*)&size, sizeof(size));
-		if (size > 0) {
-			data.append((const char*)buf, size);
-		}
+	void serialize(std::string& to) {
+		m_allStrings.serialize(to);
+		m_allLists.serialize(to);
+		m_allMaps.serialize(to);
+		m_allHashes.serialize(to);
 	}
 
-	void Serialize(std::string* to) const {
-// 		for (auto it : m_allStrings.GetMap()) {
-// 			const auto& name = it.first;
-// 			const auto& value = it.second;
-// 
-// 			Build(*to, STRINGS_NAME, name.data(), name.size());
-// 			Build(*to, STRINGS_VALUE, value.data(), value.size());
-// 		}
-// 
-// 		for (auto it : m_allLists) {
-// 			const auto& name = it.first;
-// 			const auto& this_list = it.second;
-// 
-// 			Build(*to, LISTS_NAME, name.data(), name.size());
-// 			for (auto& value : this_list) {
-// 				Build(*to, LIST_VALUE, value.data(), value.size());
-// 			}
-// 		}
-// 
-// 		for (auto it : m_allMaps) {
-// 			const auto& name = it.first;
-// 			const auto& this_map = it.second;
-// 
-// 			Build(*to, MAPS_NAME, name.data(), name.size());
-// 			for (auto it : this_map) {
-// 				const auto& key = it.first;
-// 				const auto& value = it.second;
-// 
-// 				Build(*to, MAPS_KEY, key.data(), key.size());
-// 				Build(*to, MAPS_VALUE, value.data(), value.size());
-// 			}
-// 		}
-// 
-// 		for (auto it : m_allHashes) {
-// 			const auto& name = it.first;
-// 			const auto& this_hash = it.second;
-// 
-// 			Build(*to, HASH_NAME, name.data(), name.size());
-// 			for (auto& value : this_hash) {
-// 				Build(*to, HASH_VALUE, value.data(), value.size());
-// 			}
-// 		}
-	}
-
-	void Deserialize(const std::string& from) {
-		struct StUnit {
-			DataType type;
-			size_t size;
-			
-		};
+	void deserialize(const char*& buf, size_t& len) {
+		m_allStrings.deserialize(buf, len);
+		m_allLists.deserialize(buf, len);
+		m_allMaps.deserialize(buf, len);
+		m_allHashes.deserialize(buf, len);
 	}
 
 private:
