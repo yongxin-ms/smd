@@ -26,7 +26,7 @@ int main() {
 		}
 	});
 
-	auto env = mgr->CreateEnv(GUID, smd::EnvMgr::CREATE_IF_NOT_EXIST);
+	auto env = mgr->CreateEnv(GUID, smd::create | smd::open);
 	assert(env != nullptr);
 
 	std::string key("Alice");

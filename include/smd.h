@@ -12,6 +12,7 @@
 #include "mem_alloc/alloc.h"
 #include "common/slice.h"
 #include "common/log.h"
+#include "share_mem/shm_handle.h"
 
 namespace smd {
 
@@ -94,49 +95,47 @@ private:
 
 class EnvMgr {
 public:
+	EnvMgr()
+		: m_shmHandle(m_log){};
+
 	void SetLogHandler(std::function<void(Log::LogLevel, const char*)> f) {
 		m_log.SetLogHandler(f);
 	}
 	void SetLogLevel(Log::LogLevel lv) { m_log.SetLogLevel(lv); }
 	std::string NewGuid() { return ""; }
 
-	enum CreateOptions {
-		OPEN_EXIST_ONLY = 1, //只打开不创建
-		CREATE_ALWAYS,		 //总是创建
-		CREATE_IF_NOT_EXIST, //如果存在打开，否则创建
-	};
-
-	Env* CreateEnv(const std::string& guid, CreateOptions option) {
+	Env* CreateEnv(const std::string& guid, unsigned option) {
 		const char* buf = nullptr;
 		ShmHead* head = (ShmHead*)buf;
-		if (option == OPEN_EXIST_ONLY) {
-			if (head->magic_num != MAGIC_NUM) {
-				return nullptr;
-			}
-
-			if (strcmp(head->guid, guid.data()) != 0) {
-				return nullptr;
-			}
-
-		} else if (option == CREATE_ALWAYS) {
-			memset(head, 0, sizeof(ShmHead));
-			strncpy(head->guid, guid.data(), sizeof(head->guid) - 1);
-			head->create_time = time(nullptr);
-			++head->visit_num;
-			head->magic_num = MAGIC_NUM;
-			memset(head->reserve, 0, sizeof(head->reserve));
-			head->len = 0;
-		} else if (option == CREATE_IF_NOT_EXIST) {
-
-		} else {
-			return nullptr;
-		}
+// 		if (option == OPEN_EXIST_ONLY) {
+// 			if (head->magic_num != MAGIC_NUM) {
+// 				return nullptr;
+// 			}
+// 
+// 			if (strcmp(head->guid, guid.data()) != 0) {
+// 				return nullptr;
+// 			}
+// 
+// 		} else if (option == CREATE_ALWAYS) {
+// 			memset(head, 0, sizeof(ShmHead));
+// 			strncpy(head->guid, guid.data(), sizeof(head->guid) - 1);
+// 			head->create_time = time(nullptr);
+// 			++head->visit_num;
+// 			head->magic_num = MAGIC_NUM;
+// 			memset(head->reserve, 0, sizeof(head->reserve));
+// 			head->len = 0;
+// 		} else if (option == CREATE_IF_NOT_EXIST) {
+// 
+// 		} else {
+// 			return nullptr;
+// 		}
 
 		return nullptr;
 	}
 
 private:
 	Log m_log;
+	ShmHandle m_shmHandle;
 };
 
 } // namespace smd

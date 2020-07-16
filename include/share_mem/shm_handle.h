@@ -20,7 +20,7 @@ public:
 		return m_shm.acquire(name, size, mode);
 	}
 
-	void* get_mem(std::size_t* size) { m_shm.get_mem(size); }
+	void* get_mem(std::size_t* size) { return m_shm.get_mem(size); }
 	void release() { m_shm.release(); }
 	void remove() { m_shm.remove(); }
 	void remove(const std::string& name) { m_shm.remove(name); }

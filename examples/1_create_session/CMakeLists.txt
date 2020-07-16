@@ -59,7 +59,7 @@ set(MEM_ALLOC_FILES
 	)
 	
 set(SHARE_MEM_FILES
-	${CMAKE_CURRENT_SOURCE_DIR}/../../include/share_mem/shm.h
+	${CMAKE_CURRENT_SOURCE_DIR}/../../include/share_mem/shm_handle.h
 	${CMAKE_CURRENT_SOURCE_DIR}/../../include/share_mem/shm_linux.h
 	${CMAKE_CURRENT_SOURCE_DIR}/../../include/share_mem/shm_win.h
 	)
