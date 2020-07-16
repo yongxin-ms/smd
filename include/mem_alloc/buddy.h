@@ -3,7 +3,7 @@
 #include <string.h>
 #include <assert.h>
 #include <stdio.h>
-#include "../common/smd_defines.h"
+#include "../common/shm_defines.h"
 
 namespace smd {
 class SmdBuddyAlloc {

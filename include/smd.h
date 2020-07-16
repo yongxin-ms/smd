@@ -5,10 +5,10 @@
 #include <set>
 #include <time.h>
 
-#include "container/string.h"
-#include "container/list.h"
-#include "container/hash.h"
-#include "container/map.h"
+#include "container/shm_string.h"
+#include "container/shm_list.h"
+#include "container/shm_hash.h"
+#include "container/shm_map.h"
 #include "mem_alloc/alloc.h"
 #include "common/slice.h"
 #include "common/log.h"

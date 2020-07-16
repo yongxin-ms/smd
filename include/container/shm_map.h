@@ -1,8 +1,8 @@
 ﻿#pragma once
 #include <string>
 #include <map>
-#include "string.h"
-#include "base_obj.h"
+#include "shm_string.h"
+#include "shm_obj.h"
 #include "../mem_alloc/alloc.h"
 
 namespace smd {

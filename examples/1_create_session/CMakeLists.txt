@@ -40,17 +40,17 @@ set(INCLUDE_FILES
 	)
 	
 set(COMMON_FILES
-	${CMAKE_CURRENT_SOURCE_DIR}/../../include/common/smd_defines.h
+	${CMAKE_CURRENT_SOURCE_DIR}/../../include/common/shm_defines.h
 	${CMAKE_CURRENT_SOURCE_DIR}/../../include/common/slice.h
 	${CMAKE_CURRENT_SOURCE_DIR}/../../include/common/log.h
 	)
 	
 set(CONTAINER_FILES
-	${CMAKE_CURRENT_SOURCE_DIR}/../../include/container/hash.h
-	${CMAKE_CURRENT_SOURCE_DIR}/../../include/container/list.h
-	${CMAKE_CURRENT_SOURCE_DIR}/../../include/container/string.h
-	${CMAKE_CURRENT_SOURCE_DIR}/../../include/container/base_obj.h
-	${CMAKE_CURRENT_SOURCE_DIR}/../../include/container/map.h
+	${CMAKE_CURRENT_SOURCE_DIR}/../../include/container/shm_hash.h
+	${CMAKE_CURRENT_SOURCE_DIR}/../../include/container/shm_list.h
+	${CMAKE_CURRENT_SOURCE_DIR}/../../include/container/shm_string.h
+	${CMAKE_CURRENT_SOURCE_DIR}/../../include/container/shm_obj.h
+	${CMAKE_CURRENT_SOURCE_DIR}/../../include/container/shm_map.h
 	)
 
 set(MEM_ALLOC_FILES

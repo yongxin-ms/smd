@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include <string>
-#include "../common/smd_defines.h"
+#include "../common/shm_defines.h"
 
 namespace smd {
 

@@ -1,32 +1,32 @@
 ﻿#pragma once
 #include <string>
-#include <set>
-#include "base_obj.h"
-#include "string.h"
+#include <list>
+#include "shm_string.h"
+#include "shm_obj.h"
 #include "../mem_alloc/alloc.h"
 
 namespace smd {
 
 template <class T>
-class Hash : public BaseObj {
+class List : public BaseObj {
 public:
-	Hash(Alloc& alloc, const std::string& name = "")
-		: BaseObj(BaseObj::ObjType::OBJ_HASH)
+	List(Alloc& alloc, const std::string& name = "")
+		: BaseObj(BaseObj::ObjType::OBJ_LIST)
 		, m_alloc(alloc)
 		, m_name(alloc, name) {}
-	~Hash() {}
+	~List() {}
 
-	std::set<T>& GetSet() { return m_set; }
+	std::list<T>& GetList() { return m_list; }
 
-	bool empty() { return m_set.empty(); }
-	size_t size() { return m_set.size(); }
-	void clear() { m_set.clear(); }
+	bool empty() { return m_list.empty(); }
+	size_t size() { return m_list.size(); }
+	void clear() { m_list.clear(); }
 
 	virtual void serialize(std::string& to) override {
 		m_name.serialize(to);
-		size_t size = m_set.size();
+		size_t size = m_list.size();
 		to.append((const char*)&size, sizeof(size));
-		for (auto t : m_set) {
+		for (auto& t : m_list) {
 			t.serialize(to);
 		}
 	}
@@ -38,14 +38,14 @@ public:
 		for (int i = 0; i < size; i++) {
 			T t(m_alloc);
 			t.deserialize(buf, len);
-			m_set.emplace(t);
+			m_list.emplace_back(t);
 		}
 	}
 
 private:
 	Alloc& m_alloc;
 	String m_name;
-	std::set<T> m_set;
+	std::list<T> m_list;
 };
 
 } // namespace smd

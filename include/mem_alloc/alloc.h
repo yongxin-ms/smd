@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include "buddy.h"
-#include "../common/smd_defines.h"
+#include "../common/shm_defines.h"
 
 #define USE_SHARE_MEMORY
 
