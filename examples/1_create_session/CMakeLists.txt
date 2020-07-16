@@ -45,16 +45,16 @@ set(COMMON_FILES
 	)
 	
 set(CONTAINER_FILES
-	${CMAKE_CURRENT_SOURCE_DIR}/../../include/container/hash.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/../../include/container/list.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/../../include/container/string.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/../../include/container/base_obj.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/../../include/container/map.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/../../include/container/hash.h
+	${CMAKE_CURRENT_SOURCE_DIR}/../../include/container/list.h
+	${CMAKE_CURRENT_SOURCE_DIR}/../../include/container/string.h
+	${CMAKE_CURRENT_SOURCE_DIR}/../../include/container/base_obj.h
+	${CMAKE_CURRENT_SOURCE_DIR}/../../include/container/map.h
 	)
 
 set(MEM_ALLOC_FILES
-	${CMAKE_CURRENT_SOURCE_DIR}/../../include/mem_alloc/buddy.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/../../include/mem_alloc/alloc.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/../../include/mem_alloc/buddy.h
+	${CMAKE_CURRENT_SOURCE_DIR}/../../include/mem_alloc/alloc.h
 	)
 
 source_group(source FILES ${SOURCE_FILES})

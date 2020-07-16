@@ -1,9 +1,9 @@
 ﻿#pragma once
 #include <string>
 #include <map>
-#include "string.hpp"
-#include "base_obj.hpp"
-#include "../mem_alloc/alloc.hpp"
+#include "string.h"
+#include "base_obj.h"
+#include "../mem_alloc/alloc.h"
 
 namespace smd {
 

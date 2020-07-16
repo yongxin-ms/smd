@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "buddy.hpp"
+#include "buddy.h"
 #include "../common/smd_defines.h"
 
 #define USE_SHARE_MEMORY

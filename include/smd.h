@@ -7,11 +7,11 @@
 #include <cstdarg>
 #include <time.h>
 
-#include "container/string.hpp"
-#include "container/list.hpp"
-#include "container/hash.hpp"
-#include "container/map.hpp"
-#include "mem_alloc/alloc.hpp"
+#include "container/string.h"
+#include "container/list.h"
+#include "container/hash.h"
+#include "container/map.h"
+#include "mem_alloc/alloc.h"
 #include "common/slice.h"
 
 namespace smd {

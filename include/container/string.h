@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include <string>
-#include "../mem_alloc/alloc.hpp"
-#include "../container/base_obj.hpp"
+#include "../mem_alloc/alloc.h"
+#include "../container/base_obj.h"
 
 namespace smd {
 
