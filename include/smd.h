@@ -3,8 +3,6 @@
 #include <map>
 #include <list>
 #include <set>
-#include <functional>
-#include <cstdarg>
 #include <time.h>
 
 #include "container/string.h"
@@ -13,23 +11,9 @@
 #include "container/map.h"
 #include "mem_alloc/alloc.h"
 #include "common/slice.h"
+#include "common/log.h"
 
 namespace smd {
-enum {
-	MAGIC_NUM = 0x12345678,
-};
-
-struct Head {
-	Head();
-
-	char guid[16];
-	time_t create_time;
-	uint32_t visit_num;
-	uint32_t magic_num;
-	char reserve[256];
-	size_t len;
-	char data[1];
-};
 
 class EnvMgr;
 
@@ -100,7 +84,7 @@ private:
 private:
 	EnvMgr& m_owner;
 	Alloc m_alloc;
-	Head m_head;
+	ShmHead m_head;
 
 	Map<String> m_allStrings;
  	Map<List<String>> m_allLists;
@@ -110,27 +94,10 @@ private:
 
 class EnvMgr {
 public:
-	enum LogLevel {
-		kError = 1,
-		kWarning,
-		kInfo,
-		kDebug,
-	};
-
-	void SetLogHandler(std::function<void(LogLevel, const char*)> f) { log_func_ = f; }
-	void SetLogLevel(LogLevel lv) { log_level_ = lv; }
-
-	void Log(LogLevel lv, const char* fmt, ...) {
-		if (lv <= log_level_ && log_func_) {
-			char buf[4096];
-			va_list args;
-			va_start(args, fmt);
-			vsnprintf(buf, sizeof(buf) - 1, fmt, args);
-			va_end(args);
-			log_func_(lv, buf);
-		}
+	void SetLogHandler(std::function<void(Log::LogLevel, const char*)> f) {
+		m_log.SetLogHandler(f);
 	}
-
+	void SetLogLevel(Log::LogLevel lv) { m_log.SetLogLevel(lv); }
 	std::string NewGuid() { return ""; }
 
 	enum CreateOptions {
@@ -141,7 +108,7 @@ public:
 
 	Env* CreateEnv(const std::string& guid, CreateOptions option) {
 		const char* buf = nullptr;
-		Head* head = (Head*)buf;
+		ShmHead* head = (ShmHead*)buf;
 		if (option == OPEN_EXIST_ONLY) {
 			if (head->magic_num != MAGIC_NUM) {
 				return nullptr;
@@ -152,7 +119,7 @@ public:
 			}
 
 		} else if (option == CREATE_ALWAYS) {
-			memset(head, 0, sizeof(Head));
+			memset(head, 0, sizeof(ShmHead));
 			strncpy(head->guid, guid.data(), sizeof(head->guid) - 1);
 			head->create_time = time(nullptr);
 			++head->visit_num;
@@ -169,8 +136,7 @@ public:
 	}
 
 private:
-	int log_level_ = kDebug;
-	std::function<void(LogLevel, const char*)> log_func_ = nullptr;
+	Log m_log;
 };
 
 } // namespace smd

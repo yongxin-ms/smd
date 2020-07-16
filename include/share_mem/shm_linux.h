@@ -1,4 +1,4 @@
-#include "shm.h"
+﻿#include "shm.h"
 
 #include <sys/shm.h>
 #include <sys/stat.h>
@@ -13,160 +13,143 @@
 #include <utility>
 #include <cstring>
 
-#include "def.h"
-#include "log.h"
-#include "pool_alloc.h"
-
-#include "memory/resource.h"
+#include "../common/log.h"
+#include "../common/smd_defines.h"
 
 namespace {
 
 struct info_t {
-    std::atomic_size_t acc_;
-};
-
-struct id_info_t {
-    int         fd_   = -1;
-    void*       mem_  = nullptr;
-    std::size_t size_ = 0;
-    ipc::string name_;
+	std::atomic_size_t acc_;
 };
 
 constexpr std::size_t calc_size(std::size_t size) {
-    return ((((size - 1) / alignof(info_t)) + 1) * alignof(info_t)) + sizeof(info_t);
+	return ((((size - 1) / alignof(info_t)) + 1) * alignof(info_t)) + sizeof(info_t);
 }
 
 inline auto& acc_of(void* mem, std::size_t size) {
-    return reinterpret_cast<info_t*>(static_cast<ipc::byte_t*>(mem) + size - sizeof(info_t))->acc_;
+	return reinterpret_cast<info_t*>(static_cast<byte*>(mem) + size - sizeof(info_t))->acc_;
 }
 
-} // internal-linkage
+} // namespace
 
-namespace ipc {
-namespace shm {
+namespace smd {
+class ShmLinux {
+public:
+	ShmLinux(Log& log)
+		: m_log(log) {}
 
-id_t acquire(char const * name, std::size_t size, unsigned mode) {
-    if (name == nullptr || name[0] == '\0') {
-        ipc::error("fail acquire: name is empty\n");
-        return nullptr;
-    }
-    ipc::string op_name = ipc::string{"__IPC_SHM__"} + name;
-    // Open the object for read-write access.
-    int flag = O_RDWR;
-    switch (mode) {
-    case open:
-        size = 0;
-        break;
-    // The check for the existence of the object, 
-    // and its creation if it does not exist, are performed atomically.
-    case create:
-        flag |= O_CREAT | O_EXCL;
-        break;
-    // Create the shared memory object if it does not exist.
-    default:
-        flag |= O_CREAT;
-        break;
-    }
-    int fd = ::shm_open(op_name.c_str(), flag, S_IRUSR | S_IWUSR |
-                                               S_IRGRP | S_IWGRP |
-                                               S_IROTH | S_IWOTH);
-    if (fd == -1) {
-        ipc::error("fail shm_open[%d]: %s\n", errno, name);
-        return nullptr;
-    }
-    auto ii = mem::alloc<id_info_t>();
-    ii->fd_   = fd;
-    ii->size_ = size;
-    ii->name_ = std::move(op_name);
-    return ii;
-}
+	bool acquire(const std::string& op_name, std::size_t size, unsigned mode) {
+		// Open the object for read-write access.
+		int flag = O_RDWR;
+		switch (mode) {
+		case open:
+			size = 0;
+			break;
+		// The check for the existence of the object,
+		// and its creation if it does not exist, are performed atomically.
+		case create:
+			flag |= O_CREAT | O_EXCL;
+			break;
+		// Create the shared memory object if it does not exist.
+		default:
+			flag |= O_CREAT;
+			break;
+		}
 
-void * get_mem(id_t id, std::size_t * size) {
-    if (id == nullptr) {
-        ipc::error("fail get_mem: invalid id (null)\n");
-        return nullptr;
-    }
-    auto ii = static_cast<id_info_t*>(id);
-    if (ii->mem_ != nullptr) {
-        if (size != nullptr) *size = ii->size_;
-        return ii->mem_;
-    }
-    int fd = ii->fd_;
-    if (fd == -1) {
-        ipc::error("fail to_mem: invalid id (fd = -1)\n");
-        return nullptr;
-    }
-    if (ii->size_ == 0) {
-        struct stat st;
-        if (::fstat(fd, &st) != 0) {
-            ipc::error("fail fstat[%d]: %s, size = %zd\n", errno, ii->name_.c_str(), ii->size_);
-            return nullptr;
-        }
-        ii->size_ = static_cast<std::size_t>(st.st_size);
-        if ((ii->size_ <= sizeof(info_t)) || (ii->size_ % sizeof(info_t))) {
-            ipc::error("fail to_mem: %s, invalid size = %zd\n", ii->name_.c_str(), ii->size_);
-            return nullptr;
-        }
-    }
-    else {
-        ii->size_ = calc_size(ii->size_);
-        if (::ftruncate(fd, static_cast<off_t>(ii->size_)) != 0) {
-            ipc::error("fail ftruncate[%d]: %s, size = %zd\n", errno, ii->name_.c_str(), ii->size_);
-            return nullptr;
-        }
-    }
-    void* mem = ::mmap(nullptr, ii->size_, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-    if (mem == MAP_FAILED) {
-        ipc::error("fail mmap[%d]: %s, size = %zd\n", errno, ii->name_.c_str(), ii->size_);
-        return nullptr;
-    }
-    ::close(fd);
-    ii->fd_  = -1;
-    ii->mem_ = mem;
-    if (size != nullptr) *size = ii->size_;
-    acc_of(mem, ii->size_).fetch_add(1, std::memory_order_release);
-    return mem;
-}
+		int fd = ::shm_open(
+			op_name.c_str(), flag, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
+		if (fd == -1) {
+			m_log.DoLog(Log::LogLevel::kError, "fail shm_open[%d]: %s\n", errno, op_name.c_str());
+			return false;
+		}
 
-void release(id_t id) {
-    if (id == nullptr) {
-        ipc::error("fail release: invalid id (null)\n");
-        return;
-    }
-    auto ii = static_cast<id_info_t*>(id);
-    if (ii->mem_ == nullptr || ii->size_ == 0) {
-        ipc::error("fail release: invalid id (mem = %p, size = %zd)\n", ii->mem_, ii->size_);
-    }
-    else if (acc_of(ii->mem_, ii->size_).fetch_sub(1, std::memory_order_acquire) == 1) {
-        ::munmap(ii->mem_, ii->size_);
-        if (!ii->name_.empty()) {
-            ::shm_unlink(ii->name_.c_str());
-        }
-    }
-    else ::munmap(ii->mem_, ii->size_);
-    mem::free(ii);
-}
+		fd_ = fd;
+		size_ = size;
+		name_ = op_name;
+		return true;
+	}
 
-void remove(id_t id) {
-    if (id == nullptr) {
-        ipc::error("fail remove: invalid id (null)\n");
-        return;
-    }
-    auto ii = static_cast<id_info_t*>(id);
-    auto name = std::move(ii->name_);
-    release(id);
-    if (!name.empty()) {
-        ::shm_unlink(name.c_str());
-    }
-}
+	void* get_mem(std::size_t* size) {
+		if (mem_ != nullptr) {
+			if (size != nullptr)
+				*size = size_;
+			return mem_;
+		}
+		int fd = fd_;
+		if (fd == -1) {
+			m_log.DoLog(Log::LogLevel::kError, "fail to_mem: invalid id (fd = -1)\n");
+			return nullptr;
+		}
+		if (size_ == 0) {
+			struct stat st;
+			if (::fstat(fd, &st) != 0) {
+				m_log.DoLog(Log::LogLevel::kError, "fail fstat[%d]: %s, size = %zd\n", errno,
+					name_.c_str(), ii->size_);
+				return nullptr;
+			}
+			size_ = static_cast<std::size_t>(st.st_size);
+			if ((size_ <= sizeof(info_t)) || (size_ % sizeof(info_t))) {
+				m_log.DoLog(Log::LogLevel::kError, "fail to_mem: %s, invalid size = %zd\n",
+					name_.c_str(), size_);
+				return nullptr;
+			}
+		} else {
+			size_ = calc_size(size_);
+			if (::ftruncate(fd, static_cast<off_t>(size_)) != 0) {
+				m_log.DoLog(Log::LogLevel::kError, "fail ftruncate[%d]: %s, size = %zd\n", errno,
+					name_.c_str(), size_);
+				return nullptr;
+			}
+		}
+		void* mem = ::mmap(nullptr, size_, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+		if (mem == MAP_FAILED) {
+			m_log.DoLog(Log::LogLevel::kError, "fail mmap[%d]: %s, size = %zd\n", errno,
+				name_.c_str(), size_);
+			return nullptr;
+		}
+		::close(fd);
+		fd_ = -1;
+		mem_ = mem;
+		if (size != nullptr)
+			*size = size_;
+		acc_of(mem, size_).fetch_add(1, std::memory_order_release);
+		return mem;
+	}
 
-void remove(char const * name) {
-    if (name == nullptr || name[0] == '\0') {
-        ipc::error("fail remove: name is empty\n");
-        return;
-    }
-    ::shm_unlink((ipc::string{"__IPC_SHM__"} + name).c_str());
-}
+	void release() {
+		if (mem_ == nullptr || size_ == 0) {
+			m_log.DoLog(Log::LogLevel::kError, "fail release: invalid id (mem = %p, size = %zd)\n",
+				mem_, size_);
+		} else if (acc_of(mem_, size_).fetch_sub(1, std::memory_order_acquire) == 1) {
+			::munmap(mem_, size_);
+			if (!name_.empty()) {
+				::shm_unlink(name_.c_str());
+			}
+		} else
+			::munmap(mem_, size_);
+	}
 
-} // namespace shm
-} // namespace ipc
+	void remove() {
+		auto name = name_;
+		release();
+		if (!name.empty()) {
+			::shm_unlink(name.c_str());
+		}
+	}
+
+	void remove(const std::string& name) {
+		if (name.size() <= 0) {
+			m_log.DoLog(Log::LogLevel::kError, "fail remove: name is empty\n");
+			return;
+		}
+		::shm_unlink(name.c_str());
+	}
+
+private:
+	Log& m_log;
+	int fd_ = -1;
+	void* mem_ = nullptr;
+	std::size_t size_ = 0;
+	std::string name_;
+};
+} // namespace smd

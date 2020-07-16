@@ -42,6 +42,7 @@ set(INCLUDE_FILES
 set(COMMON_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/../../include/common/smd_defines.h
 	${CMAKE_CURRENT_SOURCE_DIR}/../../include/common/slice.h
+	${CMAKE_CURRENT_SOURCE_DIR}/../../include/common/log.h
 	)
 	
 set(CONTAINER_FILES
@@ -56,6 +57,12 @@ set(MEM_ALLOC_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/../../include/mem_alloc/buddy.h
 	${CMAKE_CURRENT_SOURCE_DIR}/../../include/mem_alloc/alloc.h
 	)
+	
+set(SHARE_MEM_FILES
+	${CMAKE_CURRENT_SOURCE_DIR}/../../include/share_mem/shm.h
+	${CMAKE_CURRENT_SOURCE_DIR}/../../include/share_mem/shm_linux.h
+	${CMAKE_CURRENT_SOURCE_DIR}/../../include/share_mem/shm_win.h
+	)
 
 source_group(source FILES ${SOURCE_FILES})
 source_group(include FILES ${INCLUDE_FILES})
@@ -63,6 +70,7 @@ source_group(include FILES ${INCLUDE_FILES})
 source_group(include\\common FILES ${COMMON_FILES})
 source_group(include\\container FILES ${CONTAINER_FILES})
 source_group(include\\mem_alloc FILES ${MEM_ALLOC_FILES})
+source_group(include\\share_mem FILES ${SHARE_MEM_FILES})
 
 add_definitions(-DASIO_STANDALONE)
 
@@ -72,5 +80,6 @@ add_executable(${PROJECT_NAME}
 	${COMMON_FILES}
 	${CONTAINER_FILES}
 	${MEM_ALLOC_FILES}
+	${SHARE_MEM_FILES}
 	)
 

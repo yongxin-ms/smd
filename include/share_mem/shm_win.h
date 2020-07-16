@@ -1,124 +1,101 @@
-#include "shm.h"
-
-#include <Windows.h>
-
+﻿#include <windows.h>
 #include <string>
-#include <utility>
+#include "../common/smd_defines.h"
+#include "../common/log.h"
 
-#include "def.h"
-#include "log.h"
-#include "pool_alloc.h"
+namespace smd {
 
-#include "platform/to_tchar.h"
-#include "memory/resource.h"
+class ShmWin {
+public:
+	ShmWin(Log& log)
+		: m_log(log) {}
 
-namespace {
+	bool acquire(const std::string& fmt_name, std::size_t size, unsigned mode) {
+		if (fmt_name.size() <= 0) {
+			m_log.DoLog(Log::LogLevel::kError, "fail acquire: name is empty\n");
+			return false;
+		}
 
-struct id_info_t {
-    HANDLE      h_    = NULL;
-    void*       mem_  = nullptr;
-    std::size_t size_ = 0;
+		HANDLE h;
+		if (mode == open) {
+			h = ::OpenFileMapping(FILE_MAP_ALL_ACCESS, FALSE, fmt_name.c_str());
+		} else {
+			h = ::CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE | SEC_COMMIT, 0,
+				static_cast<DWORD>(size), fmt_name.c_str());
+			if ((mode == create) && (::GetLastError() == ERROR_ALREADY_EXISTS)) {
+				::CloseHandle(h);
+				h = NULL;
+			}
+		}
+
+		if (h == NULL) {
+			m_log.DoLog(Log::LogLevel::kError, "fail CreateFileMapping/OpenFileMapping[%d]: %s\n",
+				static_cast<int>(::GetLastError()), fmt_name.data());
+			return false;
+		}
+
+		h_ = h;
+		size_ = size;
+		return true;
+	}
+
+	void* get_mem(std::size_t* size) {
+		if (mem_ != nullptr) {
+			if (size != nullptr)
+				*size = size_;
+			return mem_;
+		}
+
+		if (h_ == NULL) {
+			m_log.DoLog(Log::LogLevel::kError, "fail to_mem: invalid id (h = null)\n");
+			return nullptr;
+		}
+
+		LPVOID mem = ::MapViewOfFile(h_, FILE_MAP_ALL_ACCESS, 0, 0, 0);
+		if (mem == NULL) {
+			m_log.DoLog(Log::LogLevel::kError, "fail MapViewOfFile[%d]\n",
+				static_cast<int>(::GetLastError()));
+			return nullptr;
+		}
+
+		MEMORY_BASIC_INFORMATION mem_info;
+		if (::VirtualQuery(mem, &mem_info, sizeof(mem_info)) == 0) {
+			m_log.DoLog(Log::LogLevel::kError, "fail VirtualQuery[%d]\n",
+				static_cast<int>(::GetLastError()));
+			return nullptr;
+		}
+
+		mem_ = mem;
+		size_ = static_cast<std::size_t>(mem_info.RegionSize);
+		if (size != nullptr)
+			*size = size_;
+		return static_cast<void*>(mem);
+	}
+
+	void release() {
+		if (mem_ == nullptr || size_ == 0) {
+			m_log.DoLog(Log::LogLevel::kError, "fail release: invalid id (mem = %p, size = %zd)\n",
+				mem_, size_);
+		} else {
+			::UnmapViewOfFile(static_cast<LPCVOID>(mem_));
+		}
+
+		if (h_ == NULL) {
+			m_log.DoLog(Log::LogLevel::kError, "fail release: invalid id (h = null)\n");
+		} else {
+			::CloseHandle(h_);
+		}
+	}
+
+	void remove() {}
+	void remove(const std::string& name) {}
+
+private:
+	Log& m_log;
+
+	HANDLE h_ = NULL;
+	std::size_t size_ = 0;
+	void* mem_ = nullptr;
 };
 
-} // internal-linkage
-
-namespace ipc {
-namespace shm {
-
-id_t acquire(char const * name, std::size_t size, unsigned mode) {
-    if (name == nullptr || name[0] == '\0') {
-        ipc::error("fail acquire: name is empty\n");
-        return nullptr;
-    }
-    HANDLE h;
-    auto fmt_name = ipc::detail::to_tchar(ipc::string{"__IPC_SHM__"} + name);
-    // Opens a named file mapping object.
-    if (mode == open) {
-        h = ::OpenFileMapping(FILE_MAP_ALL_ACCESS, FALSE, fmt_name.c_str());
-    }
-    // Creates or opens a named file mapping object for a specified file.
-    else {
-        h = ::CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE | SEC_COMMIT,
-                                0, static_cast<DWORD>(size), fmt_name.c_str());
-        // If the object exists before the function call, the function returns a handle to the existing object 
-        // (with its current size, not the specified size), and GetLastError returns ERROR_ALREADY_EXISTS.
-        if ((mode == create) && (::GetLastError() == ERROR_ALREADY_EXISTS)) {
-            ::CloseHandle(h);
-            h = NULL;
-        }
-    }
-    if (h == NULL) {
-        ipc::error("fail CreateFileMapping/OpenFileMapping[%d]: %s\n", static_cast<int>(::GetLastError()), name);
-        return nullptr;
-    }
-    auto ii = mem::alloc<id_info_t>();
-    ii->h_    = h;
-    ii->size_ = size;
-    return ii;
-}
-
-void * get_mem(id_t id, std::size_t * size) {
-    if (id == nullptr) {
-        ipc::error("fail get_mem: invalid id (null)\n");
-        return nullptr;
-    }
-    auto ii = static_cast<id_info_t*>(id);
-    if (ii->mem_ != nullptr) {
-        if (size != nullptr) *size = ii->size_;
-        return ii->mem_;
-    }
-    if (ii->h_ == NULL) {
-        ipc::error("fail to_mem: invalid id (h = null)\n");
-        return nullptr;
-    }
-    LPVOID mem = ::MapViewOfFile(ii->h_, FILE_MAP_ALL_ACCESS, 0, 0, 0);
-    if (mem == NULL) {
-        ipc::error("fail MapViewOfFile[%d]\n", static_cast<int>(::GetLastError()));
-        return nullptr;
-    }
-    MEMORY_BASIC_INFORMATION mem_info;
-    if (::VirtualQuery(mem, &mem_info, sizeof(mem_info)) == 0) {
-        ipc::error("fail VirtualQuery[%d]\n", static_cast<int>(::GetLastError()));
-        return nullptr;
-    }
-    ii->mem_  = mem;
-    ii->size_ = static_cast<std::size_t>(mem_info.RegionSize);
-    if (size != nullptr) *size = ii->size_;
-    return static_cast<void *>(mem);
-}
-
-void release(id_t id) {
-    if (id == nullptr) {
-        ipc::error("fail release: invalid id (null)\n");
-        return;
-    }
-    auto ii = static_cast<id_info_t*>(id);
-    if (ii->mem_ == nullptr || ii->size_ == 0) {
-        ipc::error("fail release: invalid id (mem = %p, size = %zd)\n", ii->mem_, ii->size_);
-    }
-    else ::UnmapViewOfFile(static_cast<LPCVOID>(ii->mem_));
-    if (ii->h_ == NULL) {
-        ipc::error("fail release: invalid id (h = null)\n");
-    }
-    else ::CloseHandle(ii->h_);
-    mem::free(ii);
-}
-
-void remove(id_t id) {
-    if (id == nullptr) {
-        ipc::error("fail release: invalid id (null)\n");
-        return;
-    }
-    release(id);
-}
-
-void remove(char const * name) {
-    if (name == nullptr || name[0] == '\0') {
-        ipc::error("fail remove: name is empty\n");
-        return;
-    }
-    // Do Nothing.
-}
-
-} // namespace shm
-} // namespace ipc
+} // namespace smd

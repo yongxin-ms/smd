@@ -5,20 +5,20 @@
 int main() {
 	const auto GUID("0x1001187fb");
 	auto mgr = new smd::EnvMgr;
-	mgr->SetLogLevel(smd::EnvMgr::kDebug);
-	mgr->SetLogHandler([](smd::EnvMgr::LogLevel lv, const char* s) {
+	mgr->SetLogLevel(smd::Log::LogLevel::kDebug);
+	mgr->SetLogHandler([](smd::Log::LogLevel lv, const char* s) {
 		std::string time_now = Util::Time::FormatDateTime(time(nullptr));
 		switch (lv) {
-		case smd::EnvMgr::kError:
+		case smd::Log::LogLevel::kError:
 			printf("%s Error: %s\n", time_now.c_str(), s);
 			break;
-		case smd::EnvMgr::kWarning:
+		case smd::Log::LogLevel::kWarning:
 			printf("%s Warning: %s\n", time_now.c_str(), s);
 			break;
-		case smd::EnvMgr::kInfo:
+		case smd::Log::LogLevel::kInfo:
 			printf("%s Info: %s\n", time_now.c_str(), s);
 			break;
-		case smd::EnvMgr::kDebug:
+		case smd::Log::LogLevel::kDebug:
 			printf("%s Debug: %s\n", time_now.c_str(), s);
 			break;
 		default:
