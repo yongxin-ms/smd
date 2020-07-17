@@ -1,20 +1,17 @@
-﻿#include "shm.h"
-
-#include <sys/shm.h>
+﻿#include <sys/shm.h>
 #include <sys/stat.h>
 #include <sys/mman.h>
 #include <sys/types.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
-
 #include <atomic>
 #include <string>
 #include <utility>
 #include <cstring>
 
 #include "../common/log.h"
-#include "../common/smd_defines.h"
+#include "../common/shm_defines.h"
 
 namespace {
 
