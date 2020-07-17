@@ -11,6 +11,8 @@ enum : unsigned {
 
 enum {
 	MAGIC_NUM = 0x12345678,
+	SERIAL_SIZE = 20 * 1024,
+	SHM_MIN_SIZE = SERIAL_SIZE + 128 * 1024,
 };
 
 struct ShmHead {

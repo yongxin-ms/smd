@@ -20,12 +20,25 @@ class EnvMgr;
 
 class Env {
 public:
-	Env(EnvMgr& owner)
-		: m_owner(owner)
+	Env(Log& log, void* ptr, size_t size)
+		: m_log(log)
+		, m_alloc(SERIAL_SIZE)
+		, m_ptr(ptr)
+		, m_size(size)
 		, m_allStrings(m_alloc)
 		, m_allLists(m_alloc)
 		, m_allMaps(m_alloc)
-		, m_allHashes(m_alloc) {}
+		, m_allHashes(m_alloc) {
+		auto head = GetHead();
+		head->visit_num++;
+
+		if (head->len > 0) {
+			const char* serial_buf = head->data;
+			size_t serial_size = head->len;
+			deserialize(serial_buf, serial_size);
+		}
+	}
+
 	~Env() {}
 
 	//字符串
@@ -38,6 +51,8 @@ public:
 		} else {
 			it->second = value.ToString();
 		}
+
+		Save();
 	}
 
 	bool SGet(const Slice& key, Slice* value) {
@@ -47,7 +62,8 @@ public:
 			return false;
 		} else {
 			if (value != nullptr) {
-				//*value = it->second;
+				const auto& strValue = it->second;
+				*value = Slice(strValue.data(), strValue.size());
 			}
 			return true;
 		}
@@ -58,15 +74,30 @@ public:
 		auto it = m_allStrings.GetMap().find(strKey);
 		if (it == m_allStrings.GetMap().end()) {
 			return false;
-		} else {
-			it = m_allStrings.GetMap().erase(it);
-			return true;
 		}
+
+		it = m_allStrings.GetMap().erase(it);
+		Save();
+		return true;
 	}
 
 	// 还需要一个遍历接口
 
 private:
+
+	ShmHead* GetHead() { return (ShmHead*)m_ptr; }
+	void Save() {
+		std::string to;
+		serialize(to);
+		if (to.size() >= SERIAL_SIZE - sizeof(ShmHead) - 256) {
+			m_log.DoLog(Log::LogLevel::kError, "serialize too long:%llu", to.size());
+			return;
+		}
+
+		auto head = GetHead();
+		memcpy(head->data, to.data(), to.size());
+		head->len = to.size();
+	}
 
 	void serialize(std::string& to) {
 		m_allStrings.serialize(to);
@@ -83,9 +114,10 @@ private:
 	}
 
 private:
-	EnvMgr& m_owner;
+	Log& m_log;
 	Alloc m_alloc;
-	ShmHead m_head;
+	void* m_ptr;
+	const size_t m_size;
 
 	ShmMap<ShmString> m_allStrings;
 	ShmMap<ShmList<ShmString>> m_allLists;
@@ -104,33 +136,41 @@ public:
 	void SetLogLevel(Log::LogLevel lv) { m_log.SetLogLevel(lv); }
 	std::string NewGuid() { return ""; }
 
-	Env* CreateEnv(const std::string& guid, unsigned option) {
-		const char* buf = nullptr;
-		ShmHead* head = (ShmHead*)buf;
-// 		if (option == OPEN_EXIST_ONLY) {
-// 			if (head->magic_num != MAGIC_NUM) {
-// 				return nullptr;
-// 			}
-// 
-// 			if (strcmp(head->guid, guid.data()) != 0) {
-// 				return nullptr;
-// 			}
-// 
-// 		} else if (option == CREATE_ALWAYS) {
-// 			memset(head, 0, sizeof(ShmHead));
-// 			strncpy(head->guid, guid.data(), sizeof(head->guid) - 1);
-// 			head->create_time = time(nullptr);
-// 			++head->visit_num;
-// 			head->magic_num = MAGIC_NUM;
-// 			memset(head->reserve, 0, sizeof(head->reserve));
-// 			head->len = 0;
-// 		} else if (option == CREATE_IF_NOT_EXIST) {
-// 
-// 		} else {
-// 			return nullptr;
-// 		}
+	Env* CreateEnv(const std::string& guid, size_t size, unsigned option) {
+		if (size < SHM_MIN_SIZE) {
+			return nullptr;
+		}
 
-		return nullptr;
+		if (!m_shmHandle.acquire(guid, size, option))
+			return nullptr;
+
+		size_t sizeFact = 0;
+		void* ptr = m_shmHandle.get_mem(&sizeFact);
+		if (ptr == nullptr) {
+			return nullptr;
+		}
+
+		ShmHead* head = (ShmHead*)ptr;
+		if (option == open) {
+			if (head->magic_num != MAGIC_NUM) {
+				return nullptr;
+			}
+
+			if (strcmp(head->guid, guid.data()) != 0) {
+				return nullptr;
+			}
+		} else {
+			memset(head, 0, sizeof(ShmHead));
+			strncpy(head->guid, guid.data(), sizeof(head->guid) - 1);
+			head->create_time = time(nullptr);
+			head->visit_num = 0;
+			head->magic_num = MAGIC_NUM;
+			memset(head->reserve, 0, sizeof(head->reserve));
+			head->len = 0;
+		}
+
+		auto env = new Env(m_log, ptr, sizeFact);
+		return env;
 	}
 
 private:

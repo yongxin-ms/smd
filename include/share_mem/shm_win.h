@@ -34,25 +34,25 @@ public:
 			return false;
 		}
 
-		h_ = h;
-		size_ = size;
+		m_handle = h;
+		m_size = size;
 		return true;
 	}
 
 	void* get_mem(std::size_t* size) {
-		if (mem_ != nullptr) {
+		if (m_memPtr != nullptr) {
 			if (size != nullptr)
-				*size = size_;
-			return mem_;
+				*size = m_size;
+			return m_memPtr;
 		}
 
-		if (h_ == NULL) {
+		if (m_handle == NULL) {
 			m_log.DoLog(Log::LogLevel::kError, "fail to_mem: invalid id (h = null)\n");
 			return nullptr;
 		}
 
-		LPVOID mem = ::MapViewOfFile(h_, FILE_MAP_ALL_ACCESS, 0, 0, 0);
-		if (mem == NULL) {
+		LPVOID mem = ::MapViewOfFile(m_handle, FILE_MAP_ALL_ACCESS, 0, 0, 0);
+		if (mem == nullptr) {
 			m_log.DoLog(Log::LogLevel::kError, "fail MapViewOfFile[%d]\n",
 				static_cast<int>(::GetLastError()));
 			return nullptr;
@@ -65,25 +65,25 @@ public:
 			return nullptr;
 		}
 
-		mem_ = mem;
-		size_ = static_cast<std::size_t>(mem_info.RegionSize);
+		m_memPtr = mem;
+		m_size = static_cast<std::size_t>(mem_info.RegionSize);
 		if (size != nullptr)
-			*size = size_;
+			*size = m_size;
 		return static_cast<void*>(mem);
 	}
 
 	void release() {
-		if (mem_ == nullptr || size_ == 0) {
+		if (m_memPtr == nullptr || m_size == 0) {
 			m_log.DoLog(Log::LogLevel::kError, "fail release: invalid id (mem = %p, size = %zd)\n",
-				mem_, size_);
+				m_memPtr, m_size);
 		} else {
-			::UnmapViewOfFile(static_cast<LPCVOID>(mem_));
+			::UnmapViewOfFile(static_cast<LPCVOID>(m_memPtr));
 		}
 
-		if (h_ == NULL) {
+		if (m_handle == NULL) {
 			m_log.DoLog(Log::LogLevel::kError, "fail release: invalid id (h = null)\n");
 		} else {
-			::CloseHandle(h_);
+			::CloseHandle(m_handle);
 		}
 	}
 
@@ -93,9 +93,9 @@ public:
 private:
 	Log& m_log;
 
-	HANDLE h_ = NULL;
-	std::size_t size_ = 0;
-	void* mem_ = nullptr;
+	HANDLE m_handle = NULL;
+	std::size_t m_size = 0;
+	void* m_memPtr = nullptr;
 };
 
 } // namespace smd
