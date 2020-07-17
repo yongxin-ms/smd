@@ -1,4 +1,5 @@
 ﻿#include <stdio.h>
+#include <iostream>
 #include "smd.h"
 #include "util.h"
 
@@ -45,5 +46,7 @@ int main() {
 	assert(!env->SGet(key, &value));
 	assert(!env->SDel(key));
 
+	int n = 0;
+	std::cin >> n;
 	return 0;
 }

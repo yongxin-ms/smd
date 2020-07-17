@@ -165,18 +165,9 @@ public:
 		}
 
 		ShmHead* head = (ShmHead*)ptr;
-		if (option == open) {
-			if (head->magic_num != MAGIC_NUM) {
-				m_log.DoLog(Log::LogLevel::kError, "wrong magic_num:%0x", head->magic_num);
-				return nullptr;
-			}
-
-			if (strcmp(head->guid, guid.data()) != 0) {
-				m_log.DoLog(
-					Log::LogLevel::kError, "wrong guid:%s, head->guid:%s", guid.data(), head->guid);
-				return nullptr;
-			}
-
+		if (strcmp(head->guid, guid.data()) == 0 && head->magic_num == MAGIC_NUM &&
+			head->total_size == sizeFact) {
+			m_log.DoLog(Log::LogLevel::kInfo, "attach existed memory, %s:%llu", guid.data(), size);
 		} else {
 			memset(head, 0, sizeof(ShmHead));
 			strncpy(head->guid, guid.data(), sizeof(head->guid) - 1);
@@ -186,6 +177,8 @@ public:
 			head->magic_num = MAGIC_NUM;
 			memset(head->reserve, 0, sizeof(head->reserve));
 			head->len = 0;
+
+			m_log.DoLog(Log::LogLevel::kInfo, "create new memory, %s:%llu", guid.data(), size);
 		}
 
 		auto env = new Env(m_log, ptr, sizeFact);
