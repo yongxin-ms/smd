@@ -39,7 +39,7 @@ int main() {
 	assert(env->SGet(key, nullptr));
 	assert(env->SGet(key, &value));
 	assert(value == "age 18");
-	env->SDel(key);
+	assert(env->SDel(key));
 
 	assert(!env->SGet(key, nullptr));
 	assert(!env->SGet(key, &value));
