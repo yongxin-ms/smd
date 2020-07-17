@@ -20,9 +20,9 @@ class EnvMgr;
 
 class Env {
 public:
-	Env(Log& log, void* ptr, size_t size)
+	Env(Log& log, void* ptr, size_t size, unsigned level)
 		: m_log(log)
-		, m_alloc(ptr, SERIAL_SIZE)
+		, m_alloc(ptr, SERIAL_SIZE, level)
 		, m_ptr(ptr)
 		, m_size(size)
 		, m_allStrings(m_alloc)
@@ -99,7 +99,7 @@ private:
 	void Save() {
 		std::string to;
 		serialize(to);
-		if (to.size() >= SERIAL_SIZE - sizeof(ShmHead) - 256) {
+		if (to.size() >= SERIAL_SIZE) {
 			m_log.DoLog(Log::LogLevel::kError, "serialize too long:%llu", to.size());
 			return;
 		}
@@ -146,12 +146,13 @@ public:
 	void SetLogLevel(Log::LogLevel lv) { m_log.SetLogLevel(lv); }
 	std::string NewGuid() { return ""; }
 
-	Env* CreateEnv(const std::string& guid, size_t size, unsigned option) {
-		if (size < SHM_MIN_SIZE) {
-			m_log.DoLog(Log::LogLevel::kError, "size too small, %llu", size);
+	Env* CreateEnv(const std::string& guid, unsigned level, unsigned option) {
+		if (guid.size() > GUID_SIZE) {
+			m_log.DoLog(Log::LogLevel::kError, "guid too long, %s", guid.data());
 			return nullptr;
 		}
 
+		size_t size = sizeof(ShmHead) + SERIAL_SIZE + ((uint64_t)1 << level);
 		if (!m_shmHandle.acquire(guid, size, option)) {
 			m_log.DoLog(Log::LogLevel::kError, "acquire failed, %s:%llu", guid.data(), size);
 			return nullptr;
@@ -181,7 +182,7 @@ public:
 			m_log.DoLog(Log::LogLevel::kInfo, "create new memory, %s:%llu", guid.data(), size);
 		}
 
-		auto env = new Env(m_log, ptr, sizeFact);
+		auto env = new Env(m_log, ptr, sizeFact, level);
 		return env;
 	}
 

@@ -8,9 +8,9 @@ enum : unsigned {
 };
 
 enum {
+	GUID_SIZE = 15,
 	MAGIC_NUM = 0x12345678,
-	SERIAL_SIZE = 20 * 1024,
-	SHM_MIN_SIZE = SERIAL_SIZE + 128 * 1024,
+	SERIAL_SIZE = 32 * 1024,
 };
 
 struct ShmHead {
@@ -25,7 +25,7 @@ struct ShmHead {
 		memset(data, 0, sizeof(data));
 	}
 
-	char guid[16];
+	char guid[GUID_SIZE + 1];
 	size_t total_size;
 	time_t create_time;
 	uint32_t visit_num;

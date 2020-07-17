@@ -4,7 +4,6 @@
 #include "util.h"
 
 int main() {
-	const std::string GUID("0x1001187fb");
 	auto mgr = new smd::EnvMgr;
 	mgr->SetLogLevel(smd::Log::LogLevel::kDebug);
 	mgr->SetLogHandler([](smd::Log::LogLevel lv, const char* s) {
@@ -27,7 +26,8 @@ int main() {
 		}
 	});
 
-	auto env = mgr->CreateEnv(GUID, smd::SHM_MIN_SIZE, smd::create | smd::open);
+	const std::string GUID("0x1001187fb");
+	auto env = mgr->CreateEnv(GUID, 28, smd::create | smd::open);
 	assert(env != nullptr);
 
 	std::string key("Alice");

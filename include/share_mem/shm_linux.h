@@ -72,11 +72,13 @@ public:
 				*size = size_;
 			return mem_;
 		}
+
 		int fd = fd_;
 		if (fd == -1) {
 			m_log.DoLog(Log::LogLevel::kError, "fail to_mem: invalid id (fd = -1)\n");
 			return nullptr;
 		}
+
 		if (size_ == 0) {
 			struct stat st;
 			if (::fstat(fd, &st) != 0) {
@@ -98,12 +100,14 @@ public:
 				return nullptr;
 			}
 		}
+
 		void* mem = ::mmap(nullptr, size_, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
 		if (mem == MAP_FAILED) {
 			m_log.DoLog(Log::LogLevel::kError, "fail mmap[%d]: %s, size = %zd\n", errno,
 				name_.c_str(), size_);
 			return nullptr;
 		}
+
 		::close(fd);
 		fd_ = -1;
 		mem_ = mem;
@@ -122,8 +126,9 @@ public:
 			if (!name_.empty()) {
 				::shm_unlink(name_.c_str());
 			}
-		} else
+		} else {
 			::munmap(mem_, size_);
+		}
 	}
 
 	void remove() {
@@ -139,6 +144,7 @@ public:
 			m_log.DoLog(Log::LogLevel::kError, "fail remove: name is empty\n");
 			return;
 		}
+
 		::shm_unlink(name.c_str());
 	}
 

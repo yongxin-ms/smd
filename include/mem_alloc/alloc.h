@@ -7,11 +7,11 @@
 namespace smd {
 class Alloc {
 public:
-	Alloc(void* ptr, size_t off_set)
+	Alloc(void* ptr, size_t off_set, unsigned level)
 		: m_basePtr(ptr)
 		, m_offSet(off_set) {
 #ifdef USE_SHARE_MEMORY
-		m_buddy = SmdBuddyAlloc::buddy_new(16);
+		m_buddy = SmdBuddyAlloc::buddy_new(level);
 #endif
 	}
 
