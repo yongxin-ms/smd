@@ -14,6 +14,10 @@ public:
 		: ShmObj(ShmObj::ObjType::OBJ_LIST)
 		, m_alloc(alloc)
 		, m_name(alloc, name) {}
+
+	//
+	// 注意，析构函数里面不能调用clear()，需要使用者主动调用来回收共享内存
+	//
 	~ShmList() {}
 
 	std::list<T>& GetList() { return m_list; }

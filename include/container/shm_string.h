@@ -30,7 +30,10 @@ public:
 		m_size = r.size();
 	}
 
-	~ShmString() { clear(true); }
+	//
+	// 注意，析构函数里面不能调用clear()，需要使用者主动调用来回收共享内存
+	//
+	~ShmString() {}
 
 	ShmString& assign(const std::string& r) {
 		if (r.size() < m_capacity) {

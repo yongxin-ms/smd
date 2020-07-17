@@ -7,10 +7,11 @@
 namespace smd {
 class Alloc {
 public:
-	Alloc(size_t off_set)
-		: m_offSet(off_set) {
+	Alloc(void* ptr, size_t off_set)
+		: m_basePtr(ptr)
+		, m_offSet(off_set) {
 #ifdef USE_SHARE_MEMORY
-		m_buddy = SmdBuddyAlloc::buddy_new(12);
+		m_buddy = SmdBuddyAlloc::buddy_new(16);
 #endif
 	}
 
@@ -22,7 +23,9 @@ public:
 
 	void* Malloc(size_t size) {
 #ifdef USE_SHARE_MEMORY
-		return (void*)(m_offSet + SmdBuddyAlloc::buddy_alloc(m_buddy, size));
+		int64_t addr = SmdBuddyAlloc::buddy_alloc(m_buddy, size);
+		assert(addr >= 0);
+		return (void*)(addr + (int64_t)m_basePtr + m_offSet);
 #else
 		return malloc(size);
 #endif
@@ -30,7 +33,7 @@ public:
 
 	void Free(void* addr) {
 #ifdef USE_SHARE_MEMORY
-		SmdBuddyAlloc::buddy_free(m_buddy, (int)((size_t)addr - m_offSet));
+		SmdBuddyAlloc::buddy_free(m_buddy, (int)((size_t)addr - m_offSet - (int64_t)m_basePtr));
 #else
 		free(addr);
 #endif
@@ -50,6 +53,7 @@ public:
 	}
 
 private:
+	void* m_basePtr;
 	const size_t m_offSet;
 #ifdef USE_SHARE_MEMORY
 	SmdBuddyAlloc::buddy* m_buddy;

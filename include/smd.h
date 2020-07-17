@@ -22,7 +22,7 @@ class Env {
 public:
 	Env(Log& log, void* ptr, size_t size)
 		: m_log(log)
-		, m_alloc(SERIAL_SIZE)
+		, m_alloc(ptr, SERIAL_SIZE)
 		, m_ptr(ptr)
 		, m_size(size)
 		, m_allStrings(m_alloc)
@@ -50,6 +50,7 @@ public:
 			m_allStrings.GetMap().insert(std::make_pair(strKey, strValue));
 		} else {
 			it->second = value.ToString();
+			strKey.clear(true);
 		}
 
 		Save();
@@ -59,12 +60,15 @@ public:
 		ShmString strKey(m_alloc, key.ToString());
 		auto it = m_allStrings.GetMap().find(strKey);
 		if (it == m_allStrings.GetMap().end()) {
+			strKey.clear(true);
 			return false;
 		} else {
 			if (value != nullptr) {
 				const auto& strValue = it->second;
 				*value = Slice(strValue.data(), strValue.size());
 			}
+
+			strKey.clear(true);
 			return true;
 		}
 	}
@@ -73,10 +77,16 @@ public:
 		ShmString strKey(m_alloc, key.ToString());
 		auto it = m_allStrings.GetMap().find(strKey);
 		if (it == m_allStrings.GetMap().end()) {
+			strKey.clear(true);
 			return false;
 		}
 
+		ShmString& strValue = it->second;
+		strValue.clear(true);
+
 		it = m_allStrings.GetMap().erase(it);
+		strKey.clear(true);
+
 		Save();
 		return true;
 	}

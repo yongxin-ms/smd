@@ -14,6 +14,10 @@ public:
 		: ShmObj(ShmObj::ObjType::OBJ_MAP)
 		, m_alloc(alloc)
 		, m_name(alloc, name) {}
+
+	//
+	// 注意，析构函数里面不能调用clear()，需要使用者主动调用来回收共享内存
+	//
 	~ShmMap() {}
 
 	std::map<ShmString, T>& GetMap() { return m_map; }
