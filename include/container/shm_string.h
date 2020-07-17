@@ -69,7 +69,7 @@ public:
 
 	void clear(bool deep = false) {
 		if (deep && m_ptr != nullptr) {
-			m_alloc.Free(m_ptr);
+			m_alloc.Free(m_ptr, m_capacity);
 			m_ptr = nullptr;
 			m_capacity = 0;
 		}

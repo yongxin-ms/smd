@@ -41,6 +41,16 @@ public:
 
 	~Env() {}
 
+	size_t GetUsed() {
+		auto& p = m_alloc.GetUsage();
+		return p.first;
+	}
+
+	double GetUsage() {
+		auto& p = m_alloc.GetUsage();
+		return double(p.first) / p.second;
+	}
+
 	//字符串
 	void SSet(const Slice& key, const Slice& value) {
 		ShmString strKey(m_alloc, key.ToString());
@@ -81,6 +91,8 @@ public:
 			return false;
 		}
 
+		ShmString strOriKey = it->first;
+		strOriKey.clear(true);
 		ShmString& strValue = it->second;
 		strValue.clear(true);
 
