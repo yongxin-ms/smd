@@ -49,7 +49,7 @@ public:
 		m_ptr = m_alloc.Malloc(m_capacity);
 
 		memcpy(data(), r.data(), r.size());
-		*(data() + m_size) = '\0';
+		*(data() + r.size()) = '\0';
 		m_size = r.size();
 		return *this;
 	}
