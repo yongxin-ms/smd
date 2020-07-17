@@ -26,7 +26,7 @@ public:
 
 	ShmObj(ObjType type)
 		: m_type(type) {
-		m_ptr = SMD_NULL_PTR;
+		m_ptr = nullptr;
 		m_capacity = 0;
 		m_size = 0;
 	}
@@ -42,7 +42,7 @@ public:
 
 protected:
 	ObjType m_type;
-	SMD_POINTER m_ptr; //在共享内存中的地址，可作为唯一id
+	void* m_ptr; //在共享内存中的地址，可作为唯一id
 	size_t m_capacity;
 	size_t m_size;
 };

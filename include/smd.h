@@ -138,30 +138,39 @@ public:
 
 	Env* CreateEnv(const std::string& guid, size_t size, unsigned option) {
 		if (size < SHM_MIN_SIZE) {
+			m_log.DoLog(Log::LogLevel::kError, "size too small, %llu", size);
 			return nullptr;
 		}
 
-		if (!m_shmHandle.acquire(guid, size, option))
+		if (!m_shmHandle.acquire(guid, size, option)) {
+			m_log.DoLog(Log::LogLevel::kError, "acquire failed, %s:%llu", guid.data(), size);
 			return nullptr;
+		}
 
 		size_t sizeFact = 0;
 		void* ptr = m_shmHandle.get_mem(&sizeFact);
 		if (ptr == nullptr) {
+			m_log.DoLog(Log::LogLevel::kError, "get_mem failed, %s:%llu", guid.data(), size);
 			return nullptr;
 		}
 
 		ShmHead* head = (ShmHead*)ptr;
 		if (option == open) {
 			if (head->magic_num != MAGIC_NUM) {
+				m_log.DoLog(Log::LogLevel::kError, "wrong magic_num:%0x", head->magic_num);
 				return nullptr;
 			}
 
 			if (strcmp(head->guid, guid.data()) != 0) {
+				m_log.DoLog(
+					Log::LogLevel::kError, "wrong guid:%s, head->guid:%s", guid.data(), head->guid);
 				return nullptr;
 			}
+
 		} else {
 			memset(head, 0, sizeof(ShmHead));
 			strncpy(head->guid, guid.data(), sizeof(head->guid) - 1);
+			head->total_size = sizeFact;
 			head->create_time = time(nullptr);
 			head->visit_num = 0;
 			head->magic_num = MAGIC_NUM;

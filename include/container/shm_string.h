@@ -14,7 +14,7 @@ public:
 		if (m_capacity > 0) {
 			m_ptr = m_alloc.Malloc(m_capacity);
 		} else {
-			m_ptr = SMD_NULL_PTR;
+			m_ptr = nullptr;
 		}
 
 		m_size = 0;
@@ -65,9 +65,9 @@ public:
 	}
 
 	void clear(bool deep = false) {
-		if (deep && m_ptr != SMD_NULL_PTR) {
+		if (deep && m_ptr != nullptr) {
 			m_alloc.Free(m_ptr);
-			m_ptr = SMD_NULL_PTR;
+			m_ptr = nullptr;
 			m_capacity = 0;
 		}
 

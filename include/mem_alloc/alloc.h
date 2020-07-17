@@ -20,19 +20,19 @@ public:
 #endif
 	}
 
-	SMD_POINTER Malloc(size_t size) {
+	void* Malloc(size_t size) {
 #ifdef USE_SHARE_MEMORY
-		return m_offSet + SmdBuddyAlloc::buddy_alloc(m_buddy, size);
+		return (void*)(m_offSet + SmdBuddyAlloc::buddy_alloc(m_buddy, size));
 #else
-		return (SMD_POINTER)malloc(size);
+		return malloc(size);
 #endif
 	}
 
-	void Free(SMD_POINTER addr) {
+	void Free(void* addr) {
 #ifdef USE_SHARE_MEMORY
-		SmdBuddyAlloc::buddy_free(m_buddy, (int)(addr - m_offSet));
+		SmdBuddyAlloc::buddy_free(m_buddy, (int)((size_t)addr - m_offSet));
 #else
-		free((void*)addr);
+		free(addr);
 #endif
 	}
 
