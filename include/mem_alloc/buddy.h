@@ -14,20 +14,30 @@ public:
 		NODE_FULL = 3,
 	};
 
+	enum {
+		MAX_LEVEL = 32,
+	};
+
 	struct buddy {
 		int level;
 		uint8_t tree[1];
 	};
 
-	static buddy* buddy_new(int level) {
+	static int get_need_size(int level) {
 		int size = 1 << level;
-		buddy* self = (buddy*)malloc(sizeof(buddy) + sizeof(uint8_t) * (size * 2 - 2));
+
+		// 为什么是两倍？因为有一半的空间需要用来存放使用标记。越是零碎的分配，利用率就越低
+		return (sizeof(buddy) + sizeof(uint8_t) * (size * 2 - 2));
+	}
+
+	static buddy* buddy_new(void* p, int level) {
+		int size = 1 << level;
+
+		buddy* self = (buddy*)p;
 		self->level = level;
 		memset(self->tree, NODE_UNUSED, size * 2 - 1);
 		return self;
 	}
-
-	static void buddy_delete(buddy* self) { free(self); }
 
 	static int buddy_alloc(buddy* self, int s) {
 		int size;

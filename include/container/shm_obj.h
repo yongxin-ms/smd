@@ -4,17 +4,6 @@
 
 namespace smd {
 
-template <typename T>
-inline void ReadStream(T& t, const char*& buf, size_t& len) {
-	if (len >= sizeof(t)) {
-		memcpy(&t, buf, sizeof(t));
-		buf += sizeof(t);
-		len -= sizeof(t);
-	} else {
-		assert(false);
-	}
-}
-
 class ShmObj {
 public:
 	enum class ObjType {
@@ -36,9 +25,6 @@ public:
 	size_t size() const { return m_size; }
 	bool empty() { return m_size > 0; }
 	size_t capacity() const { return m_capacity; }
-
-	virtual void serialize(std::string& to) = 0;
-	virtual void deserialize(const char*& buf, size_t& len) = 0;
 
 protected:
 	ObjType m_type;

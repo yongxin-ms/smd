@@ -20,35 +20,22 @@ class EnvMgr;
 
 class Env {
 public:
-	Env(Log& log, void* ptr, size_t size, unsigned level)
+	Env(Log& log, void* ptr, unsigned level)
 		: m_log(log)
-		, m_alloc(ptr, SERIAL_SIZE, level)
+		, m_alloc(ptr, sizeof(ShmHead), level)
 		, m_ptr(ptr)
-		, m_size(size)
 		, m_allStrings(m_alloc)
 		, m_allLists(m_alloc)
 		, m_allMaps(m_alloc)
 		, m_allHashes(m_alloc) {
 		auto head = GetHead();
 		head->visit_num++;
-
-		if (head->len > 0) {
-			const char* serial_buf = head->data;
-			size_t serial_size = head->len;
-			deserialize(serial_buf, serial_size);
-		}
 	}
 
 	~Env() {}
 
 	size_t GetUsed() {
-		auto& p = m_alloc.GetUsage();
-		return p.first;
-	}
-
-	double GetUsage() {
-		auto& p = m_alloc.GetUsage();
-		return double(p.first) / p.second;
+		return m_alloc.GetUsage();
 	}
 
 	//字符串
@@ -62,8 +49,6 @@ public:
 			it->second = value.ToString();
 			strKey.clear(true);
 		}
-
-		Save();
 	}
 
 	bool SGet(const Slice& key, Slice* value) {
@@ -99,7 +84,6 @@ public:
 		it = m_allStrings.GetMap().erase(it);
 		strKey.clear(true);
 
-		Save();
 		return true;
 	}
 
@@ -108,38 +92,11 @@ public:
 private:
 
 	ShmHead* GetHead() { return (ShmHead*)m_ptr; }
-	void Save() {
-		std::string to;
-		serialize(to);
-		if (to.size() >= SERIAL_SIZE) {
-			m_log.DoLog(Log::LogLevel::kError, "serialize too long:%llu", to.size());
-			return;
-		}
-
-		auto head = GetHead();
-		memcpy(head->data, to.data(), to.size());
-		head->len = to.size();
-	}
-
-	void serialize(std::string& to) {
-		m_allStrings.serialize(to);
-		m_allLists.serialize(to);
-		m_allMaps.serialize(to);
-		m_allHashes.serialize(to);
-	}
-
-	void deserialize(const char*& buf, size_t& len) {
-		m_allStrings.deserialize(buf, len);
-		m_allLists.deserialize(buf, len);
-		m_allMaps.deserialize(buf, len);
-		m_allHashes.deserialize(buf, len);
-	}
 
 private:
 	Log& m_log;
 	Alloc m_alloc;
 	void* m_ptr;
-	const size_t m_size;
 
 	ShmMap<ShmString> m_allStrings;
 	ShmMap<ShmList<ShmString>> m_allLists;
@@ -164,7 +121,7 @@ public:
 			return nullptr;
 		}
 
-		size_t size = sizeof(ShmHead) + SERIAL_SIZE + ((uint64_t)1 << level);
+		size_t size = sizeof(ShmHead) + SmdBuddyAlloc::get_need_size(level);
 		if (!m_shmHandle.acquire(guid, size, option)) {
 			m_log.DoLog(Log::LogLevel::kError, "acquire failed, %s:%llu", guid.data(), size);
 			return nullptr;
@@ -189,12 +146,11 @@ public:
 			head->visit_num = 0;
 			head->magic_num = MAGIC_NUM;
 			memset(head->reserve, 0, sizeof(head->reserve));
-			head->len = 0;
 
 			m_log.DoLog(Log::LogLevel::kInfo, "create new memory, %s:%llu", guid.data(), size);
 		}
 
-		auto env = new Env(m_log, ptr, sizeFact, level);
+		auto env = new Env(m_log, ptr, level);
 		return env;
 	}
 

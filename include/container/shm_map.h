@@ -26,33 +26,6 @@ public:
 	size_t size() { return m_map.size(); }
 	void clear() { m_map.clear(); }
 
-	virtual void serialize(std::string& to) override {
-		m_name.serialize(to);
-		size_t size = m_map.size();
-		to.append((const char*)&size, sizeof(size));
-		for (auto it : m_map) {
-			ShmString key = it.first;
-			T& value = it.second;
-			key.serialize(to);
-			value.serialize(to);
-		}
-	}
-
-	virtual void deserialize(const char*& buf, size_t& len) override {
-		m_name.deserialize(buf, len);
-		size_t size = 0;
-		ReadStream(size, buf, len);
-		for (int i = 0; i < size; i++) {
-			ShmString key(m_alloc);
-			key.deserialize(buf, len);
-
-			T t(m_alloc);
-			t.deserialize(buf, len);
-
-			m_map.emplace(std::make_pair(key, t));
-		}
-	}
-
 private:
 	Alloc& m_alloc;
 	ShmString m_name;

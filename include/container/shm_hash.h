@@ -26,26 +26,6 @@ public:
 	size_t size() { return m_set.size(); }
 	void clear() { m_set.clear(); }
 
-	virtual void serialize(std::string& to) override {
-		m_name.serialize(to);
-		size_t size = m_set.size();
-		to.append((const char*)&size, sizeof(size));
-		for (auto t : m_set) {
-			t.serialize(to);
-		}
-	}
-
-	virtual void deserialize(const char*& buf, size_t& len) override {
-		m_name.deserialize(buf, len);
-		size_t size = 0;
-		ReadStream(size, buf, len);
-		for (int i = 0; i < size; i++) {
-			T t(m_alloc);
-			t.deserialize(buf, len);
-			m_set.emplace(t);
-		}
-	}
-
 private:
 	Alloc& m_alloc;
 	ShmString m_name;

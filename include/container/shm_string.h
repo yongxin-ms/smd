@@ -82,20 +82,6 @@ public:
 		return str;
 	}
 
-	virtual void serialize(std::string& to) override {
-		to.append((const char*)&m_type, sizeof(m_type));
-		to.append((const char*)&m_ptr, sizeof(m_ptr));
-		to.append((const char*)&m_size, sizeof(m_size));
-		to.append((const char*)&m_capacity, sizeof(m_capacity));
-	}
-
-	virtual void deserialize(const char*& buf, size_t& len) override {
-		ReadStream(m_type, buf, len);
-		ReadStream(m_ptr, buf, len);
-		ReadStream(m_size, buf, len);
-		ReadStream(m_capacity, buf, len);
-	}
-
 private:
 	Alloc& m_alloc;
 };
