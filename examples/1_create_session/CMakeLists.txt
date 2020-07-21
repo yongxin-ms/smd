@@ -51,6 +51,10 @@ set(CONTAINER_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/../../include/container/shm_string.h
 	${CMAKE_CURRENT_SOURCE_DIR}/../../include/container/shm_obj.h
 	${CMAKE_CURRENT_SOURCE_DIR}/../../include/container/shm_map.h
+	${CMAKE_CURRENT_SOURCE_DIR}/../../include/container/shm_vector.h
+	${CMAKE_CURRENT_SOURCE_DIR}/../../include/container/pair.h
+	${CMAKE_CURRENT_SOURCE_DIR}/../../include/container/iterator.h
+	${CMAKE_CURRENT_SOURCE_DIR}/../../include/container/reverse_iterator.h
 	)
 
 set(MEM_ALLOC_FILES
