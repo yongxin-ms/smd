@@ -11,22 +11,31 @@ public:
 	}
 
 	template <class T>
-	T* New(size_t n = 1) {
-		auto t = static_cast<T*> Malloc(sizeof(T) * n);
-		for (int i = 0; i < n; i++) {
-			t->T();
-			t++;
-		}
+	T* Malloc(size_t n = 1) {
+		return static_cast<T*>_Malloc(sizeof(T) * n);
 	}
 
 	template <class T>
-	void Delete(T* p, size_t n = 1) {
+	void Free(T*& p, size_t n = 1) {
+		_Free(p, sizeof(T) * n);
+		p = nullptr;
+	}
+
+	template <class T>
+	T* New(size_t n = 1) {
+		auto t = Malloc<T>(n);
 		for (int i = 0; i < n; i++) {
-			auto t = p;
-			t->~T();
-			t++;
+			(t+i)->T();
 		}
-		Free(p, sizeof(T) * n);
+		return t;
+	}
+
+	template <class T>
+	void Delete(T*& p, size_t n = 1) {
+		for (int i = 0; i < n; i++) {
+			(p+i)->~T();
+		}
+		Free(p, n);
 	}
 
 	size_t GetUsed() const { return m_used; }
@@ -39,7 +48,7 @@ public:
 	}
 
 private:
-	void* Malloc(size_t size) {
+	void* _Malloc(size_t size) {
 		int64_t addr = SmdBuddyAlloc::buddy_alloc(m_buddy, size);
 		if (addr < 0) {
 			assert(false);
@@ -50,7 +59,7 @@ private:
 		return (void*)(addr + (int64_t)m_basePtr + m_offSet);
 	}
 
-	void Free(void* addr, size_t size) {
+	void _Free(void* addr, size_t size) {
 		m_used -= size;
 		SmdBuddyAlloc::buddy_free(m_buddy, (int)((size_t)addr - m_offSet - (int64_t)m_basePtr));
 	}

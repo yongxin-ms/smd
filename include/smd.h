@@ -35,7 +35,7 @@ public:
 	~Env() {}
 
 	size_t GetUsed() {
-		return m_alloc.GetUsage();
+		return m_alloc.GetUsed();
 	}
 
 	//字符串
