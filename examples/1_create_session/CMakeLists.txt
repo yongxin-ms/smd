@@ -43,6 +43,7 @@ set(COMMON_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/../../include/common/shm_defines.h
 	${CMAKE_CURRENT_SOURCE_DIR}/../../include/common/slice.h
 	${CMAKE_CURRENT_SOURCE_DIR}/../../include/common/log.h
+	${CMAKE_CURRENT_SOURCE_DIR}/../../include/common/utility.h
 	)
 	
 set(CONTAINER_FILES

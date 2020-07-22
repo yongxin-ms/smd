@@ -14,7 +14,7 @@ class ShmVector {
 public:
 	ShmVector(Alloc& alloc, size_t capacity = 0)
 		: m_alloc(alloc) {
-		m_capacity = m_alloc.GetExpectSize(capacity);
+		m_capacity = GetSuitableCapacity(capacity);
 		m_start = m_alloc.New<T>(m_capacity);
 		m_finish = m_start;
 		m_endOfStorage = m_start + m_capacity;
@@ -40,7 +40,7 @@ public:
 			*m_start[size()] = value;
 			++m_finish;
 		} else {
-			auto new_capacity = m_alloc.GetExpectSize(capacity() * 2);
+			auto new_capacity = GetSuitableCapacity(capacity() * 2);
 			auto new_start = m_alloc.Malloc<T>(new_capacity);
 			auto size = size();
 			memcpy(new_start, m_start, sizeof(T) * size);
@@ -71,6 +71,18 @@ public:
 
 	iterator begin() { return m_start; }
 	iterator end() { return m_finish; }
+
+private:
+	size_t GetSuitableCapacity(size_t size) {
+		if (size < 8)
+			size = 8;
+
+		auto newSize = size * sizeof(T);
+		if (newSize <= 64)
+			return size;
+		else
+			return Utility::NextPowOf2(newSize) / sizeof(T);
+	}
 
 private:
 	Alloc& m_alloc;

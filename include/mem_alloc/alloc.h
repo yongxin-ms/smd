@@ -40,13 +40,6 @@ public:
 
 	size_t GetUsed() const { return m_used; }
 
-	static size_t GetExpectSize(size_t size) {
-		if (size <= 16)
-			return 16;
-		else
-			return next_pow_of_2(size);
-	}
-
 private:
 	void* _Malloc(size_t size) {
 		int64_t addr = SmdBuddyAlloc::buddy_alloc(m_buddy, size);
@@ -62,18 +55,6 @@ private:
 	void _Free(void* addr, size_t size) {
 		m_used -= size;
 		SmdBuddyAlloc::buddy_free(m_buddy, (int)((size_t)addr - m_offSet - (int64_t)m_basePtr));
-	}
-
-	static inline int is_pow_of_2(uint32_t x) { return !(x & (x - 1)); }
-	static inline uint32_t next_pow_of_2(uint32_t x) {
-		if (is_pow_of_2(x))
-			return x;
-		x |= x >> 1;
-		x |= x >> 2;
-		x |= x >> 4;
-		x |= x >> 8;
-		x |= x >> 16;
-		return x + 1;
 	}
 
 private:

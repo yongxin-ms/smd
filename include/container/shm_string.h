@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include <string>
 #include "../mem_alloc/alloc.h"
+#include "../common/utility.h"
 
 namespace smd {
 
@@ -8,14 +9,14 @@ class ShmString {
 public:
 	ShmString(Alloc& alloc, size_t capacity = 0)
 		: m_alloc(alloc) {
-		m_capacity = m_alloc.GetExpectSize(capacity);
+		m_capacity = GetSuitableCapacity(capacity);
 		m_ptr = m_alloc.New<char>(m_capacity);
 		m_size = 0;
 	}
 
 	ShmString(Alloc& alloc, const std::string& r)
 		: m_alloc(alloc) {
-		m_capacity = m_alloc.GetExpectSize(r.size() + 1);
+		m_capacity = GetSuitableCapacity(r.size() + 1);
 		m_ptr = m_alloc.New<char>(m_capacity);
 
 		memcpy(data(), r.data(), r.size());
@@ -44,7 +45,7 @@ public:
 
 		clear(true);
 
-		m_capacity = m_alloc.GetExpectSize(r.size() + 1);
+		m_capacity = GetSuitableCapacity(r.size() + 1);
 		m_ptr = m_alloc.New<char>(m_capacity);
 
 		memcpy(data(), r.data(), r.size());
@@ -79,6 +80,14 @@ public:
 	std::string ToString() const {
 		std::string str(data(), size());
 		return str;
+	}
+
+private:
+	static size_t GetSuitableCapacity(size_t size) {
+		if (size <= 16)
+			return 16;
+		else
+			return Utility::NextPowOf2(size);
 	}
 
 private:

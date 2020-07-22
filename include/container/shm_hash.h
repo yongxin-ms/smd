@@ -7,33 +7,59 @@
 
 namespace smd {
 
-template <class T>
-
+template <class Key, class ListIterator>
 class HashIterator {
 private:
 	template <class Key>
 	friend class ShmHash;
 
 private:
-	typedef Unordered_set<Key, Hash, KeyEqual, Allocator>* cntrPtr;
+	typedef ShmHash<Key>* cntrPtr;
 	size_t bucket_index_;
 	ListIterator iterator_;
 	cntrPtr container_;
 
 public:
-	ust_iterator(size_t index, ListIterator it, cntrPtr ptr);
-	ust_iterator& operator++();
-	ust_iterator operator++(int);
+	HashIterator(size_t index, ListIterator it, cntrPtr ptr)
+		: bucket_index_(index)
+		, iterator_(it)
+		, container_(ptr){};
+	HashIterator& operator++() {
+		++iterator_;
+		//如果前进一位后到达了list的末尾，则需要跳转到下一个有item的bucket的list
+		if (iterator_ == container_->m_buckets[bucket_index_].end()) {
+			for (;;) {
+				if (bucket_index_ == container_->m_buckets.size() - 1) {
+					*this = container_->end();
+					break;
+				} else {
+					++bucket_index_;
+					if (!(container_->m_buckets[bucket_index_].empty())) { //此list不为空
+						iterator_ = container_->m_buckets[bucket_index_].begin();
+						break;
+					}
+				}
+			}
+		}
+		return *this;
+	}
+
+	HashIterator operator++(int) {
+		auto res = *this;
+		++*this;
+		return res;
+	}
+
 	Key& operator*() { return *iterator_; }
 	Key* operator->() { return &(operator*()); }
 
 private:
 	template <class Key, class ListIterator, class Hash, class KeyEqual, class Allocator>
-	friend bool operator==(const ust_iterator<Key, ListIterator, Hash, KeyEqual, Allocator>& lhs,
-		const ust_iterator<Key, ListIterator, Hash, KeyEqual, Allocator>& rhs);
+	friend bool operator==(const HashIterator<Key, ListIterator, Hash, KeyEqual, Allocator>& lhs,
+		const HashIterator<Key, ListIterator, Hash, KeyEqual, Allocator>& rhs);
 	template <class Key, class ListIterator, class Hash, class KeyEqual, class Allocator>
-	friend bool operator!=(const ust_iterator<Key, ListIterator, Hash, KeyEqual, Allocator>& lhs,
-		const ust_iterator<Key, ListIterator, Hash, KeyEqual, Allocator>& rhs);
+	friend bool operator!=(const HashIterator<Key, ListIterator, Hash, KeyEqual, Allocator>& lhs,
+		const HashIterator<Key, ListIterator, Hash, KeyEqual, Allocator>& rhs);
 };
 
 template <class Key>
@@ -42,10 +68,6 @@ class ShmHash {
 	typedef Key key_type;
 
 public:
-	enum {
-		PRIME_LIST_SIZE = 28,
-	};
-
 	ShmHash(Alloc& alloc, const std::string& name, size_t bucket_count)
 		: m_alloc(alloc)
 		, m_name(alloc, name)
@@ -75,17 +97,7 @@ public:
 	}
 
 private:
-	size_type next_prime(size_type n) const {
-		auto i = 0;
-		for (; i != PRIME_LIST_SIZE; ++i) {
-			if (n > m_prime_list[i])
-				continue;
-			else
-				break;
-		}
-		i = (i == PRIME_LIST_SIZE ? PRIME_LIST_SIZE - 1 : i);
-		return m_prime_list[i];
-	}
+	size_type next_prime(size_type n) const { return m_primeUtil.NextPrime(n); }
 	size_type bucket_index(const key_type& key) const { return haser()(key) % buckets_.size(); }
 	bool has_key(const key_type& key) {
 		auto& list = buckets_[bucket_index(key)];
@@ -101,7 +113,7 @@ private:
 	size_t m_size;
 	float m_max_load_factor;
 
-	size_t m_prime_list[PRIME_LIST_SIZE];
+	static PrimeUtil m_primeUtil;
 };
 
 } // namespace smd
