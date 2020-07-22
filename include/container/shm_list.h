@@ -8,11 +8,84 @@
 namespace smd {
 
 template <class T>
-class ShmList : public ShmObj {
+class ShmList;
+
+template <class T>
+struct ListNode {
+	ShmList<T>& container;
+	T data;
+	ListNode* prev;
+	ListNode* next;
+
+	ListNode(ShmList<T>& c, const T& d, ListNode* p, ListNode* n)
+		: container(c)
+		, data(d)
+		, prev(p)
+		, next(n) {}
+
+	bool operator==(const ListNode& n) {
+		return data == n.data && prev == n.prev && next == n.next && &container == &n.container;
+	}
+};
+
+// the class of list iterator
+template <class T>
+struct ListIterator {
+	template <class T>
+	friend class ShmList;
+
+public:
+	typedef ListNode<T>* nodePtr;
+	nodePtr p;
+
+public:
+	explicit ListIterator(nodePtr ptr = nullptr)
+		: p(ptr) {}
+
+	ListIterator& operator++() {
+		p = p->next;
+		return *this;
+	}
+
+	ListIterator operator++(int) {
+		auto res = *this;
+		++*this;
+		return res;
+	}
+
+	ListIterator& operator--() {
+		p = p->prev;
+		return *this;
+	}
+
+	ListIterator operator--(int) {
+		auto res = *this;
+		--*this;
+		return res;
+	}
+
+	T& operator*() { return p->data; }
+	T* operator->() { return &(operator*()); }
+
+	template <class T>
+	friend bool operator==(const ListIterator<T>& lhs, const ListIterator<T>& rhs) {
+		return lhs.p == rhs.p;
+	}
+
+	template <class T>
+	friend bool operator!=(const ListIterator<T>& lhs, const ListIterator<T>& rhs) {
+		return !(lhs == rhs);
+	}
+};
+
+template <class T>
+class ShmList {
+	typedef ListNode<T>* nodePtr;
+	typedef ListIterator<T> iterator;
+
 public:
 	ShmList(Alloc& alloc, const std::string& name = "")
-		: ShmObj(ShmObj::ObjType::OBJ_LIST)
-		, m_alloc(alloc)
+		: m_alloc(alloc)
 		, m_name(alloc, name) {}
 
 	//
@@ -20,16 +93,84 @@ public:
 	//
 	~ShmList() {}
 
-	std::list<T>& GetList() { return m_list; }
+	T& front() { return (m_head.p->data); }
+	T& back() { return (m_tail.p->prev->data); }
 
-	bool empty() { return m_list.empty(); }
-	size_t size() { return m_list.size(); }
-	void clear() { m_list.clear(); }
+	void push_front(const T& val) {
+		auto node = NewNode(val);
+		m_head.p->prev = node;
+		node->next = m_head.p;
+		m_head.p = node;
+	}
+	void pop_front() {
+		auto oldNode = m_head.p;
+		m_head.p = oldNode->next;
+		m_head.p->prev = nullptr;
+		DeleteNode(oldNode);
+	}
+
+	void push_back(const T& val) {
+		auto node = NewNode();
+		(m_tail.p)->data = val;
+		(m_tail.p)->next = node;
+		node->prev = m_tail.p;
+		tail.p = node;
+	}
+
+	void pop_back() {
+		auto newTail = m_tail.p->prev;
+		newTail->next = nullptr;
+		DeleteNode(tail.p);
+		m_tail.p = newTail;
+	}
+
+	iterator begin() { return m_head; }
+	iterator end() { return m_tail; }
+
+	bool empty() { return m_head != m_tail; }
+	size_t size() {
+		size_t length = 0;
+		for (auto h = m_head; h != m_tail; ++h)
+			++length;
+		return length;
+	}
+
+	void clear() { erase(begin(), end()); }
+	iterator erase(iterator position) {
+		if (position == m_head) {
+			pop_front();
+			return m_head;
+		} else {
+			auto prev = position.p->prev;
+			prev->next = position.p->next;
+			position.p->next->prev = prev;
+			DeleteNode(position.p);
+			return iterator(prev->next);
+		}
+	}
+
+	iterator erase(iterator first, iterator last) {
+		iterator res;
+		for (; first != last;) {
+			auto temp = first++;
+			res = erase(temp);
+		}
+		return res;
+	}
+
+private:
+	nodePtr NewNode(const T& val = T()) { return m_alloc.New<T>(); }
+	void DeleteNode(nodePtr p) {
+		p->prev = p->next = nullptr;
+		m_alloc.Delete(p);
+	}
 
 private:
 	Alloc& m_alloc;
 	ShmString m_name;
-	std::list<T> m_list;
+
+	nodePtr m_head;
+	nodePtr m_tail;
 };
 
 } // namespace smd

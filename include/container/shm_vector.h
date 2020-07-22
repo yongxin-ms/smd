@@ -1,35 +1,35 @@
 ﻿#pragma once
 #include <string>
-#include <list>
-#include "shm_string.h"
-#include "shm_obj.h"
 #include "../mem_alloc/alloc.h"
 
 namespace smd {
 
 template <class T>
-class ShmList : public ShmObj {
+class ShmVector {
 public:
-	ShmList(Alloc& alloc, const std::string& name = "")
-		: ShmObj(ShmObj::ObjType::OBJ_LIST)
-		, m_alloc(alloc)
-		, m_name(alloc, name) {}
+	ShmVector(Alloc& alloc, size_t capacity = 0)
+		: m_alloc(alloc) {
+		m_capacity = m_alloc.GetExpectSize(capacity);
+		m_element = m_alloc.New<T>(m_capacity);
+		m_size = 0;
+	}
 
 	//
 	// 注意，析构函数里面不能调用clear()，需要使用者主动调用来回收共享内存
 	//
-	~ShmList() {}
+	~ShmVector() {}
 
-	std::list<T>& GetList() { return m_list; }
+	size_t size() const { return m_size; }
+	bool empty() { return m_size > 0; }
+	size_t capacity() const { return m_capacity; }
 
-	bool empty() { return m_list.empty(); }
-	size_t size() { return m_list.size(); }
-	void clear() { m_list.clear(); }
+	void clear(bool deep = false) {}
 
 private:
 	Alloc& m_alloc;
-	ShmString m_name;
-	std::list<T> m_list;
+	T* m_element;
+	size_t m_capacity;
+	size_t m_size;
 };
 
 } // namespace smd
