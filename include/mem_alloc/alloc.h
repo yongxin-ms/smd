@@ -12,7 +12,7 @@ public:
 
 	template <class T>
 	T* Malloc(size_t n = 1) {
-		return static_cast<T*>_Malloc(sizeof(T) * n);
+		return (T*)_Malloc(sizeof(T) * n);
 	}
 
 	template <class T>
@@ -24,9 +24,9 @@ public:
 	template <class T>
 	T* New(size_t n = 1) {
 		auto t = Malloc<T>(n);
-		for (int i = 0; i < n; i++) {
-			(t+i)->T();
-		}
+// 		for (int i = 0; i < n; i++) {
+// 			(t+i)->T();
+// 		}
 		return t;
 	}
 

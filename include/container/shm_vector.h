@@ -53,7 +53,8 @@ public:
 	}
 	void pop_back() {
 		--m_finish;
-		m_alloc.Delete(m_finish);
+		auto d = m_finish;
+		m_alloc.Delete(d);
 	}
 
 	void clear(bool deep = false) {
