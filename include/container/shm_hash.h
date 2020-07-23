@@ -54,12 +54,18 @@ public:
 	Key* operator->() { return &(operator*()); }
 
 private:
-	template <class Key, class ListIterator, class Hash, class KeyEqual, class Allocator>
-	friend bool operator==(const HashIterator<Key, ListIterator, Hash, KeyEqual, Allocator>& lhs,
-		const HashIterator<Key, ListIterator, Hash, KeyEqual, Allocator>& rhs);
-	template <class Key, class ListIterator, class Hash, class KeyEqual, class Allocator>
-	friend bool operator!=(const HashIterator<Key, ListIterator, Hash, KeyEqual, Allocator>& lhs,
-		const HashIterator<Key, ListIterator, Hash, KeyEqual, Allocator>& rhs);
+	template <class Key, class ListIterator>
+	friend bool operator==(
+		const HashIterator<Key, ListIterator>& lhs, const HashIterator<Key, ListIterator>& rhs) {
+		return lhs.bucket_index_ == rhs.bucket_index_ && lhs.iterator_ == rhs.iterator_ &&
+			   lhs.container_ == rhs.container_;
+	}
+
+	template <class Key, class ListIterator>
+	friend bool operator!=(
+		const HashIterator<Key, ListIterator>& lhs, const HashIterator<Key, ListIterator>& rhs) {
+		return !(lhs == rhs);
+	}
 };
 
 template <class Key>
