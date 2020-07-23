@@ -68,8 +68,8 @@ pair<T1, T2>& pair<T1, T2>::operator=(const pair<T1, T2>& pr) {
 
 template <class T1, class T2>
 void pair<T1, T2>::swap(pair<T1, T2>& pr) {
-	TinySTL::swap(first, pr.first);
-	TinySTL::swap(second, pr.second);
+	swap(first, pr.first);
+	swap(second, pr.second);
 }
 
 template <class T1, class T2>

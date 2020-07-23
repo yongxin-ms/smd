@@ -3,6 +3,7 @@
 #include "shm_string.h"
 #include "shm_list.h"
 #include "shm_vector.h"
+#include "pair.h"
 #include "../mem_alloc/alloc.h"
 
 namespace smd {
@@ -70,10 +71,12 @@ private:
 
 template <class Key>
 class ShmHash {
+public:
 	typedef size_t size_type;
 	typedef Key key_type;
+	typedef HashIterator<Key, typename ShmList<key_type>::iterator> iterator;
+	typedef typename ShmList<key_type>::iterator local_iterator;
 
-public:
 	ShmHash(Alloc& alloc, const std::string& name, size_t bucket_count)
 		: m_alloc(alloc)
 		, m_name(alloc, name)
@@ -95,20 +98,87 @@ public:
 	void rehash(size_type n) {
 		if (n <= m_buckets.size())
 			return;
-		ShmHash temp(m_alloc, m_name, next_prime(n));
+		ShmHash<Key> temp(m_alloc, m_name, next_prime(n));
 		for (auto& val : *this) {
 			temp.insert(val);
 		}
-		TinySTL::swap(*this, temp);
+		swap(*this, temp);
+	}
+
+	iterator begin() {
+		size_type index = 0;
+		for (; index != m_buckets.size(); ++index) {
+			if (!(m_buckets[index].empty()))
+				break;
+		}
+		if (index == m_buckets.size())
+			return end();
+		return iterator(index, m_buckets[index].begin(), this);
+	}
+
+	iterator end() {
+		return iterator(m_buckets.size() - 1, m_buckets[m_buckets.size() - 1].end(), this);
+	}
+
+	local_iterator begin(size_type i) { return m_buckets[i].begin(); }
+	local_iterator end(size_type i) { return m_buckets[i].end(); }
+
+	iterator find(const key_type& key) {
+		auto index = bucket_index(key);
+		for (auto it = begin(index); it != end(index); ++it) {
+			if (key_equal()(key, *it))
+				return iterator(index, it, this);
+		}
+		return end();
+	}
+
+	size_type count(const key_type& key) {
+		auto it = find(key);
+		return it == end() ? 0 : 1;
+	}
+
+	pair<iterator, bool> insert(const key_type& val) {
+		if (!has_key(val)) {
+			if (load_factor() > max_load_factor())
+				rehash(next_prime(size()));
+			auto index = bucket_index(val);
+			m_buckets[index].push_front(val);
+			++m_size;
+			return pair<iterator, bool>(iterator(index, m_buckets[index].begin(), this), true);
+		}
+		return pair<iterator, bool>(end(), false);
+	}
+
+	iterator erase(iterator position) {
+		--m_size;
+		auto t = position++;
+		auto index = t.bucket_index_;
+		auto it = m_buckets[index].erase(t.iterator_);
+		return position;
+	}
+
+	size_type erase(const key_type& key) {
+		auto it = find(key);
+		if (it == end()) {
+			return 0;
+		} else {
+			erase(it);
+			return 1;
+		}
 	}
 
 private:
 	size_type next_prime(size_type n) const { return m_primeUtil.NextPrime(n); }
-	size_type bucket_index(const key_type& key) const { return haser()(key) % buckets_.size(); }
+	size_type bucket_index(const key_type& key) const {
+		return std::hash<key_type>(key) % m_buckets.size();
+	}
 	bool has_key(const key_type& key) {
-		auto& list = buckets_[bucket_index(key)];
-		auto pred = std::bind(KeyEqual(), key, std::placeholders::_1);
-		return TinySTL::find_if(list.begin(), list.end(), pred) != list.end();
+		auto& list = m_buckets[bucket_index(key)];
+		for (auto it = list.begin(); it != list.end(); ++it) {
+			if (key == *it)
+				return true;
+		}
+		return false;
 	}
 
 private:

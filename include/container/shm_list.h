@@ -80,10 +80,10 @@ public:
 
 template <class T>
 class ShmList {
+public:
 	typedef ListNode<T>* nodePtr;
 	typedef ListIterator<T> iterator;
 
-public:
 	ShmList(Alloc& alloc, const std::string& name = "")
 		: m_alloc(alloc)
 		, m_name(alloc, name) {}
