@@ -19,7 +19,7 @@ struct RBTreeNode {
 	pair<K, V> _value;
 	COLOR _color;
 
-	RBTreeNode(Alloc& alloc, const K& key = K(), const V& value = V(), COLOR color = RED)
+	explicit RBTreeNode(Alloc& alloc, const K& key = K(), const V& value = V(), COLOR color = RED)
 		: _pLeft(NULL)
 		, _pRight(NULL)
 		, _pParent(NULL)
@@ -118,7 +118,7 @@ public:
 	typedef RBTreeIterator<K, V> Iterator;
 
 public:
-	RBTree(Alloc& alloc)
+	explicit RBTree(Alloc& alloc)
 		: ShmObj::ShmObj(alloc)
 		, _pHead(alloc.Malloc<Node>()) {}
 
@@ -130,7 +130,7 @@ public:
 		PNode newNode = NULL;
 		if (NULL == _pRoot) {
 			// newNode = _pRoot = new Node(value.first, value.second, BLACK);
-			auto p = m_alloc.New<Node>(value.first, value.second, BLACK);
+			auto p = m_alloc.New<Node>(m_alloc, value.first, value.second, BLACK);
 			newNode = _pRoot = p;
 			_pRoot->_pParent = _pHead;
 		} else {
@@ -148,7 +148,7 @@ public:
 			}
 
 			// newNode = pCur = new Node(value.first, value.second);
-			pCur = m_alloc.New<Node>(value.first, value.second);
+			pCur = m_alloc.New<Node>(m_alloc, value.first, value.second);
 			newNode = pCur;
 
 			if (value.first < pParent->_value.first)
@@ -337,7 +337,7 @@ public:
 	typedef pair<ShmString, V> valueType;
 	typename typedef RBTree<ShmString, V>::Iterator Iterator;
 
-	ShmMap(Alloc& alloc, const std::string& name = "")
+	explicit ShmMap(Alloc& alloc, const std::string& name = "")
 		: ShmObj(alloc)
 		, m_name(alloc, name)
 		, m_tree(alloc) {}

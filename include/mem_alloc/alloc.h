@@ -2,6 +2,7 @@
 #include "buddy.h"
 
 namespace smd {
+
 class Alloc {
 public:
 	Alloc(void* ptr, size_t off_set, unsigned level)
@@ -23,9 +24,9 @@ public:
 
 	template <class T, typename... P>
 	T* New(P&&... params) {
-		auto p = Malloc<T>();
-		p->T(std::forward<P>(params)...);
-		return p;
+		auto t = Malloc<T>();
+		::new (t) T(std::forward<P>(params)...);
+		return t;
 	}
 
 	template <class T>

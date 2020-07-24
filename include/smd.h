@@ -34,26 +34,26 @@ public:
 			(ShmMap<ShmHash<ShmString>>*)head->global_pointer[GLOBAL_POINTER_ALL_HASHES];
 
 		if (m_allStrings == nullptr) {
-// 			m_allStrings = m_alloc.New<ShmMap<ShmString>>(m_alloc);
-// 			memcpy(&head->global_pointer[GLOBAL_POINTER_ALL_STRINGS], m_allStrings,
-// 				sizeof(m_allStrings));
+			m_allStrings = m_alloc.New<ShmMap<ShmString>>(m_alloc);
+			memcpy(&head->global_pointer[GLOBAL_POINTER_ALL_STRINGS], m_allStrings,
+				sizeof(m_allStrings));
 		}
 
-// 		if (m_allLists == nullptr) {
-// 			m_allLists = m_alloc.New<ShmMap<ShmList<ShmString>>>(m_alloc);
-// 			memcpy(&head->global_pointer[GLOBAL_POINTER_ALL_LISTS], m_allLists, sizeof(m_allLists));
-// 		}
-// 
-// 		if (m_allMaps == nullptr) {
-// 			m_allMaps = m_alloc.New<ShmMap<ShmMap<ShmString>>>(m_alloc);
-// 			memcpy(&head->global_pointer[GLOBAL_POINTER_ALL_MAPS], m_allMaps, sizeof(m_allMaps));
-// 		}
-// 
-// 		if (m_allHashes == nullptr) {
-// 			m_allHashes = m_alloc.New<ShmMap<ShmHash<ShmString>>>(m_alloc);
-// 			memcpy(
-// 				&head->global_pointer[GLOBAL_POINTER_ALL_HASHES], m_allHashes, sizeof(m_allHashes));
-// 		}
+		if (m_allLists == nullptr) {
+			m_allLists = m_alloc.New<ShmMap<ShmList<ShmString>>>(m_alloc);
+			memcpy(&head->global_pointer[GLOBAL_POINTER_ALL_LISTS], m_allLists, sizeof(m_allLists));
+		}
+
+		if (m_allMaps == nullptr) {
+			m_allMaps = m_alloc.New<ShmMap<ShmMap<ShmString>>>(m_alloc);
+			memcpy(&head->global_pointer[GLOBAL_POINTER_ALL_MAPS], m_allMaps, sizeof(m_allMaps));
+		}
+
+		if (m_allHashes == nullptr) {
+			m_allHashes = m_alloc.New<ShmMap<ShmHash<ShmString>>>(m_alloc);
+			memcpy(
+				&head->global_pointer[GLOBAL_POINTER_ALL_HASHES], m_allHashes, sizeof(m_allHashes));
+		}
 	}
 
 	~Env() {}
