@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <string>
 #include "shm_string.h"
 #include "pair.h"
@@ -19,18 +19,12 @@ struct RBTreeNode {
 	pair<K, V> _value;
 	COLOR _color;
 
-	RBTreeNode()
+	RBTreeNode(Alloc& alloc, const K& key = K(), const V& value = V(), COLOR color = RED)
 		: _pLeft(NULL)
 		, _pRight(NULL)
 		, _pParent(NULL)
-		, _value(K(), V())
-		, _color(RED) {}
-
-	void Construct(Alloc* alloc, const K& key = K(), const V& value = V(), COLOR color = RED) {
-		_value.first.Construct(alloc, key);
-		_value.second.Construct(alloc, value);
-		_color = color;
-	}
+		, _value(key, value)
+		, _color(color) {}
 };
 
 template <class K, class V>

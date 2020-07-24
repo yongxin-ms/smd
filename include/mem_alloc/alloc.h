@@ -21,16 +21,16 @@ public:
 		p = nullptr;
 	}
 
-	template <typename T, typename... P>
+	template <class T, typename... P>
 	T* New(P&&... params) {
 		auto p = Malloc<T>();
-		//p->T(std::forward<P>(params)...);
+		p->T(std::forward<P>(params)...);
 		return p;
 	}
 
-	template <typename T>
+	template <class T>
 	void Delete(T* p) {
-		reinterpret_cast<T*>(p)->~T();
+		p->~T();
 		Free(p);
 	}
 
