@@ -14,7 +14,7 @@ public:
 		, m_size(0) {}
 
 	// 真正的构造函数
-	void Construct(Alloc* alloc, size_t capacity = 0) {
+	void Construct(Alloc* alloc, size_t capacity) {
 		ShmObj::Construct(alloc);
 		m_capacity = GetSuitableCapacity(capacity);
 		m_ptr = m_alloc->Malloc<char>(m_capacity);

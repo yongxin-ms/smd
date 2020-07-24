@@ -164,10 +164,15 @@ public:
 	}
 
 private:
-	nodePtr NewNode(const T& val = T()) { return m_alloc.New<T>(); }
+	nodePtr NewNode(const T& val = T()) {
+		auto p = m_alloc.Malloc()<T>();
+		p->Construct(m_alloc, val);
+		return p;
+	}
+
 	void DeleteNode(nodePtr p) {
 		p->prev = p->next = nullptr;
-		m_alloc.Delete(p);
+		m_alloc->Free(p);
 	}
 
 private:

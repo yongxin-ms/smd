@@ -81,9 +81,9 @@ public:
 		: m_size(0)
 		, m_max_load_factor(0) {}
 
-	void Construct(Alloc* alloc, const std::string& name, size_t bucket_count) {
+	void Construct(Alloc* alloc, const std::string& name = "", size_t bucket_count = 0) {
 		ShmObj::Construct(alloc);
-		m_name.Construct(name);
+		m_name.Construct(alloc, name);
 		m_buckets.Construct(alloc, bucket_count);
 	}
 

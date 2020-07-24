@@ -35,22 +35,24 @@ public:
 		if (m_allStrings == nullptr) {
 			m_allStrings = m_alloc.Malloc<ShmMap<ShmString>>();
 			m_allStrings->Construct(&m_alloc);
+			memcpy(&head->global_pointer[GLOBAL_POINTER_ALL_STRINGS], m_allStrings,
+				sizeof(m_allStrings));
 		}
 
-		if (m_allLists == nullptr) {
-			m_allLists = m_alloc.Malloc<ShmMap<ShmList<ShmString>>>();
-			m_allLists->Construct(&m_alloc);
-		}
+// 		if (m_allLists == nullptr) {
+// 			m_allLists = m_alloc.Malloc<ShmMap<ShmList<ShmString>>>();
+// 			m_allLists->Construct(&m_alloc);
+// 		}
 
-		if (m_allMaps == nullptr) {
-			m_allMaps = m_alloc.Malloc<ShmMap<ShmMap<ShmString>>>();
-			m_allMaps->Construct(&m_alloc);
-		}
+// 		if (m_allMaps == nullptr) {
+// 			m_allMaps = m_alloc.Malloc<ShmMap<ShmMap<ShmString>>>();
+// 			m_allMaps->Construct(&m_alloc);
+// 		}
 
-		if (m_allHashes == nullptr) {
-			m_allHashes = m_alloc.Malloc<ShmMap<ShmHash<ShmString>>>();
-			m_allHashes->Construct(&m_alloc);
-		}
+// 		if (m_allHashes == nullptr) {
+// 			m_allHashes = m_alloc.Malloc<ShmMap<ShmHash<ShmString>>>();
+// 			m_allHashes->Construct(&m_alloc);
+// 		}
 	}
 
 	~Env() {}

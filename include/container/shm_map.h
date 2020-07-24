@@ -26,7 +26,7 @@ struct RBTreeNode {
 		, _value(K(), V())
 		, _color(RED) {}
 
-	void Construct(Alloc* alloc, const K& key, const V& value, COLOR color = RED) {
+	void Construct(Alloc* alloc, const K& key = K(), const V& value = V(), COLOR color = RED) {
 		_value.first.Construct(alloc, key);
 		_value.second.Construct(alloc, value);
 		_color = color;
@@ -364,10 +364,10 @@ public:
 	bool empty() const { return m_tree.Empty(); }
 	size_t size() const { return m_tree.Size(); }
 
-	V& operator[](const ShmString& key) {
-		Iterator ret = m_tree.InsertUnique(pair<ShmString, V>(key, V())).first;
-		return (*ret).second;
-	}
+// 	V& operator[](const ShmString& key) {
+// 		Iterator ret = m_tree.InsertUnique(pair<ShmString, V>(key, V())).first;
+// 		return (*ret).second;
+// 	}
 
 	Iterator begin() { return m_tree.Begin(); }
 	Iterator end() { return m_tree.End(); }
