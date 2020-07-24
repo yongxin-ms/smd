@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <string>
 #include "shm_obj.h"
 #include "../common/utility.h"
@@ -7,7 +7,7 @@ namespace smd {
 
 class ShmString : public ShmObj {
 public:
-	ShmString(Alloc& alloc, size_t capacity)
+	ShmString(Alloc& alloc, size_t capacity = 0)
 		: ShmObj(alloc) {
 		m_capacity = GetSuitableCapacity(capacity);
 		m_ptr = m_alloc.Malloc<char>(m_capacity);
@@ -25,15 +25,15 @@ public:
 	}
 
 	// 真正的构造函数
-	// 	ShmString(Alloc& alloc, const ShmString& r)
-	// 		: ShmObj(alloc) {
-	// 		m_capacity = r.capacity();
-	// 		m_ptr = m_alloc.Malloc<char>(m_capacity);
-	//
-	// 		memcpy(data(), r.data(), r.size());
-	// 		*(data() + r.size()) = '\0';
-	// 		m_size = r.size();
-	// 	}
+	ShmString(Alloc& alloc, const ShmString& r)
+		: ShmObj(alloc) {
+		m_capacity = r.capacity();
+		m_ptr = m_alloc.Malloc<char>(m_capacity);
+
+		memcpy(data(), r.data(), r.size());
+		*(data() + r.size()) = '\0';
+		m_size = r.size();
+	}
 
 	//
 	// 注意，析构函数里面不能调用clear()，需要使用者主动调用来回收共享内存

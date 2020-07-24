@@ -19,7 +19,8 @@ struct RBTreeNode {
 	pair<K, V> _value;
 	COLOR _color;
 
-	explicit RBTreeNode(Alloc& alloc, const K& key = K(), const V& value = V(), COLOR color = RED)
+	explicit RBTreeNode(
+		Alloc& alloc, const K& key, const V& value, COLOR color = RED)
 		: _pLeft(NULL)
 		, _pRight(NULL)
 		, _pParent(NULL)
@@ -119,8 +120,9 @@ public:
 
 public:
 	explicit RBTree(Alloc& alloc)
-		: ShmObj::ShmObj(alloc)
-		, _pHead(alloc.Malloc<Node>()) {}
+		: ShmObj::ShmObj(alloc) {
+		_pHead = alloc.New<Node>(alloc, K(alloc), V(alloc));
+	}
 
 	Iterator Begin() { return Iterator(_pHead->_pLeft); }
 	Iterator End() { return Iterator(_pHead); }
