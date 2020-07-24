@@ -1,7 +1,6 @@
-﻿#pragma once
+#pragma once
 #include <string>
 #include "shm_obj.h"
-#include "../mem_alloc/alloc.h"
 
 namespace smd {
 
@@ -13,16 +12,10 @@ class ShmVector : public ShmObj {
 	typedef iterator pointer;
 
 public:
-	ShmVector()
-		: m_start(nullptr)
-		, m_finish(nullptr)
-		, m_endOfStorage(nullptr) {}
-
-	// 真正的构造函数
-	void Construct(Alloc* alloc, size_t capacity = 0) {
-		ShmObj::Construct(alloc);
+	ShmVector(Alloc& alloc, size_t capacity = 0)
+		: ShmObj::ShmObj(alloc) {
 		capacity = GetSuitableCapacity(capacity);
-		m_start = m_alloc->Malloc<T>(capacity);
+		m_start = m_alloc.Malloc<T>(capacity);
 		m_finish = m_start;
 		m_endOfStorage = m_start + capacity;
 	}
@@ -48,7 +41,7 @@ public:
 			++m_finish;
 		} else {
 			auto new_capacity = GetSuitableCapacity(capacity() * 2);
-			auto new_start = m_alloc->Malloc<T>(new_capacity);
+			auto new_start = m_alloc.Malloc<T>(new_capacity);
 			auto size = size();
 			memcpy(new_start, m_start, sizeof(T) * size);
 			m_start = new_start;
@@ -61,7 +54,7 @@ public:
 	void pop_back() {
 		--m_finish;
 		auto d = m_finish;
-		m_alloc->Free(d);
+		m_alloc.Free(d);
 	}
 
 	void clear(bool deep = false) {
@@ -70,7 +63,7 @@ public:
 		}
 
 		if (deep) {
-			m_alloc->Free(m_start, capacity());
+			m_alloc.Free(m_start, capacity());
 			m_finish = m_start;
 			m_endOfStorage = m_start;
 		}

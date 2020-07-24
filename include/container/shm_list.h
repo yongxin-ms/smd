@@ -1,9 +1,7 @@
-﻿#pragma once
+#pragma once
 #include <string>
-#include <list>
 #include "shm_string.h"
 #include "shm_obj.h"
-#include "../mem_alloc/alloc.h"
 
 namespace smd {
 
@@ -79,19 +77,16 @@ public:
 };
 
 template <class T>
-class ShmList : public ShmObj{
+class ShmList : public ShmObj {
 public:
 	typedef ListNode<T>* nodePtr;
 	typedef ListIterator<T> iterator;
 
-	ShmList()
-		: m_head(nullptr)
+	ShmList(Alloc& alloc, const std::string& name = "")
+		: ShmObj(alloc)
+		, m_name(alloc, name)
+		, m_head(nullptr)
 		, m_tail(nullptr) {}
-
-	void Construct(Alloc* alloc, const std::string& name = "") {
-		ShmObj::Construct(alloc);
-		m_name.Construct(alloc, name);
-	}
 
 	//
 	// 注意，析构函数里面不能调用clear()，需要使用者主动调用来回收共享内存
@@ -165,19 +160,17 @@ public:
 
 private:
 	nodePtr NewNode(const T& val = T()) {
-		auto p = m_alloc.Malloc()<T>();
-		p->Construct(m_alloc, val);
+		auto p = m_alloc.New<T>();
 		return p;
 	}
 
 	void DeleteNode(nodePtr p) {
 		p->prev = p->next = nullptr;
-		m_alloc->Free(p);
+		m_alloc->Delete(p);
 	}
 
 private:
 	ShmString m_name;
-
 	nodePtr m_head;
 	nodePtr m_tail;
 };

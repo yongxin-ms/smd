@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "buddy.h"
 
 namespace smd {
@@ -19,6 +19,19 @@ public:
 	void Free(T*& p, size_t n = 1) {
 		_Free(p, sizeof(T) * n);
 		p = nullptr;
+	}
+
+	template <typename T, typename... P>
+	T* New(P&&... params) {
+		auto p = Malloc<T>();
+		p->T(std::forward<P>(params)...);
+		return p;
+	}
+
+	template <typename T>
+	void Delete(T* p) {
+		reinterpret_cast<T*>(p)->~T();
+		Free(p);
 	}
 
 	size_t GetUsed() const { return m_used; }

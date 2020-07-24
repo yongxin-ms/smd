@@ -1,8 +1,8 @@
-﻿#pragma once
+#pragma once
 #include <string>
 #include "shm_string.h"
 #include "pair.h"
-#include "../mem_alloc/alloc.h"
+#include "shm_obj.h"
 
 namespace smd {
 
@@ -124,14 +124,9 @@ public:
 	typedef RBTreeIterator<K, V> Iterator;
 
 public:
-	RBTree()
-		: _pHead(nullptr) {}
-
-	void Construct(Alloc* alloc) {
-		ShmObj::Construct(alloc);
-		_pHead = alloc->Malloc<Node>();
-		_pHead->Construct(alloc);
-	}
+	RBTree(Alloc& alloc)
+		: ShmObj::ShmObj(alloc)
+		, _pHead(alloc.Malloc<Node>()) {}
 
 	Iterator Begin() { return Iterator(_pHead->_pLeft); }
 	Iterator End() { return Iterator(_pHead); }
@@ -140,10 +135,8 @@ public:
 		PNode& _pRoot = GetRoot();
 		PNode newNode = NULL;
 		if (NULL == _pRoot) {
-			//newNode = _pRoot = new Node(value.first, value.second, BLACK);
-			auto p = m_alloc->Malloc<Node>();
-			p->Construct(m_alloc, value.first, value.second, BLACK);
-
+			// newNode = _pRoot = new Node(value.first, value.second, BLACK);
+			auto p = m_alloc.New<Node>(value.first, value.second, BLACK);
 			newNode = _pRoot = p;
 			_pRoot->_pParent = _pHead;
 		} else {
@@ -160,9 +153,8 @@ public:
 					return pair<Iterator, bool>(Iterator(pCur), false);
 			}
 
-			//newNode = pCur = new Node(value.first, value.second);
-			pCur = m_alloc->Malloc<Node>();
-			pCur->Construct(m_alloc, value.first, value.second);
+			// newNode = pCur = new Node(value.first, value.second);
+			pCur = m_alloc.New<Node>(value.first, value.second);
 			newNode = pCur;
 
 			if (value.first < pParent->_value.first)
@@ -351,23 +343,19 @@ public:
 	typedef pair<ShmString, V> valueType;
 	typename typedef RBTree<ShmString, V>::Iterator Iterator;
 
-	ShmMap() {}
-
-	// 真正的构造函数
-	void Construct(Alloc* alloc, const std::string& name = "") {
-		ShmObj::Construct(alloc);
-		m_name.Construct(alloc, name);
-		m_tree.Construct(alloc);
-	}
+	ShmMap(Alloc& alloc, const std::string& name = "")
+		: ShmObj(alloc)
+		, m_name(alloc, name)
+		, m_tree(alloc) {}
 
 	pair<Iterator, bool> insert(const valueType& v) { return m_tree.InsertUnique(v); }
 	bool empty() const { return m_tree.Empty(); }
 	size_t size() const { return m_tree.Size(); }
 
-// 	V& operator[](const ShmString& key) {
-// 		Iterator ret = m_tree.InsertUnique(pair<ShmString, V>(key, V())).first;
-// 		return (*ret).second;
-// 	}
+	// 	V& operator[](const ShmString& key) {
+	// 		Iterator ret = m_tree.InsertUnique(pair<ShmString, V>(key, V())).first;
+	// 		return (*ret).second;
+	// 	}
 
 	Iterator begin() { return m_tree.Begin(); }
 	Iterator end() { return m_tree.End(); }

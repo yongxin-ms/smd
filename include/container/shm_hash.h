@@ -1,10 +1,9 @@
-﻿#pragma once
+#pragma once
 #include <string>
 #include "shm_string.h"
 #include "shm_list.h"
 #include "shm_vector.h"
 #include "pair.h"
-#include "../mem_alloc/alloc.h"
 
 namespace smd {
 
@@ -70,22 +69,19 @@ private:
 };
 
 template <class Key>
-class ShmHash : public ShmObj{
+class ShmHash : public ShmObj {
 public:
 	typedef size_t size_type;
 	typedef Key key_type;
 	typedef HashIterator<Key, typename ShmList<key_type>::iterator> iterator;
 	typedef typename ShmList<key_type>::iterator local_iterator;
 
-	ShmHash()
-		: m_size(0)
+	ShmHash(Alloc& alloc, const std::string& name = "", size_t bucket_count = 0)
+		: ShmObj(alloc)
+		, m_name(alloc, name)
+		, m_buckets(alloc, bucket_count)
+		, m_size(0)
 		, m_max_load_factor(0) {}
-
-	void Construct(Alloc* alloc, const std::string& name = "", size_t bucket_count = 0) {
-		ShmObj::Construct(alloc);
-		m_name.Construct(alloc, name);
-		m_buckets.Construct(alloc, bucket_count);
-	}
 
 	//
 	// 注意，析构函数里面不能调用clear()，需要使用者主动调用来回收共享内存
