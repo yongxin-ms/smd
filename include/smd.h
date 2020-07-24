@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <string>
 #include <map>
 #include <list>
@@ -27,30 +27,30 @@ public:
 		auto head = GetHead();
 		head->visit_num++;
 
-		m_allStrings = (ShmMap<ShmString*>*)head->global_pointer[GLOBAL_POINTER_ALL_STRINGS];
-		m_allLists = (ShmMap<ShmList<ShmString*>*>*)head->global_pointer[GLOBAL_POINTER_ALL_LISTS];
-		m_allMaps = (ShmMap<ShmMap<ShmString*>*>*)head->global_pointer[GLOBAL_POINTER_ALL_MAPS];
+		m_allStrings = (ShmMap<ShmString>*)head->global_pointer[GLOBAL_POINTER_ALL_STRINGS];
+		m_allLists = (ShmMap<ShmList<ShmString>>*)head->global_pointer[GLOBAL_POINTER_ALL_LISTS];
+		m_allMaps = (ShmMap<ShmMap<ShmString>>*)head->global_pointer[GLOBAL_POINTER_ALL_MAPS];
 		m_allHashes =
-			(ShmMap<ShmHash<ShmString*>*>*)head->global_pointer[GLOBAL_POINTER_ALL_HASHES];
+			(ShmMap<ShmHash<ShmString>>*)head->global_pointer[GLOBAL_POINTER_ALL_HASHES];
 
 		if (m_allStrings == nullptr) {
-			m_allStrings = m_alloc.New<ShmMap<ShmString*>>(m_alloc);
+			m_allStrings = m_alloc.New<ShmMap<ShmString>>(m_alloc);
 			memcpy(&head->global_pointer[GLOBAL_POINTER_ALL_STRINGS], m_allStrings,
 				sizeof(m_allStrings));
 		}
 
 		if (m_allLists == nullptr) {
-			m_allLists = m_alloc.New<ShmMap<ShmList<ShmString*>*>>(m_alloc);
+			m_allLists = m_alloc.New<ShmMap<ShmList<ShmString>>>(m_alloc);
 			memcpy(&head->global_pointer[GLOBAL_POINTER_ALL_LISTS], m_allLists, sizeof(m_allLists));
 		}
 
 		if (m_allMaps == nullptr) {
-			m_allMaps = m_alloc.New<ShmMap<ShmMap<ShmString*>*>>(m_alloc);
+			m_allMaps = m_alloc.New<ShmMap<ShmMap<ShmString>>>(m_alloc);
 			memcpy(&head->global_pointer[GLOBAL_POINTER_ALL_MAPS], m_allMaps, sizeof(m_allMaps));
 		}
 
 		if (m_allHashes == nullptr) {
-			m_allHashes = m_alloc.New<ShmMap<ShmHash<ShmString*>*>>(m_alloc);
+			m_allHashes = m_alloc.New<ShmMap<ShmHash<ShmString>>>(m_alloc);
 			memcpy(
 				&head->global_pointer[GLOBAL_POINTER_ALL_HASHES], m_allHashes, sizeof(m_allHashes));
 		}
@@ -65,10 +65,10 @@ public:
 		ShmString strKey(m_alloc, key.ToString());
 		auto it = m_allStrings->find(strKey);
 		if (it == m_allStrings->end()) {
-			ShmString* strValue = m_alloc.New<ShmString>(m_alloc, value.ToString());
+			ShmString strValue(m_alloc, value.ToString());
 			m_allStrings->insert(make_pair(strKey, strValue));
 		} else {
-			*it->second = value.ToString();
+			it->second = value.ToString();
 			strKey.clear(true);
 		}
 	}
@@ -82,7 +82,7 @@ public:
 		} else {
 			if (value != nullptr) {
 				const auto& strValue = it->second;
-				*value = Slice(strValue->data(), strValue->size());
+				*value = Slice(strValue.data(), strValue.size());
 			}
 
 			strKey.clear(true);
@@ -100,7 +100,7 @@ public:
 
 		ShmString strOriKey = it->first;
 		strOriKey.clear(true);
-		ShmString& strValue = *it->second;
+		ShmString& strValue = it->second;
 		strValue.clear(true);
 
 		it = m_allStrings->erase(it);
@@ -119,10 +119,10 @@ private:
 	Alloc m_alloc;
 	void* m_ptr;
 
-	ShmMap<ShmString*>* m_allStrings;
-	ShmMap<ShmList<ShmString*>*>* m_allLists;
-	ShmMap<ShmMap<ShmString*>*>* m_allMaps;
-	ShmMap<ShmHash<ShmString*>*>* m_allHashes;
+	ShmMap<ShmString>* m_allStrings;
+	ShmMap<ShmList<ShmString>>* m_allLists;
+	ShmMap<ShmMap<ShmString>>* m_allMaps;
+	ShmMap<ShmHash<ShmString>>* m_allHashes;
 };
 
 class EnvMgr {

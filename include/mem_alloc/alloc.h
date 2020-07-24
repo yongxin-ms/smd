@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "buddy.h"
 
 namespace smd {
@@ -24,7 +24,7 @@ public:
 	template <typename T, typename... P>
 	T* New(P&&... params) {
 		auto p = Malloc<T>();
-		p->T(std::forward<P>(params)...);
+		//p->T(std::forward<P>(params)...);
 		return p;
 	}
 
