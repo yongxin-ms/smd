@@ -70,17 +70,22 @@ private:
 };
 
 template <class Key>
-class ShmHash {
+class ShmHash : public ShmObj{
 public:
 	typedef size_t size_type;
 	typedef Key key_type;
 	typedef HashIterator<Key, typename ShmList<key_type>::iterator> iterator;
 	typedef typename ShmList<key_type>::iterator local_iterator;
 
-	ShmHash(Alloc& alloc, const std::string& name, size_t bucket_count)
-		: m_alloc(alloc)
-		, m_name(alloc, name)
-		, m_buckets(alloc) {}
+	ShmHash()
+		: m_size(0)
+		, m_max_load_factor(0) {}
+
+	void Construct(Alloc* alloc, const std::string& name, size_t bucket_count) {
+		ShmObj::Construct(alloc);
+		m_name.Construct(name);
+		m_buckets.Construct(alloc, bucket_count);
+	}
 
 	//
 	// 注意，析构函数里面不能调用clear()，需要使用者主动调用来回收共享内存
@@ -182,7 +187,6 @@ private:
 	}
 
 private:
-	Alloc& m_alloc;
 	ShmString m_name;
 
 	ShmVector<ShmList<Key>> m_buckets;

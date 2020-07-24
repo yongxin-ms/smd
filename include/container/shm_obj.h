@@ -1,35 +1,17 @@
 ﻿#pragma once
-#include <string>
-#include "../common/shm_defines.h"
+#include "../mem_alloc/alloc.h"
 
 namespace smd {
 
 class ShmObj {
 public:
-	enum class ObjType {
-		OBJ_STRING,
-		OBJ_LIST,
-		OBJ_HASH,
-		OBJ_MAP,
-	};
+	ShmObj()
+		: m_alloc(nullptr) {}
 
-	ShmObj(ObjType type)
-		: m_type(type) {
-		m_ptr = nullptr;
-		m_capacity = 0;
-		m_size = 0;
-	}
-
-	char* data() { return (char*)m_ptr; }
-	const char* data() const { return (const char*)m_ptr; }
-	size_t size() const { return m_size; }
-	bool empty() { return m_size > 0; }
-	size_t capacity() const { return m_capacity; }
+	// 真正的构造函数
+	void Construct(Alloc* alloc) { m_alloc = alloc; }
 
 protected:
-	ObjType m_type;
-	void* m_ptr; //在共享内存中的地址，可作为唯一id
-	size_t m_capacity;
-	size_t m_size;
+	Alloc* m_alloc;
 };
 } // namespace smd

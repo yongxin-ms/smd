@@ -79,14 +79,19 @@ public:
 };
 
 template <class T>
-class ShmList {
+class ShmList : public ShmObj{
 public:
 	typedef ListNode<T>* nodePtr;
 	typedef ListIterator<T> iterator;
 
-	ShmList(Alloc& alloc, const std::string& name = "")
-		: m_alloc(alloc)
-		, m_name(alloc, name) {}
+	ShmList()
+		: m_head(nullptr)
+		, m_tail(nullptr) {}
+
+	void Construct(Alloc* alloc, const std::string& name = "") {
+		ShmObj::Construct(alloc);
+		m_name.Construct(alloc, name);
+	}
 
 	//
 	// 注意，析构函数里面不能调用clear()，需要使用者主动调用来回收共享内存
@@ -166,7 +171,6 @@ private:
 	}
 
 private:
-	Alloc& m_alloc;
 	ShmString m_name;
 
 	nodePtr m_head;

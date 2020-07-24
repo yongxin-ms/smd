@@ -1,23 +1,30 @@
 ﻿#pragma once
 #include <string>
+#include "shm_obj.h"
 #include "../mem_alloc/alloc.h"
 
 namespace smd {
 
 template <class T>
-class ShmVector {
+class ShmVector : public ShmObj {
 	typedef T value_type;
 	typedef T* iterator;
 	typedef T& reference;
 	typedef iterator pointer;
 
 public:
-	ShmVector(Alloc& alloc, size_t capacity = 0)
-		: m_alloc(alloc) {
-		m_capacity = GetSuitableCapacity(capacity);
-		m_start = m_alloc.New<T>(m_capacity);
+	ShmVector()
+		: m_start(nullptr)
+		, m_finish(nullptr)
+		, m_endOfStorage(nullptr) {}
+
+	// 真正的构造函数
+	void Construct(Alloc* alloc, size_t capacity = 0) {
+		ShmObj::Construct(alloc);
+		capacity = GetSuitableCapacity(capacity);
+		m_start = m_alloc->Malloc<T>(capacity);
 		m_finish = m_start;
-		m_endOfStorage = m_start + m_capacity;
+		m_endOfStorage = m_start + capacity;
 	}
 
 	//
@@ -41,7 +48,7 @@ public:
 			++m_finish;
 		} else {
 			auto new_capacity = GetSuitableCapacity(capacity() * 2);
-			auto new_start = m_alloc.Malloc<T>(new_capacity);
+			auto new_start = m_alloc->Malloc<T>(new_capacity);
 			auto size = size();
 			memcpy(new_start, m_start, sizeof(T) * size);
 			m_start = new_start;
@@ -54,7 +61,7 @@ public:
 	void pop_back() {
 		--m_finish;
 		auto d = m_finish;
-		m_alloc.Delete(d);
+		m_alloc->Free(d);
 	}
 
 	void clear(bool deep = false) {
@@ -63,7 +70,7 @@ public:
 		}
 
 		if (deep) {
-			m_alloc.Delete(m_start, capacity());
+			m_alloc->Free(m_start, capacity());
 			m_finish = m_start;
 			m_endOfStorage = m_start;
 		}
@@ -85,7 +92,6 @@ private:
 	}
 
 private:
-	Alloc& m_alloc;
 	T* m_start;
 	T* m_finish;
 	T* m_endOfStorage;

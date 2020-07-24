@@ -9,6 +9,9 @@ namespace smd {
 enum COLOR { RED, BLACK };
 
 template <class K, class V>
+class RBTree;
+
+template <class K, class V>
 struct RBTreeNode {
 	RBTreeNode<K, V>* _pLeft;
 	RBTreeNode<K, V>* _pRight;
@@ -16,12 +19,18 @@ struct RBTreeNode {
 	pair<K, V> _value;
 	COLOR _color;
 
-	RBTreeNode(const K& key = K(), const V& value = V(), COLOR color = RED)
+	RBTreeNode()
 		: _pLeft(NULL)
 		, _pRight(NULL)
 		, _pParent(NULL)
-		, _value(key, value)
-		, _color(color) {}
+		, _value(K(), V())
+		, _color(RED) {}
+
+	void Construct(Alloc* alloc, const K& key, const V& value, COLOR color = RED) {
+		_value.first.Construct(alloc, key);
+		_value.second.Construct(alloc, value);
+		_color = color;
+	}
 };
 
 template <class K, class V>
@@ -107,8 +116,7 @@ private:
 };
 
 template <class K, class V>
-class RBTree {
-	// typedef RBTreeIterator<K, V> Iterator;
+class RBTree : public ShmObj {
 	typedef RBTreeNode<K, V> Node;
 	typedef Node* PNode;
 
@@ -117,7 +125,14 @@ public:
 
 public:
 	RBTree()
-		: _pHead(new Node) {}
+		: _pHead(nullptr) {}
+
+	void Construct(Alloc* alloc) {
+		ShmObj::Construct(alloc);
+		_pHead = alloc->Malloc<Node>();
+		_pHead->Construct(alloc);
+	}
+
 	Iterator Begin() { return Iterator(_pHead->_pLeft); }
 	Iterator End() { return Iterator(_pHead); }
 	PNode& GetRoot() { return _pHead->_pParent; }
@@ -125,7 +140,11 @@ public:
 		PNode& _pRoot = GetRoot();
 		PNode newNode = NULL;
 		if (NULL == _pRoot) {
-			newNode = _pRoot = new Node(value.first, value.second, BLACK);
+			//newNode = _pRoot = new Node(value.first, value.second, BLACK);
+			auto p = m_alloc->Malloc<Node>();
+			p->Construct(m_alloc, value.first, value.second, BLACK);
+
+			newNode = _pRoot = p;
 			_pRoot->_pParent = _pHead;
 		} else {
 			PNode pCur = _pRoot;
@@ -140,7 +159,12 @@ public:
 				} else
 					return pair<Iterator, bool>(Iterator(pCur), false);
 			}
-			newNode = pCur = new Node(value.first, value.second);
+
+			//newNode = pCur = new Node(value.first, value.second);
+			pCur = m_alloc->Malloc<Node>();
+			pCur->Construct(m_alloc, value.first, value.second);
+			newNode = pCur;
+
 			if (value.first < pParent->_value.first)
 				pParent->_pLeft = pCur;
 			else
@@ -251,6 +275,7 @@ private:
 				pPParent->_pRight = pSubR;
 		}
 	}
+
 	void rotateR(PNode pParent) {
 		PNode pSubL = pParent->_pLeft;
 		PNode pSubLR = pSubL->_pRight;
@@ -270,6 +295,7 @@ private:
 				pPParent->_pRight = pSubL;
 		}
 	}
+
 	void _InOrder(PNode pRoot) {
 		if (pRoot) {
 			_InOrder(pRoot->_pLeft);
@@ -320,32 +346,37 @@ private:
 };
 
 template <class V>
-class ShmMap {
+class ShmMap : public ShmObj {
 public:
 	typedef pair<ShmString, V> valueType;
 	typename typedef RBTree<ShmString, V>::Iterator Iterator;
 
-	ShmMap(Alloc& alloc, const std::string& name = "")
-		: ShmObj(ShmObj::ObjType::OBJ_MAP)
-		, m_alloc(alloc)
-		, m_name(alloc, name) {}
+	ShmMap() {}
 
-	pair<Iterator, bool> insert(const valueType& v) { return _t.InsertUnique(v); }
-	bool empty() const { return _t.Empty(); }
-	size_t size() const { return _t.Size(); }
+	// 真正的构造函数
+	void Construct(Alloc* alloc, const std::string& name = "") {
+		ShmObj::Construct(alloc);
+		m_name.Construct(alloc, name);
+		m_tree.Construct(alloc);
+	}
+
+	pair<Iterator, bool> insert(const valueType& v) { return m_tree.InsertUnique(v); }
+	bool empty() const { return m_tree.Empty(); }
+	size_t size() const { return m_tree.Size(); }
 
 	V& operator[](const ShmString& key) {
-		Iterator ret = _t.InsertUnique(pair<ShmString, V>(key, V())).first;
+		Iterator ret = m_tree.InsertUnique(pair<ShmString, V>(key, V())).first;
 		return (*ret).second;
 	}
 
-	Iterator begin() { return _t.Begin(); }
-	Iterator end() { return _t.End(); }
+	Iterator begin() { return m_tree.Begin(); }
+	Iterator end() { return m_tree.End(); }
+	Iterator find(const ShmString& key) { return m_tree.End(); }
+	Iterator erase(Iterator it) { return m_tree.End(); }
 
 private:
-	Alloc& m_alloc;
 	ShmString m_name;
-	RBTree<ShmString, V> _t;
+	RBTree<ShmString, V> m_tree;
 };
 
 } // namespace smd

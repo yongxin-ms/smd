@@ -12,6 +12,14 @@ enum {
 	MAGIC_NUM = 0x12345678,
 };
 
+enum GLOBAL_POINTER {
+	GLOBAL_POINTER_ALL_STRINGS = 0,
+	GLOBAL_POINTER_ALL_LISTS,
+	GLOBAL_POINTER_ALL_MAPS,
+	GLOBAL_POINTER_ALL_HASHES,
+	GLOBAL_POINTER_MAX,
+};
+
 struct ShmHead {
 	ShmHead() {
 		memset(guid, 0, sizeof(guid));
@@ -27,6 +35,7 @@ struct ShmHead {
 	time_t create_time;
 	uint32_t visit_num;
 	uint32_t magic_num;
+	uint64_t global_pointer[GLOBAL_POINTER_MAX];
 	char reserve[256];
 };
 

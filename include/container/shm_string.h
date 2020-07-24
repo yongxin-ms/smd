@@ -1,23 +1,42 @@
 ﻿#pragma once
 #include <string>
+#include "shm_obj.h"
 #include "../mem_alloc/alloc.h"
 #include "../common/utility.h"
 
 namespace smd {
 
-class ShmString {
+class ShmString : public ShmObj {
 public:
-	ShmString(Alloc& alloc, size_t capacity = 0)
-		: m_alloc(alloc) {
+	ShmString()
+		: m_ptr(nullptr)
+		, m_capacity(0)
+		, m_size(0) {}
+
+	// 真正的构造函数
+	void Construct(Alloc* alloc, size_t capacity = 0) {
+		ShmObj::Construct(alloc);
 		m_capacity = GetSuitableCapacity(capacity);
-		m_ptr = m_alloc.New<char>(m_capacity);
+		m_ptr = m_alloc->Malloc<char>(m_capacity);
 		m_size = 0;
 	}
 
-	ShmString(Alloc& alloc, const std::string& r)
-		: m_alloc(alloc) {
+	// 真正的构造函数
+	void Construct(Alloc* alloc, const std::string& r) {
+		ShmObj::Construct(alloc);
 		m_capacity = GetSuitableCapacity(r.size() + 1);
-		m_ptr = m_alloc.New<char>(m_capacity);
+		m_ptr = m_alloc->Malloc<char>(m_capacity);
+
+		memcpy(data(), r.data(), r.size());
+		*(data() + r.size()) = '\0';
+		m_size = r.size();
+	}
+
+	// 真正的构造函数
+	void Construct(Alloc* alloc, const ShmString& r) {
+		ShmObj::Construct(alloc);
+		m_capacity = r.capacity();
+		m_ptr = m_alloc->Malloc<char>(m_capacity);
 
 		memcpy(data(), r.data(), r.size());
 		*(data() + r.size()) = '\0';
@@ -46,7 +65,7 @@ public:
 		clear(true);
 
 		m_capacity = GetSuitableCapacity(r.size() + 1);
-		m_ptr = m_alloc.New<char>(m_capacity);
+		m_ptr = m_alloc->Malloc<char>(m_capacity);
 
 		memcpy(data(), r.data(), r.size());
 		*(data() + r.size()) = '\0';
@@ -69,8 +88,7 @@ public:
 
 	void clear(bool deep = false) {
 		if (deep && m_ptr != nullptr) {
-			m_alloc.Delete(m_ptr, m_capacity);
-			m_ptr = nullptr;
+			m_alloc->Free(m_ptr, m_capacity);
 			m_capacity = 0;
 		}
 
@@ -91,7 +109,6 @@ private:
 	}
 
 private:
-	Alloc& m_alloc;
 	char* m_ptr;
 	size_t m_capacity;
 	size_t m_size;
@@ -104,5 +121,6 @@ inline bool operator==(const ShmString& x, const ShmString& y) {
 inline bool operator!=(const ShmString& x, const ShmString& y) { return !(x == y); }
 
 inline bool operator<(const ShmString& x, const ShmString& y) { return x.compare(y) < 0; }
+inline bool operator>(const ShmString& x, const ShmString& y) { return x.compare(y) > 0; }
 
 } // namespace smd

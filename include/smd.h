@@ -23,13 +23,34 @@ public:
 	Env(Log& log, void* ptr, unsigned level)
 		: m_log(log)
 		, m_alloc(ptr, sizeof(ShmHead), level)
-		, m_ptr(ptr)
-		, m_allStrings(m_alloc)
-		, m_allLists(m_alloc)
-		, m_allMaps(m_alloc)
-		, m_allHashes(m_alloc) {
+		, m_ptr(ptr) {
 		auto head = GetHead();
 		head->visit_num++;
+
+		m_allStrings = (ShmMap<ShmString>*)head->global_pointer[GLOBAL_POINTER_ALL_STRINGS];
+		m_allLists = (ShmMap<ShmList<ShmString>>*)head->global_pointer[GLOBAL_POINTER_ALL_LISTS];
+		m_allMaps = (ShmMap<ShmMap<ShmString>>*)head->global_pointer[GLOBAL_POINTER_ALL_MAPS];
+		m_allHashes = (ShmMap<ShmHash<ShmString>>*)head->global_pointer[GLOBAL_POINTER_ALL_HASHES];
+
+		if (m_allStrings == nullptr) {
+			m_allStrings = m_alloc.Malloc<ShmMap<ShmString>>();
+			m_allStrings->Construct(&m_alloc);
+		}
+
+		if (m_allLists == nullptr) {
+			m_allLists = m_alloc.Malloc<ShmMap<ShmList<ShmString>>>();
+			m_allLists->Construct(&m_alloc);
+		}
+
+		if (m_allMaps == nullptr) {
+			m_allMaps = m_alloc.Malloc<ShmMap<ShmMap<ShmString>>>();
+			m_allMaps->Construct(&m_alloc);
+		}
+
+		if (m_allHashes == nullptr) {
+			m_allHashes = m_alloc.Malloc<ShmMap<ShmHash<ShmString>>>();
+			m_allHashes->Construct(&m_alloc);
+		}
 	}
 
 	~Env() {}
@@ -40,11 +61,13 @@ public:
 
 	//字符串
 	void SSet(const Slice& key, const Slice& value) {
-		ShmString strKey(m_alloc, key.ToString());
-		auto it = m_allStrings.GetMap().find(strKey);
-		if (it == m_allStrings.GetMap().end()) {
-			ShmString strValue(m_alloc, value.ToString());
-			m_allStrings.GetMap().insert(std::make_pair(strKey, strValue));
+		ShmString strKey;
+		strKey.Construct(&m_alloc, key.ToString());
+		auto it = m_allStrings->find(strKey);
+		if (it == m_allStrings->end()) {
+			ShmString strValue;
+			strValue.Construct(&m_alloc, value.ToString());
+			m_allStrings->insert(make_pair(strKey, strValue));
 		} else {
 			it->second = value.ToString();
 			strKey.clear(true);
@@ -52,9 +75,10 @@ public:
 	}
 
 	bool SGet(const Slice& key, Slice* value) {
-		ShmString strKey(m_alloc, key.ToString());
-		auto it = m_allStrings.GetMap().find(strKey);
-		if (it == m_allStrings.GetMap().end()) {
+		ShmString strKey;
+		strKey.Construct(&m_alloc, key.ToString());
+		auto it = m_allStrings->find(strKey);
+		if (it == m_allStrings->end()) {
 			strKey.clear(true);
 			return false;
 		} else {
@@ -69,9 +93,10 @@ public:
 	}
 
 	bool SDel(const Slice& key) {
-		ShmString strKey(m_alloc, key.ToString());
-		auto it = m_allStrings.GetMap().find(strKey);
-		if (it == m_allStrings.GetMap().end()) {
+		ShmString strKey;
+		strKey.Construct(&m_alloc, key.ToString());
+		auto it = m_allStrings->find(strKey);
+		if (it == m_allStrings->end()) {
 			strKey.clear(true);
 			return false;
 		}
@@ -81,7 +106,7 @@ public:
 		ShmString& strValue = it->second;
 		strValue.clear(true);
 
-		it = m_allStrings.GetMap().erase(it);
+		it = m_allStrings->erase(it);
 		strKey.clear(true);
 
 		return true;
@@ -98,10 +123,10 @@ private:
 	Alloc m_alloc;
 	void* m_ptr;
 
-	ShmMap<ShmString> m_allStrings;
-	ShmMap<ShmList<ShmString>> m_allLists;
-	ShmMap<ShmMap<ShmString>> m_allMaps;
-	ShmMap<ShmHash<ShmString>> m_allHashes;
+	ShmMap<ShmString>* m_allStrings;
+	ShmMap<ShmList<ShmString>>* m_allLists;
+	ShmMap<ShmMap<ShmString>>* m_allMaps;
+	ShmMap<ShmHash<ShmString>>* m_allHashes;
 };
 
 class EnvMgr {

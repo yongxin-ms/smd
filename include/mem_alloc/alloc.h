@@ -21,23 +21,6 @@ public:
 		p = nullptr;
 	}
 
-	template <class T>
-	T* New(size_t n = 1) {
-		auto t = Malloc<T>(n);
-// 		for (int i = 0; i < n; i++) {
-// 			(t+i)->T();
-// 		}
-		return t;
-	}
-
-	template <class T>
-	void Delete(T*& p, size_t n = 1) {
-		for (int i = 0; i < n; i++) {
-			(p+i)->~T();
-		}
-		Free(p, n);
-	}
-
 	size_t GetUsed() const { return m_used; }
 
 private:
