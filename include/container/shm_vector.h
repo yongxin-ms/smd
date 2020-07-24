@@ -1,5 +1,4 @@
 #pragma once
-#include <string>
 #include "shm_obj.h"
 
 namespace smd {
