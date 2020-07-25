@@ -158,7 +158,6 @@ public:
 			head->create_time = time(nullptr);
 			head->visit_num = 0;
 			head->magic_num = MAGIC_NUM;
-			memset(head->reserve, 0, sizeof(head->reserve));
 
 			m_log.DoLog(Log::LogLevel::kInfo, "create new memory, %s:%llu", guid.data(), size);
 		}

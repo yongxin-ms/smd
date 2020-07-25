@@ -1,6 +1,4 @@
 ﻿#pragma once
-#include <string>
-#include "shm_string.h"
 #include "shm_list.h"
 #include "shm_vector.h"
 #include "pair.h"
@@ -76,9 +74,8 @@ public:
 	typedef HashIterator<Key, typename ShmList<key_type>::iterator> iterator;
 	typedef typename ShmList<key_type>::iterator local_iterator;
 
-	ShmHash(Alloc& alloc, const std::string& name = "", size_t bucket_count = 0)
+	ShmHash(Alloc& alloc, size_t bucket_count = 0)
 		: ShmObj(alloc)
-		, m_name(alloc, name)
 		, m_buckets(alloc, bucket_count)
 		, m_size(0)
 		, m_max_load_factor(0) {}
@@ -180,8 +177,6 @@ private:
 	}
 
 private:
-	ShmString m_name;
-
 	ShmVector<ShmList<Key>> m_buckets;
 	size_t m_size;
 	float m_max_load_factor;

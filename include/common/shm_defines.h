@@ -27,7 +27,6 @@ struct ShmHead {
 		create_time = 0;
 		visit_num = 0;
 		magic_num = 0;
-		memset(reserve, 0, sizeof(reserve));
 	}
 
 	char guid[GUID_SIZE + 1];
