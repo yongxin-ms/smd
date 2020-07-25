@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "../mem_alloc/alloc.h"
 
 namespace smd {

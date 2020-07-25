@@ -1,6 +1,4 @@
 ﻿#pragma once
-#include <string>
-#include "shm_string.h"
 #include "shm_obj.h"
 
 namespace smd {
@@ -82,11 +80,11 @@ public:
 	typedef ListNode<T>* nodePtr;
 	typedef ListIterator<T> iterator;
 
-	ShmList(Alloc& alloc, const std::string& name = "")
-		: ShmObj(alloc)
-		, m_name(alloc, name)
-		, m_head(nullptr)
-		, m_tail(nullptr) {}
+	ShmList(Alloc& alloc)
+		: ShmObj(alloc) {
+		m_head.p = NewNode(T(alloc)); // add a dummy node
+		m_tail.p = m_head.p;
+	}
 
 	//
 	// 注意，析构函数里面不能调用clear()，需要使用者主动调用来回收共享内存
@@ -104,25 +102,42 @@ public:
 	}
 
 	void pop_front() {
-		auto oldNode = m_head.p;
-		m_head.p = oldNode->next;
+		auto node = m_head.p;
+		m_head.p	   = node->next;
 		m_head.p->prev = nullptr;
-		DeleteNode(oldNode);
+		DeleteNode(node);
 	}
 
 	void push_back(const T& val) {
-		auto node = NewNode();
-		(m_tail.p)->data = val;
-		(m_tail.p)->next = node;
-		node->prev = m_tail.p;
-		tail.p = node;
+		auto node = NewNode(val);
+		if (m_tail.p->prev != nullptr) {
+			auto& prev = m_tail.p->prev;
+			prev->next = node;
+			node->next = m_tail.p;
+
+			m_tail.p->prev = node;
+			node->prev	   = prev;
+		} else {
+			node->next	   = m_tail.p;
+			m_tail.p->prev = node;
+			m_head.p	   = node;
+		}
 	}
 
 	void pop_back() {
-		auto newTail = m_tail.p->prev;
-		newTail->next = nullptr;
-		DeleteNode(tail.p);
-		m_tail.p = newTail;
+		auto node = m_tail.p->prev;
+		if (node->prev != nullptr) {
+			auto& prev = node->prev;
+			prev->next = node->next;
+
+			m_tail.p->prev = node->prev;
+		} else {
+			m_head.p	   = m_tail.p;
+			m_head.p->next = nullptr;
+			m_head.p->prev = nullptr;
+		}
+
+		DeleteNode(node);
 	}
 
 	iterator begin() { return m_head; }
@@ -160,8 +175,8 @@ public:
 	}
 
 private:
-	nodePtr NewNode(const T& val = T()) {
-		auto p = m_alloc.New<T>(*this, val, nullptr, nullptr);
+	nodePtr NewNode(const T& val) {
+		auto p = m_alloc.New<ListNode<T>>(*this, val, nullptr, nullptr);
 		return p;
 	}
 
@@ -171,9 +186,8 @@ private:
 	}
 
 private:
-	ShmString m_name;
-	nodePtr m_head;
-	nodePtr m_tail;
+	iterator m_head;
+	iterator m_tail;
 };
 
 } // namespace smd

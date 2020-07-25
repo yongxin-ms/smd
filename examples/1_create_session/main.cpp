@@ -24,6 +24,27 @@ void TestShmString(smd::Alloc& alloc) {
 	assert(mem_usage == alloc.GetUsed());
 }
 
+void TestShmList(smd::Alloc& alloc) {
+	auto mem_usage = alloc.GetUsed();
+	auto l = alloc.New<smd::ShmList<smd::ShmString>>(alloc);
+
+	assert(l->size() == 0);
+	l->push_back(smd::ShmString(alloc, "hello"));
+	assert(l->size() == 1);
+	assert(l->front().ToString() == "hello");
+	assert(l->back().ToString() == "hello");
+
+	l->push_back(smd::ShmString(alloc, "world"));
+	assert(l->size() == 2);
+	assert(l->front().ToString() == "hello");
+	assert(l->back().ToString() == "world");
+
+	l->push_back(smd::ShmString(alloc, "will"));
+	assert(l->size() == 3);
+	assert(l->front().ToString() == "hello");
+	assert(l->back().ToString() == "will");
+}
+
 int main() {
 	auto mgr = new smd::EnvMgr;
 	mgr->SetLogLevel(smd::Log::LogLevel::kDebug);
@@ -52,22 +73,23 @@ int main() {
 	assert(env != nullptr);
 
 	TestShmString(env->GetMalloc());
+	TestShmList(env->GetMalloc());
 
-	std::string key("Alice");
-	smd::Slice value;
-	assert(!env->SGet(key, nullptr));
-	assert(!env->SGet(key, &value));
-	assert(!env->SDel(key));
-
-	env->SSet(key, "age 18");
-	assert(env->SGet(key, nullptr));
-	assert(env->SGet(key, &value));
-	assert(value == "age 18");
-	assert(env->SDel(key));
-
-	assert(!env->SGet(key, nullptr));
-	assert(!env->SGet(key, &value));
-	assert(!env->SDel(key));
+// 	std::string key("Alice");
+// 	smd::Slice value;
+// 	assert(!env->SGet(key, nullptr));
+// 	assert(!env->SGet(key, &value));
+// 	assert(!env->SDel(key));
+// 
+// 	env->SSet(key, "age 18");
+// 	assert(env->SGet(key, nullptr));
+// 	assert(env->SGet(key, &value));
+// 	assert(value == "age 18");
+// 	assert(env->SDel(key));
+// 
+// 	assert(!env->SGet(key, nullptr));
+// 	assert(!env->SGet(key, &value));
+// 	assert(!env->SDel(key));
 
 	int n = 0;
 	std::cin >> n;

@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <string>
 #include "shm_string.h"
 #include "shm_list.h"
