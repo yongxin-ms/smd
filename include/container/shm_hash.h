@@ -83,10 +83,7 @@ public:
 		, m_size(0)
 		, m_max_load_factor(0) {}
 
-	//
-	// 注意，析构函数里面不能调用clear()，需要使用者主动调用来回收共享内存
-	//
-	~ShmHash() {}
+	~ShmHash() { m_buckets.clear(); }
 
 	bool empty() const { return m_size == 0; }
 	size_t size() const { return m_size; }

@@ -19,10 +19,16 @@ public:
 		m_endOfStorage = m_start + capacity;
 	}
 
-	//
-	// 注意，析构函数里面不能调用clear()，需要使用者主动调用来回收共享内存
-	//
-	~ShmVector() {}
+	~ShmVector() {
+		while (!empty()) {
+			pop_back();
+		}
+
+		m_alloc.Free(m_start, capacity());
+		m_start		   = nullptr;
+		m_finish	   = m_start;
+		m_endOfStorage = m_start;
+	}
 
 	size_t size() const { return m_finish - m_start; }
 	bool empty() { return m_finish == m_start; }
@@ -43,6 +49,8 @@ public:
 			auto new_start = m_alloc.Malloc<T>(new_capacity);
 			auto size = size();
 			memcpy(new_start, m_start, sizeof(T) * size);
+			m_alloc.Free<T>(m_start, size());
+
 			m_start = new_start;
 			m_finish = m_start + size;
 			m_endOfStorage = m_start + new_capacity;
@@ -56,15 +64,9 @@ public:
 		m_alloc.Free(d);
 	}
 
-	void clear(bool deep = false) {
+	void clear() {
 		while (!empty()) {
 			pop_back();
-		}
-
-		if (deep) {
-			m_alloc.Free(m_start, capacity());
-			m_finish = m_start;
-			m_endOfStorage = m_start;
 		}
 	}
 

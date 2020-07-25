@@ -69,7 +69,6 @@ public:
 			m_allStrings->insert(make_pair(strKey, strValue));
 		} else {
 			it->second = value.ToString();
-			strKey.clear(true);
 		}
 	}
 
@@ -77,7 +76,6 @@ public:
 		ShmString strKey(m_alloc, key.ToString());
 		auto it = m_allStrings->find(strKey);
 		if (it == m_allStrings->end()) {
-			strKey.clear(true);
 			return false;
 		} else {
 			if (value != nullptr) {
@@ -85,7 +83,6 @@ public:
 				*value = Slice(strValue.data(), strValue.size());
 			}
 
-			strKey.clear(true);
 			return true;
 		}
 	}
@@ -94,18 +91,11 @@ public:
 		ShmString strKey(m_alloc, key.ToString());
 		auto it = m_allStrings->find(strKey);
 		if (it == m_allStrings->end()) {
-			strKey.clear(true);
 			return false;
 		}
 
-		ShmString strOriKey = it->first;
-		strOriKey.clear(true);
 		ShmString& strValue = it->second;
-		strValue.clear(true);
-
 		it = m_allStrings->erase(it);
-		strKey.clear(true);
-
 		return true;
 	}
 

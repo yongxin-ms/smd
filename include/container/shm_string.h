@@ -35,10 +35,14 @@ public:
 		m_size				 = r.size();
 	}
 
-	//
-	// 注意，析构函数里面不能调用clear()，需要使用者主动调用来回收共享内存
-	//
-	~ShmString() {}
+	~ShmString() {
+		if (m_ptr != nullptr) {
+			m_alloc.Free(m_ptr, m_capacity);
+			m_capacity = 0;
+		}
+
+		m_size = 0;
+	}
 
 	char*		data() { return m_ptr; }
 	const char* data() const { return (const char*)m_ptr; }
@@ -54,7 +58,10 @@ public:
 			return *this;
 		}
 
-		clear(true);
+		if (m_ptr != nullptr) {
+			m_alloc.Free(m_ptr, m_capacity);
+			m_capacity = 0;
+		}
 
 		m_capacity = GetSuitableCapacity(r.size() + 1);
 		m_ptr	   = m_alloc.Malloc<char>(m_capacity);
@@ -79,14 +86,7 @@ public:
 		return r;
 	}
 
-	void clear(bool deep = false) {
-		if (deep && m_ptr != nullptr) {
-			m_alloc.Free(m_ptr, m_capacity);
-			m_capacity = 0;
-		}
-
-		m_size = 0;
-	}
+	void clear() { m_size = 0; }
 
 	std::string ToString() const { return std::string(data(), size()); }
 

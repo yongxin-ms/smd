@@ -18,7 +18,6 @@ void TestShmString(smd::Alloc& alloc) {
 	assert(s->capacity() == 32);
 	s->clear();
 	assert(s->ToString() == "");
-	s->clear(true);
 	alloc.Delete(s);
 	assert(s == nullptr);
 	assert(mem_usage == alloc.GetUsed());
@@ -43,6 +42,10 @@ void TestShmList(smd::Alloc& alloc) {
 	assert(l->size() == 3);
 	assert(l->front().ToString() == "hello");
 	assert(l->back().ToString() == "will");
+
+	alloc.Delete(l);
+	assert(l == nullptr);
+	assert(mem_usage == alloc.GetUsed());
 }
 
 int main() {
@@ -69,7 +72,8 @@ int main() {
 	});
 
 	const std::string GUID("0x1001187fb");
-	auto env = mgr->CreateEnv(GUID, 28, smd::create | smd::open);
+	//auto env = mgr->CreateEnv(GUID, 28, smd::create | smd::open);
+	auto env = mgr->CreateEnv(GUID, 28, smd::create);
 	assert(env != nullptr);
 
 	TestShmString(env->GetMalloc());

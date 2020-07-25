@@ -86,10 +86,7 @@ public:
 		m_tail.p = m_head.p;
 	}
 
-	//
-	// 注意，析构函数里面不能调用clear()，需要使用者主动调用来回收共享内存
-	//
-	~ShmList() {}
+	~ShmList() { clear(); }
 
 	T& front() { return (m_head.p->data); }
 	T& back() { return (m_tail.p->prev->data); }
@@ -182,7 +179,7 @@ private:
 
 	void DeleteNode(nodePtr p) {
 		p->prev = p->next = nullptr;
-		m_alloc->Delete(p);
+		m_alloc.Delete(p);
 	}
 
 private:

@@ -1,6 +1,4 @@
 ﻿#pragma once
-#include <string>
-#include "shm_string.h"
 #include "pair.h"
 #include "shm_obj.h"
 
@@ -118,6 +116,14 @@ public:
 	explicit RBTree(Alloc& alloc)
 		: ShmObj::ShmObj(alloc) {
 		_pHead = alloc.New<Node>(K(alloc), V(alloc));
+	}
+
+	~RBTree() {
+		for (auto it = Begin(); it != End(); ++it) {
+			//添加代码删除整棵树
+		}
+
+		m_alloc.Delete(_pHead);
 	}
 
 	Iterator			 Begin() { return Iterator(_pHead->_pLeft); }
@@ -333,9 +339,8 @@ public:
 	typedef pair<ShmString, V>						valueType;
 	typename typedef RBTree<ShmString, V>::Iterator Iterator;
 
-	explicit ShmMap(Alloc& alloc, const std::string& name = "")
+	explicit ShmMap(Alloc& alloc)
 		: ShmObj(alloc)
-		, m_name(alloc, name)
 		, m_tree(alloc) {}
 
 	pair<Iterator, bool> insert(const valueType& v) { return m_tree.InsertUnique(v); }
@@ -353,7 +358,6 @@ public:
 	Iterator erase(Iterator it) { return m_tree.End(); }
 
 private:
-	ShmString			 m_name;
 	RBTree<ShmString, V> m_tree;
 };
 
