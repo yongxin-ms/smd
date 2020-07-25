@@ -111,6 +111,8 @@ public:
 
 	// 还需要一个遍历接口
 
+	Alloc& GetMalloc() { return m_alloc; }
+
 private:
 	ShmHead* GetHead() { return (ShmHead*)m_ptr; }
 

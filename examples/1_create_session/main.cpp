@@ -3,6 +3,27 @@
 #include "smd.h"
 #include "util.h"
 
+void TestShmString(smd::Alloc& alloc) {
+	auto mem_usage = alloc.GetUsed();
+	auto s = alloc.New<smd::ShmString>(alloc, 16);
+	assert(s->capacity() == 16);
+	assert(s->size() == 0);
+	assert(s->ToString() == "");
+
+	s->assign("hello");
+	assert(s->ToString() == "hello");
+
+	*s = "1234567812345678helloaaaa";
+	assert(s->ToString() == "1234567812345678helloaaaa");
+	assert(s->capacity() == 32);
+	s->clear();
+	assert(s->ToString() == "");
+	s->clear(true);
+	alloc.Delete(s);
+	assert(s == nullptr);
+	assert(mem_usage == alloc.GetUsed());
+}
+
 int main() {
 	auto mgr = new smd::EnvMgr;
 	mgr->SetLogLevel(smd::Log::LogLevel::kDebug);
@@ -30,6 +51,8 @@ int main() {
 	auto env = mgr->CreateEnv(GUID, 28, smd::create | smd::open);
 	assert(env != nullptr);
 
+	TestShmString(env->GetMalloc());
+
 	std::string key("Alice");
 	smd::Slice value;
 	assert(!env->SGet(key, nullptr));
@@ -50,3 +73,4 @@ int main() {
 	std::cin >> n;
 	return 0;
 }
+

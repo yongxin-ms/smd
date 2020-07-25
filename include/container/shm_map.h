@@ -9,18 +9,14 @@ namespace smd {
 enum COLOR { RED, BLACK };
 
 template <class K, class V>
-class RBTree;
-
-template <class K, class V>
 struct RBTreeNode {
 	RBTreeNode<K, V>* _pLeft;
 	RBTreeNode<K, V>* _pRight;
 	RBTreeNode<K, V>* _pParent;
-	pair<K, V> _value;
-	COLOR _color;
+	pair<K, V>		  _value;
+	COLOR			  _color;
 
-	explicit RBTreeNode(
-		Alloc& alloc, const K& key, const V& value, COLOR color = RED)
+	explicit RBTreeNode(const K& key, const V& value, COLOR color = RED)
 		: _pLeft(NULL)
 		, _pRight(NULL)
 		, _pParent(NULL)
@@ -30,8 +26,8 @@ struct RBTreeNode {
 
 template <class K, class V>
 class RBTreeIterator {
-	typedef RBTreeNode<K, V> Node;
-	typedef Node* PNode;
+	typedef RBTreeNode<K, V>	 Node;
+	typedef Node*				 PNode;
 	typedef RBTreeIterator<K, V> Self;
 
 public:
@@ -77,7 +73,7 @@ private:
 		} else {
 			PNode pParent = _pNode->_pParent;
 			while (pParent->_pRight == _pNode) {
-				_pNode = pParent;
+				_pNode	= pParent;
 				pParent = _pNode->_pParent;
 			}
 
@@ -98,7 +94,7 @@ private:
 		} else {
 			PNode pParent = _pNode;
 			while (pParent->_pLeft == _pNode) {
-				_pNode = pParent;
+				_pNode	= pParent;
 				pParent = _pNode->_pParent;
 			}
 
@@ -113,7 +109,7 @@ private:
 template <class K, class V>
 class RBTree : public ShmObj {
 	typedef RBTreeNode<K, V> Node;
-	typedef Node* PNode;
+	typedef Node*			 PNode;
 
 public:
 	typedef RBTreeIterator<K, V> Iterator;
@@ -121,37 +117,35 @@ public:
 public:
 	explicit RBTree(Alloc& alloc)
 		: ShmObj::ShmObj(alloc) {
-		_pHead = alloc.New<Node>(alloc, K(alloc), V(alloc));
+		_pHead = alloc.New<Node>(K(alloc), V(alloc));
 	}
 
-	Iterator Begin() { return Iterator(_pHead->_pLeft); }
-	Iterator End() { return Iterator(_pHead); }
-	PNode& GetRoot() { return _pHead->_pParent; }
+	Iterator			 Begin() { return Iterator(_pHead->_pLeft); }
+	Iterator			 End() { return Iterator(_pHead); }
+	PNode&				 GetRoot() { return _pHead->_pParent; }
 	pair<Iterator, bool> InsertUnique(const pair<K, V>& value) {
-		PNode& _pRoot = GetRoot();
-		PNode newNode = NULL;
+		PNode& _pRoot  = GetRoot();
+		PNode  newNode = NULL;
 		if (NULL == _pRoot) {
 			// newNode = _pRoot = new Node(value.first, value.second, BLACK);
-			auto p = m_alloc.New<Node>(m_alloc, value.first, value.second, BLACK);
+			auto p	= m_alloc.New<Node>(value.first, value.second, BLACK);
 			newNode = _pRoot = p;
 			_pRoot->_pParent = _pHead;
 		} else {
-			PNode pCur = _pRoot;
+			PNode pCur	  = _pRoot;
 			PNode pParent = pCur;
 			while (pCur) {
 				if (pCur->_value.first < value.first) {
 					pParent = pCur;
-					pCur = pCur->_pRight;
+					pCur	= pCur->_pRight;
 				} else if (pCur->_value.first > value.first) {
 					pParent = pCur;
-					pCur = pCur->_pLeft;
+					pCur	= pCur->_pLeft;
 				} else
 					return pair<Iterator, bool>(Iterator(pCur), false);
 			}
 
-			// newNode = pCur = new Node(value.first, value.second);
-			pCur = m_alloc.New<Node>(m_alloc, value.first, value.second);
-			newNode = pCur;
+			newNode = pCur = m_alloc.New<Node>(value.first, value.second);
 
 			if (value.first < pParent->_value.first)
 				pParent->_pLeft = pCur;
@@ -163,43 +157,43 @@ public:
 				if (pParent == grandParent->_pLeft) {
 					PNode pUncle = grandParent->_pRight;
 					if (pUncle && pUncle->_color == RED) {
-						pParent->_color = BLACK;
-						pUncle->_color = BLACK;
+						pParent->_color		= BLACK;
+						pUncle->_color		= BLACK;
 						grandParent->_color = RED;
-						grandParent = pCur;
-						pParent = pCur->_pParent;
+						grandParent			= pCur;
+						pParent				= pCur->_pParent;
 					} else {
 						if (pCur == pParent->_pRight) {
 							rotateL(pParent);
 							swap(pCur, pParent);
 						}
 						grandParent->_color = RED;
-						pParent->_color = BLACK;
+						pParent->_color		= BLACK;
 						rotateR(grandParent);
 					}
 				} else {
 					PNode pUncle = grandParent->_pLeft;
 					if (pUncle && pUncle->_color == RED) {
-						pParent->_color = BLACK;
-						pUncle->_color = BLACK;
+						pParent->_color		= BLACK;
+						pUncle->_color		= BLACK;
 						grandParent->_color = RED;
-						grandParent = pCur;
-						pParent = pCur->_pParent;
+						grandParent			= pCur;
+						pParent				= pCur->_pParent;
 					} else {
 						if (pCur == pParent->_pLeft) {
 							rotateR(pParent);
 							swap(pCur, pParent);
 						}
 						grandParent->_color = RED;
-						pParent->_color = BLACK;
+						pParent->_color		= BLACK;
 						rotateL(grandParent);
 					}
 				}
 			}
 		}
 
-		_pRoot->_color = BLACK;
-		_pHead->_pLeft = MostLeft();
+		_pRoot->_color	= BLACK;
+		_pHead->_pLeft	= MostLeft();
 		_pHead->_pRight = MostRight();
 		return make_pair(Iterator(newNode), true);
 	}
@@ -207,9 +201,9 @@ public:
 	bool Empty() const { return NULL == GetRoot(); }
 
 	size_t Size() const {
-		size_t count = 0;
-		Iterator it = Iterator(_pHead->_pLeft);
-		Iterator ed = Iterator(_pHead);
+		size_t	 count = 0;
+		Iterator it	   = Iterator(_pHead->_pLeft);
+		Iterator ed	   = Iterator(_pHead);
 		while (it != ed) {
 			++count;
 			++it;
@@ -233,7 +227,7 @@ public:
 		}
 		// 统计单条路径中黑色结点的个数
 		size_t blackCount = 0;
-		PNode pCur = _pRoot;
+		PNode  pCur		  = _pRoot;
 		while (pCur) {
 			if (BLACK == pCur->_color)
 				++blackCount;
@@ -245,15 +239,15 @@ public:
 
 private:
 	void rotateL(PNode pParent) {
-		PNode pSubR = pParent->_pRight;
-		PNode pSubRL = pSubR->_pLeft;
+		PNode pSubR		 = pParent->_pRight;
+		PNode pSubRL	 = pSubR->_pLeft;
 		pParent->_pRight = pSubRL;
 		if (pSubRL)
 			pSubRL->_pParent = pParent;
-		pSubR->_pLeft = pParent;
-		PNode pPParent = pParent->_pParent;
+		pSubR->_pLeft	  = pParent;
+		PNode pPParent	  = pParent->_pParent;
 		pParent->_pParent = pSubR;
-		pSubR->_pParent = pPParent;
+		pSubR->_pParent	  = pPParent;
 		if (_pHead == pPParent) {
 			GetRoot() = pSubR;
 		} else {
@@ -265,15 +259,15 @@ private:
 	}
 
 	void rotateR(PNode pParent) {
-		PNode pSubL = pParent->_pLeft;
-		PNode pSubLR = pSubL->_pRight;
+		PNode pSubL		= pParent->_pLeft;
+		PNode pSubLR	= pSubL->_pRight;
 		pParent->_pLeft = pSubLR;
 		if (pSubLR)
 			pSubLR->_pParent = pParent;
-		pSubL->_pRight = pParent;
-		PNode pPParent = pParent->_pParent;
+		pSubL->_pRight	  = pParent;
+		PNode pPParent	  = pParent->_pParent;
 		pParent->_pParent = pSubL;
-		pSubL->_pParent = pPParent;
+		pSubL->_pParent	  = pPParent;
 		if (_pHead == pPParent) {
 			GetRoot() = pSubL;
 		} else {
@@ -336,7 +330,7 @@ private:
 template <class V>
 class ShmMap : public ShmObj {
 public:
-	typedef pair<ShmString, V> valueType;
+	typedef pair<ShmString, V>						valueType;
 	typename typedef RBTree<ShmString, V>::Iterator Iterator;
 
 	explicit ShmMap(Alloc& alloc, const std::string& name = "")
@@ -345,13 +339,13 @@ public:
 		, m_tree(alloc) {}
 
 	pair<Iterator, bool> insert(const valueType& v) { return m_tree.InsertUnique(v); }
-	bool empty() const { return m_tree.Empty(); }
-	size_t size() const { return m_tree.Size(); }
+	bool				 empty() const { return m_tree.Empty(); }
+	size_t				 size() const { return m_tree.Size(); }
 
-	// 	V& operator[](const ShmString& key) {
-	// 		Iterator ret = m_tree.InsertUnique(pair<ShmString, V>(key, V())).first;
-	// 		return (*ret).second;
-	// 	}
+	V& operator[](const ShmString& key) {
+		Iterator ret = m_tree.InsertUnique(pair<ShmString, V>(key, V(m_alloc))).first;
+		return (*ret).second;
+	}
 
 	Iterator begin() { return m_tree.Begin(); }
 	Iterator end() { return m_tree.End(); }
@@ -359,7 +353,7 @@ public:
 	Iterator erase(Iterator it) { return m_tree.End(); }
 
 private:
-	ShmString m_name;
+	ShmString			 m_name;
 	RBTree<ShmString, V> m_tree;
 };
 

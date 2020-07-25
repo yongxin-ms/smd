@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <string>
 #include "shm_string.h"
 #include "shm_obj.h"
@@ -102,6 +102,7 @@ public:
 		node->next = m_head.p;
 		m_head.p = node;
 	}
+
 	void pop_front() {
 		auto oldNode = m_head.p;
 		m_head.p = oldNode->next;
@@ -160,7 +161,7 @@ public:
 
 private:
 	nodePtr NewNode(const T& val = T()) {
-		auto p = m_alloc.New<T>();
+		auto p = m_alloc.New<T>(*this, val, nullptr, nullptr);
 		return p;
 	}
 

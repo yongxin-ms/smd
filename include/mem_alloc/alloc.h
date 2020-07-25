@@ -30,7 +30,7 @@ public:
 	}
 
 	template <class T>
-	void Delete(T* p) {
+	void Delete(T*& p) {
 		p->~T();
 		Free(p);
 	}
