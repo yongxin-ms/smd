@@ -6,21 +6,27 @@ namespace smd {
 
 class Alloc {
 public:
-	Alloc(Log& log, void* ptr, size_t off_set, unsigned level)
+	Alloc(Log& log, void* ptr, size_t off_set)
 		: m_log(log)
-		, m_basePtr((const char*)ptr)
-		, m_offSet(off_set) {
-		m_buddy = SmdBuddyAlloc::buddy_new((m_basePtr + m_offSet), level);
+		, m_basePtr((const char*)ptr + off_set) {
+		m_buddy = (SmdBuddyAlloc::buddy*)m_basePtr;
 	}
+
+	void CreateNew(unsigned level) { m_buddy = SmdBuddyAlloc::buddy_new(m_basePtr, level); }
 
 	template <class T>
 	T* Malloc(size_t n = 1) {
-		return (T*)_Malloc(sizeof(T) * n);
+		auto size = sizeof(T) * n;
+		auto ptr  = (T*)_Malloc(size);
+		//m_log.DoLog(Log::LogLevel::kDebug, "malloc: 0x%p:(%d)", ptr, size);
+		return ptr;
 	}
 
 	template <class T>
 	void Free(T*& p, size_t n = 1) {
-		_Free(p, sizeof(T) * n);
+		auto size = sizeof(T) * n;
+		//m_log.DoLog(Log::LogLevel::kDebug, "free: 0x%p:(%d)", p, size);
+		_Free(p, size);
 		p = nullptr;
 	}
 
@@ -47,19 +53,23 @@ private:
 			return nullptr;
 		}
 
+		m_log.DoLog(Log::LogLevel::kDebug, "malloc: %08x:(%llu)", addr, size);
+
 		m_used += size;
-		return (void*)(addr + m_basePtr + m_offSet);
+		return (void*)(addr + m_basePtr);
 	}
 
 	void _Free(void* addr, size_t size) {
+		auto vir_addr = (int)((const char*)addr - m_basePtr);
+		m_log.DoLog(Log::LogLevel::kDebug, "free: %08x:(%llu)", vir_addr, size);
+
 		m_used -= size;
-		SmdBuddyAlloc::buddy_free(m_buddy, (int)((const char*)addr - m_offSet - m_basePtr));
+		SmdBuddyAlloc::buddy_free(m_buddy, vir_addr);
 	}
 
 private:
 	Log&				  m_log;
 	const char*			  m_basePtr;
-	const size_t		  m_offSet;
 	SmdBuddyAlloc::buddy* m_buddy;
 	size_t				  m_used = 0;
 };
