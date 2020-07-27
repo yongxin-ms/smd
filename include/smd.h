@@ -32,10 +32,10 @@ public:
 
 		if (create_new) {
 			m_alloc.CreateNew(level);
-			m_allStrings = m_alloc.New<ShmMap<ShmString>>(m_alloc);
-			m_allLists	 = m_alloc.New<ShmMap<ShmList<ShmString>>>(m_alloc);
-			m_allMaps	 = m_alloc.New<ShmMap<ShmMap<ShmString>>>(m_alloc);
-			m_allHashes	 = m_alloc.New<ShmMap<ShmHash<ShmString>>>(m_alloc);
+// 			m_allStrings = m_alloc.New<ShmMap<ShmString>>(m_alloc);
+// 			m_allLists	 = m_alloc.New<ShmMap<ShmList<ShmString>>>(m_alloc);
+// 			m_allMaps	 = m_alloc.New<ShmMap<ShmMap<ShmString>>>(m_alloc);
+// 			m_allHashes	 = m_alloc.New<ShmMap<ShmHash<ShmString>>>(m_alloc);
 		}
 	}
 

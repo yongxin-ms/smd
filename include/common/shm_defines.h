@@ -31,7 +31,7 @@ class ShmMap;
 template <class T>
 class ShmHash;
 
-
+#pragma pack(push, 1)
 struct ShmHead {
 	ShmHead() {
 		memset(guid, 0, sizeof(guid));
@@ -54,5 +54,6 @@ struct ShmHead {
 
 	char	 reserve[256];
 };
+#pragma pack(pop)
 
 } // namespace smd

@@ -18,10 +18,12 @@ public:
 		MAX_LEVEL = 32,
 	};
 
+	#pragma pack(push, 1)
 	struct buddy {
 		int		level;
 		uint8_t tree[1];
 	};
+	#pragma pack(pop)
 
 	static int get_need_size(int level) {
 		int size = 1 << level;
