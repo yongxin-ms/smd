@@ -6,10 +6,11 @@ namespace smd {
 
 class Alloc {
 public:
-	Alloc(Log& log, void* ptr, size_t off_set)
+	Alloc(Log& log, void* ptr, size_t off_set, unsigned level)
 		: m_log(log)
 		, m_basePtr((const char*)ptr + off_set) {
 		m_buddy = (SmdBuddyAlloc::buddy*)m_basePtr;
+		m_storagePtr = m_basePtr + SmdBuddyAlloc::get_index_size(level);
 	}
 
 	void CreateNew(unsigned level) { m_buddy = SmdBuddyAlloc::buddy_new(m_basePtr, level); }
@@ -56,11 +57,11 @@ private:
 		m_log.DoLog(Log::LogLevel::kDebug, "malloc: 0x:%08x:(%llu)", addr, size);
 
 		m_used += size;
-		return (void*)(addr + m_basePtr);
+		return (void*)(addr + m_storagePtr);
 	}
 
 	void _Free(void* addr, size_t size) {
-		auto vir_addr = (int)((const char*)addr - m_basePtr);
+		auto vir_addr = (int)((const char*)addr - m_storagePtr);
 		m_log.DoLog(Log::LogLevel::kDebug, "free: 0x:%08x:(%llu)", vir_addr, size);
 
 		m_used -= size;
@@ -72,6 +73,7 @@ private:
 	const char*			  m_basePtr;
 	SmdBuddyAlloc::buddy* m_buddy;
 	size_t				  m_used = 0;
+	const char*			  m_storagePtr;
 };
 
 } // namespace smd

@@ -22,7 +22,7 @@ class Env {
 public:
 	Env(Log& log, void* ptr, unsigned level, bool create_new)
 		: m_log(log)
-		, m_alloc(log, ptr, sizeof(ShmHead))
+		, m_alloc(log, ptr, sizeof(ShmHead), level)
 		, m_head(*((ShmHead*)ptr))
 		, m_allStrings(m_head.allStrings)
 		, m_allLists(m_head.allLists)
@@ -114,7 +114,8 @@ public:
 			return nullptr;
 		}
 
-		size_t size = sizeof(ShmHead) + SmdBuddyAlloc::get_need_size(level);
+		size_t size = sizeof(ShmHead) + SmdBuddyAlloc::get_index_size(level) +
+					  SmdBuddyAlloc::get_storage_size(level);
 		if (!m_shmHandle.acquire(guid, size, option)) {
 			m_log.DoLog(Log::LogLevel::kError, "acquire failed, %s:%llu", guid.data(), size);
 			return nullptr;

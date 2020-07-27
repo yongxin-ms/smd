@@ -73,7 +73,7 @@ int main() {
 
 	const std::string GUID("0x1001187fb");
 	//auto env = mgr->CreateEnv(GUID, 28, smd::create | smd::open);
-	auto env = mgr->CreateEnv(GUID, 28, smd::create);
+	auto env = mgr->CreateEnv(GUID, 20, smd::create);
 	assert(env != nullptr);
 
 	TestShmString(env->GetMalloc());

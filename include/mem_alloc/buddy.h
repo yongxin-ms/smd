@@ -25,11 +25,14 @@ public:
 	};
 	#pragma pack(pop)
 
-	static int get_need_size(int level) {
+	static int get_index_size(int level) {
 		int size = 1 << level;
-
-		// 为什么是两倍？因为有一半的空间需要用来存放使用标记。越是零碎的分配，利用率就越低
 		return (sizeof(buddy) + sizeof(uint8_t) * (size * 2 - 2));
+	}
+
+	static int get_storage_size(int level) {
+		int size = 1 << (level + 1);
+		return size;
 	}
 
 	static buddy* buddy_new(const char* p, int level) {
