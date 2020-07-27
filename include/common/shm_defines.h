@@ -20,22 +20,39 @@ enum GLOBAL_POINTER {
 	GLOBAL_POINTER_MAX,
 };
 
+class ShmString;
+
+template <class T>
+class ShmList;
+
+template <class T>
+class ShmMap;
+
+template <class T>
+class ShmHash;
+
+
 struct ShmHead {
 	ShmHead() {
 		memset(guid, 0, sizeof(guid));
-		total_size = 0;
+		total_size	= 0;
 		create_time = 0;
-		visit_num = 0;
-		magic_num = 0;
+		visit_num	= 0;
+		magic_num	= 0;
 	}
 
-	char guid[GUID_SIZE + 1];
-	size_t total_size;
-	time_t create_time;
+	char	 guid[GUID_SIZE + 1];
+	size_t	 total_size;
+	time_t	 create_time;
 	uint32_t visit_num;
 	uint32_t magic_num;
-	uint64_t global_pointer[GLOBAL_POINTER_MAX];
-	char reserve[256];
+
+	ShmMap<ShmString>*			allStrings;
+	ShmMap<ShmList<ShmString>>* allLists;
+	ShmMap<ShmMap<ShmString>>*	allMaps;
+	ShmMap<ShmHash<ShmString>>* allHashes;
+
+	char	 reserve[256];
 };
 
 } // namespace smd

@@ -1,14 +1,16 @@
 ﻿#pragma once
+#include "../common/log.h"
 #include "buddy.h"
 
 namespace smd {
 
 class Alloc {
 public:
-	Alloc(void* ptr, size_t off_set, unsigned level)
-		: m_basePtr(ptr)
+	Alloc(Log& log, void* ptr, size_t off_set, unsigned level)
+		: m_log(log)
+		, m_basePtr((const char*)ptr)
 		, m_offSet(off_set) {
-		m_buddy = SmdBuddyAlloc::buddy_new((void*)((const char*)ptr + off_set), level);
+		m_buddy = SmdBuddyAlloc::buddy_new((m_basePtr + m_offSet), level);
 	}
 
 	template <class T>
@@ -46,19 +48,20 @@ private:
 		}
 
 		m_used += size;
-		return (void*)(addr + (int64_t)m_basePtr + m_offSet);
+		return (void*)(addr + m_basePtr + m_offSet);
 	}
 
 	void _Free(void* addr, size_t size) {
 		m_used -= size;
-		SmdBuddyAlloc::buddy_free(m_buddy, (int)((size_t)addr - m_offSet - (int64_t)m_basePtr));
+		SmdBuddyAlloc::buddy_free(m_buddy, (int)((const char*)addr - m_offSet - m_basePtr));
 	}
 
 private:
-	const void* m_basePtr;
-	const size_t m_offSet;
+	Log&				  m_log;
+	const char*			  m_basePtr;
+	const size_t		  m_offSet;
 	SmdBuddyAlloc::buddy* m_buddy;
-	size_t m_used = 0;
+	size_t				  m_used = 0;
 };
 
 } // namespace smd

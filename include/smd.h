@@ -22,37 +22,28 @@ class Env {
 public:
 	Env(Log& log, void* ptr, unsigned level)
 		: m_log(log)
-		, m_alloc(ptr, sizeof(ShmHead), level)
-		, m_ptr(ptr) {
-		auto head = GetHead();
-		head->visit_num++;
-
-		m_allStrings = (ShmMap<ShmString>*)head->global_pointer[GLOBAL_POINTER_ALL_STRINGS];
-		m_allLists = (ShmMap<ShmList<ShmString>>*)head->global_pointer[GLOBAL_POINTER_ALL_LISTS];
-		m_allMaps = (ShmMap<ShmMap<ShmString>>*)head->global_pointer[GLOBAL_POINTER_ALL_MAPS];
-		m_allHashes =
-			(ShmMap<ShmHash<ShmString>>*)head->global_pointer[GLOBAL_POINTER_ALL_HASHES];
+		, m_alloc(log, ptr, sizeof(ShmHead), level)
+		, m_head(*((ShmHead*)ptr))
+		, m_allStrings(m_head.allStrings)
+		, m_allLists(m_head.allLists)
+		, m_allMaps(m_head.allMaps)
+		, m_allHashes(m_head.allHashes) {
+		m_head.visit_num++;
 
 		if (m_allStrings == nullptr) {
 			m_allStrings = m_alloc.New<ShmMap<ShmString>>(m_alloc);
-			memcpy(&head->global_pointer[GLOBAL_POINTER_ALL_STRINGS], m_allStrings,
-				sizeof(m_allStrings));
 		}
 
 		if (m_allLists == nullptr) {
 			m_allLists = m_alloc.New<ShmMap<ShmList<ShmString>>>(m_alloc);
-			memcpy(&head->global_pointer[GLOBAL_POINTER_ALL_LISTS], m_allLists, sizeof(m_allLists));
 		}
 
 		if (m_allMaps == nullptr) {
 			m_allMaps = m_alloc.New<ShmMap<ShmMap<ShmString>>>(m_alloc);
-			memcpy(&head->global_pointer[GLOBAL_POINTER_ALL_MAPS], m_allMaps, sizeof(m_allMaps));
 		}
 
 		if (m_allHashes == nullptr) {
 			m_allHashes = m_alloc.New<ShmMap<ShmHash<ShmString>>>(m_alloc);
-			memcpy(
-				&head->global_pointer[GLOBAL_POINTER_ALL_HASHES], m_allHashes, sizeof(m_allHashes));
 		}
 	}
 
@@ -104,17 +95,14 @@ public:
 	Alloc& GetMalloc() { return m_alloc; }
 
 private:
-	ShmHead* GetHead() { return (ShmHead*)m_ptr; }
-
-private:
 	Log& m_log;
 	Alloc m_alloc;
-	void* m_ptr;
+	ShmHead& m_head;
 
-	ShmMap<ShmString>* m_allStrings;
-	ShmMap<ShmList<ShmString>>* m_allLists;
-	ShmMap<ShmMap<ShmString>>* m_allMaps;
-	ShmMap<ShmHash<ShmString>>* m_allHashes;
+	ShmMap<ShmString>*& m_allStrings;
+	ShmMap<ShmList<ShmString>>*& m_allLists;
+	ShmMap<ShmMap<ShmString>>*& m_allMaps;
+	ShmMap<ShmHash<ShmString>>*& m_allHashes;
 };
 
 class EnvMgr {
@@ -148,16 +136,16 @@ public:
 		}
 
 		ShmHead* head = (ShmHead*)ptr;
-		if (strcmp(head->guid, guid.data()) == 0 && head->magic_num == MAGIC_NUM &&
-			head->total_size == sizeFact) {
+		if (option == open && strcmp(head->guid, guid.data()) == 0 &&
+			head->magic_num == MAGIC_NUM && head->total_size == sizeFact) {
 			m_log.DoLog(Log::LogLevel::kInfo, "attach existed memory, %s:%llu", guid.data(), size);
 		} else {
-			memset(head, 0, sizeof(ShmHead));
+			memset(ptr, 0, sizeFact);
 			strncpy(head->guid, guid.data(), sizeof(head->guid) - 1);
-			head->total_size = sizeFact;
+			head->total_size  = sizeFact;
 			head->create_time = time(nullptr);
-			head->visit_num = 0;
-			head->magic_num = MAGIC_NUM;
+			head->visit_num	  = 0;
+			head->magic_num	  = MAGIC_NUM;
 
 			m_log.DoLog(Log::LogLevel::kInfo, "create new memory, %s:%llu", guid.data(), size);
 		}

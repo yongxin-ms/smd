@@ -30,7 +30,7 @@ public:
 		return (sizeof(buddy) + sizeof(uint8_t) * (size * 2 - 2));
 	}
 
-	static buddy* buddy_new(void* p, int level) {
+	static buddy* buddy_new(const char* p, int level) {
 		int size = 1 << level;
 
 		buddy* self = (buddy*)p;
