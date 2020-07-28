@@ -91,7 +91,13 @@ public:
 		m_tail = m_head;
 	}
 
-	~ShmList() { clear(); }
+	~ShmList() {
+		clear();
+		m_alloc.Delete(m_tail.p);
+
+		m_head = nullptr;
+		m_tail = nullptr;
+	}
 
 	T& front() { return (m_head.p->data); }
 	T& back() { return (m_tail.p->prev->data); }
