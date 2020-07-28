@@ -120,7 +120,7 @@ public:
 		auto node = NewNode(val);
 		if (m_tail.p->prev != nullptr) {
 			// 已有元素
-			auto& prev = m_tail.p->prev;
+			auto prev = m_tail.p->prev;
 			prev->next = node;
 			node->next = m_tail.p;
 
@@ -128,7 +128,9 @@ public:
 			node->prev	   = prev;
 		} else {
 			// 空链表
-			node->next	   = m_tail.p;
+			node->next = m_tail.p;
+			node->prev = nullptr;
+
 			m_tail.p->prev = node;
 			m_head.p	   = node;
 		}

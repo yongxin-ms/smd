@@ -50,6 +50,14 @@ void TestShmList(smd::Alloc& alloc) {
 	assert(l->front().ToString() == "hello");
 	assert(l->back().ToString() == "will");
 
+	for (auto it = l->begin(); it != l->end();) {
+		if (it->ToString() == "world") {
+			it = l->erase(it);
+		} else {
+			++it;
+		}
+	}
+
 	alloc.Delete(l);
 	assert(l == nullptr);
 	assert(mem_usage == alloc.GetUsed());
