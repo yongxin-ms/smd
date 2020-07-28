@@ -31,7 +31,7 @@ public:
 
 	size_t size() const { return m_finish - m_start; }
 	bool   empty() { return m_finish == m_start; }
-	size_t capacity() const { return m_endOfStorage - m_start; }
+	size_t capacity() const { return m_endOfStorage - m_start + 1; }
 
 	//访问元素相关
 	reference operator[](size_t i) { return m_start[i]; }
@@ -62,7 +62,7 @@ public:
 
 	void pop_back() {
 		--m_finish;
-		auto d = m_finish;
+		auto d = *m_finish;
 		m_alloc.Delete(d);
 	}
 
