@@ -63,6 +63,44 @@ void TestShmList(smd::Alloc& alloc) {
 	assert(mem_usage == alloc.GetUsed());
 }
 
+void TestShmVector(smd::Alloc& alloc) {
+	auto mem_usage = alloc.GetUsed();
+	auto v		   = alloc.New<smd::ShmVector<smd::ShmString>>(alloc);
+
+	assert(v->size() == 0);
+	v->push_back(smd::ShmString(alloc, "hello"));
+	assert(v->size() == 1);
+	assert(v->front().ToString() == "hello");
+	assert(v->back().ToString() == "hello");
+
+	v->push_back(smd::ShmString(alloc, "world"));
+	assert(v->size() == 2);
+	assert(v->front().ToString() == "hello");
+	assert(v->back().ToString() == "world");
+
+	v->push_back(smd::ShmString(alloc, "will"));
+	assert(v->size() == 3);
+	assert(v->front().ToString() == "hello");
+	assert(v->back().ToString() == "will");
+
+	v->pop_back();
+	assert(v->size() == 2);
+	assert(v->front().ToString() == "hello");
+	assert(v->back().ToString() == "world");
+
+	v->pop_back();
+	assert(v->size() == 1);
+	assert(v->front().ToString() == "hello");
+	assert(v->back().ToString() == "hello");
+
+	v->pop_back();
+	assert(v->size() == 0);
+
+	alloc.Delete(v);
+	assert(v == nullptr);
+	assert(mem_usage == alloc.GetUsed());
+}
+
 int main() {
 	auto mgr = new smd::EnvMgr;
 	mgr->SetLogLevel(smd::Log::LogLevel::kDebug);
@@ -91,8 +129,9 @@ int main() {
 	auto env = mgr->CreateEnv(GUID, 20, smd::create);
 	assert(env != nullptr);
 
- //	TestShmString(env->GetMalloc());
-	TestShmList(env->GetMalloc());
+//	TestShmString(env->GetMalloc());
+//	TestShmList(env->GetMalloc());
+	TestShmVector(env->GetMalloc());
 
 // 	std::string key("Alice");
 // 	smd::Slice value;

@@ -5,18 +5,18 @@ namespace smd {
 
 template <class T>
 class ShmVector : public ShmObj {
-	typedef T value_type;
-	typedef T* iterator;
-	typedef T& reference;
+	typedef T		 value_type;
+	typedef T*		 iterator;
+	typedef T&		 reference;
 	typedef iterator pointer;
 
 public:
 	ShmVector(Alloc& alloc, size_t capacity = 0)
-		: ShmObj::ShmObj(alloc) {
-		capacity = GetSuitableCapacity(capacity);
-		m_start = m_alloc.Malloc<T>(capacity);
-		m_finish = m_start;
-		m_endOfStorage = m_start + capacity;
+		: ShmObj(alloc) {
+		capacity	   = GetSuitableCapacity(capacity);
+		m_start		   = m_alloc.Malloc<value_type*>(capacity);
+		m_finish	   = &m_start[0];
+		m_endOfStorage = &m_start[capacity - 1];
 	}
 
 	~ShmVector() {
@@ -25,43 +25,45 @@ public:
 		}
 
 		m_alloc.Free(m_start, capacity());
-		m_start		   = nullptr;
-		m_finish	   = m_start;
-		m_endOfStorage = m_start;
+		m_finish	   = nullptr;
+		m_endOfStorage = nullptr;
 	}
 
 	size_t size() const { return m_finish - m_start; }
-	bool empty() { return m_finish == m_start; }
+	bool   empty() { return m_finish == m_start; }
 	size_t capacity() const { return m_endOfStorage - m_start; }
 
 	//访问元素相关
-	reference operator[](size_t i) { return *(begin() + i); }
-	reference front() { return *(begin()); }
-	reference back() { return *(end() - 1); }
-	pointer data() { return m_start; }
+	reference operator[](size_t i) { return m_start[i]; }
+	reference front() { return *m_start[0]; }
+	reference back() { return *m_start[size() - 1]; }
+	pointer	  data() { return m_start; }
 
 	void push_back(const value_type& value) {
-		if (capacity() > size()) {
-			*m_start[size()] = value;
+		if (m_finish != m_endOfStorage) {
+			*m_finish = m_alloc.New<value_type>(value);
 			++m_finish;
 		} else {
 			auto new_capacity = GetSuitableCapacity(capacity() * 2);
-			auto new_start = m_alloc.Malloc<T>(new_capacity);
-			auto size = size();
-			memcpy(new_start, m_start, sizeof(T) * size);
-			m_alloc.Free<T>(m_start, size());
+			auto new_list	  = m_alloc.Malloc<value_type*>(new_capacity);
+			auto old_size	  = size();
+			if (old_size > 0) {
+				memcpy(new_list, m_start, sizeof(value_type*) * old_size);
+				m_alloc.Free(m_start, capacity());
+			}
 
-			m_start = new_start;
-			m_finish = m_start + size;
-			m_endOfStorage = m_start + new_capacity;
+			m_start		   = new_list;
+			m_finish	   = &m_start[old_size];
+			m_endOfStorage = &m_start[new_capacity - 1];
 
 			push_back(value);
 		}
 	}
+
 	void pop_back() {
 		--m_finish;
 		auto d = m_finish;
-		m_alloc.Free(d);
+		m_alloc.Delete(d);
 	}
 
 	void clear() {
@@ -70,25 +72,20 @@ public:
 		}
 	}
 
-	iterator begin() { return m_start; }
-	iterator end() { return m_finish; }
+	iterator begin() { return m_start[0]; }
+	iterator end() { return *m_finish; }
 
 private:
 	size_t GetSuitableCapacity(size_t size) {
-		if (size < 8)
+		if (size <= 8)
 			size = 8;
-
-		auto newSize = size * sizeof(T);
-		if (newSize <= 64)
-			return size;
-		else
-			return Utility::NextPowOf2(newSize) / sizeof(T);
+		return Utility::NextPowOf2(size);
 	}
 
 private:
-	T* m_start;
-	T* m_finish;
-	T* m_endOfStorage;
+	value_type** m_start;
+	value_type** m_finish;
+	value_type** m_endOfStorage;
 };
 
 } // namespace smd
