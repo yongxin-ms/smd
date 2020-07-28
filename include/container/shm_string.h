@@ -24,9 +24,8 @@ public:
 		m_size				 = r.size();
 	}
 
-	// 真正的构造函数
-	ShmString(Alloc& alloc, const ShmString& r)
-		: ShmObj(alloc) {
+	ShmString(const ShmString& r)
+		: ShmObj(r.m_alloc) {
 		m_capacity = r.capacity();
 		m_ptr	   = m_alloc.Malloc<char>(m_capacity);
 

@@ -54,7 +54,7 @@ private:
 			return nullptr;
 		}
 
-		m_log.DoLog(Log::LogLevel::kDebug, "malloc: 0x:%08x:(%llu)", addr, size);
+		m_log.DoLog(Log::LogLevel::kDebug, "malloc: 0x%08x:(%llu)", addr, size);
 
 		m_used += size;
 		return (void*)(addr + m_storagePtr);
@@ -62,7 +62,7 @@ private:
 
 	void _Free(void* addr, size_t size) {
 		auto vir_addr = (int)((const char*)addr - m_storagePtr);
-		m_log.DoLog(Log::LogLevel::kDebug, "free: 0x:%08x:(%llu)", vir_addr, size);
+		m_log.DoLog(Log::LogLevel::kDebug, "free: 0x%08x:(%llu)", vir_addr, size);
 
 		m_used -= size;
 		SmdBuddyAlloc::buddy_free(m_buddy, vir_addr);

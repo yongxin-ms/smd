@@ -13,6 +13,13 @@ void TestShmString(smd::Alloc& alloc) {
 	s->assign("hello");
 	assert(s->ToString() == "hello");
 
+	auto t = alloc.New<smd::ShmString>(alloc, 32);
+	t->assign("world");
+	assert(t->ToString() == "world");
+	assert(s->ToString() == "hello");
+	alloc.Delete(t);
+	assert(s->ToString() == "hello");
+
 	*s = "1234567812345678helloaaaa";
 	assert(s->ToString() == "1234567812345678helloaaaa");
 	assert(s->capacity() == 32);
@@ -76,7 +83,7 @@ int main() {
 	auto env = mgr->CreateEnv(GUID, 20, smd::create);
 	assert(env != nullptr);
 
-	TestShmString(env->GetMalloc());
+ //	TestShmString(env->GetMalloc());
 	TestShmList(env->GetMalloc());
 
 // 	std::string key("Alice");
