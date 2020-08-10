@@ -13,10 +13,7 @@ class ShmVector : public ShmObj {
 public:
 	ShmVector(Alloc& alloc, size_t capacity = 0)
 		: ShmObj(alloc) {
-		capacity	   = GetSuitableCapacity(capacity);
-		m_start		   = m_alloc.Malloc<value_type*>(capacity);
-		m_finish	   = &m_start[0];
-		m_endOfStorage = &m_start[capacity - 1];
+		resize(GetSuitableCapacity(capacity));
 	}
 
 	~ShmVector() {
@@ -44,18 +41,7 @@ public:
 			*m_finish = m_alloc.New<value_type>(value);
 			++m_finish;
 		} else {
-			auto new_capacity = GetSuitableCapacity(capacity() * 2);
-			auto new_list	  = m_alloc.Malloc<value_type*>(new_capacity);
-			auto old_size	  = size();
-			if (old_size > 0) {
-				memcpy(new_list, m_start, sizeof(value_type*) * old_size);
-				m_alloc.Free(m_start, capacity());
-			}
-
-			m_start		   = new_list;
-			m_finish	   = &m_start[old_size];
-			m_endOfStorage = &m_start[new_capacity - 1];
-
+			resize(GetSuitableCapacity(capacity() * 2));
 			push_back(value);
 		}
 	}
@@ -75,17 +61,35 @@ public:
 	iterator begin() { return m_start[0]; }
 	iterator end() { return *m_finish; }
 
-private:
-	size_t GetSuitableCapacity(size_t size) {
-		if (size <= 8)
-			size = 8;
-		return Utility::NextPowOf2(size);
+	void resize(size_t new_capacity) {
+		auto old_size = size();
+		new_capacity  = GetSuitableCapacity(std::max(old_size, new_capacity));
+		auto new_list	  = m_alloc.Malloc<value_type*>(new_capacity);
+		if (old_size > 0) {
+			memcpy(new_list, m_start, sizeof(value_type*) * old_size);
+			m_alloc.Free(m_start, capacity());
+		}
+
+		m_start		   = new_list;
+		m_finish	   = &m_start[old_size];
+		m_endOfStorage = &m_start[new_capacity - 1];
 	}
 
 private:
-	value_type** m_start;
-	value_type** m_finish;
-	value_type** m_endOfStorage;
+	size_t GetSuitableCapacity(size_t size) {
+		if (size < 1)
+			size = 1;
+		return Utility::NextPowOf2(size);
+	}
+
+	void shrink_to_fit() {
+		// 在此添加代码缩容
+	}
+
+private:
+	value_type** m_start = nullptr;
+	value_type** m_finish = nullptr;
+	value_type** m_endOfStorage = nullptr;
 };
 
 } // namespace smd

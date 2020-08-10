@@ -164,9 +164,9 @@ int main() {
 	auto env = mgr->CreateEnv(GUID, 20, smd::create);
 	assert(env != nullptr);
 
-//	TestShmString(env->GetMalloc());
-//	TestShmList(env->GetMalloc());
-	TestShmVector(env->GetMalloc());
+// 	TestShmString(env->GetMalloc());
+// 	TestShmList(env->GetMalloc());
+// 	TestShmVector(env->GetMalloc());
 	TestHash(env);
 
 // 	std::string key("Alice");

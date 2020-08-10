@@ -79,9 +79,7 @@ public:
 
 	ShmHash(Alloc& alloc, size_t bucket_count = 0)
 		: ShmObj(alloc)
-		, m_buckets(alloc, bucket_count)
-		, m_size(0)
-		, m_max_load_factor(0) {}
+		, m_buckets(alloc, m_primeUtil.NextPrime(bucket_count)) {}
 
 	~ShmHash() { m_buckets.clear(); }
 
@@ -178,6 +176,9 @@ private:
 	}
 
 	bool has_key(const key_type& key) {
+		if (m_size == 0)
+			return false;
+
 		auto& list = m_buckets[bucket_index(key)];
 		for (auto it = list.begin(); it != list.end(); ++it) {
 			if (key == *it)
@@ -188,8 +189,8 @@ private:
 
 private:
 	ShmVector<ShmList<Key>> m_buckets;
-	size_t m_size;
-	float m_max_load_factor;
+	size_t m_size = 0;
+	float m_max_load_factor = 0.0f;
 
 	static PrimeUtil m_primeUtil;
 };

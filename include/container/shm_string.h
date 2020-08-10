@@ -10,7 +10,8 @@ class ShmString : public ShmObj {
 public:
 	ShmString(Alloc& alloc, size_t capacity = 0)
 		: ShmObj(alloc) {
-		resize(capacity);
+		if (capacity > 0)
+			resize(capacity);
 	}
 
 	ShmString(Alloc& alloc, const std::string& r)
@@ -21,8 +22,10 @@ public:
 
 	ShmString(const ShmString& r)
 		: ShmObj(r.m_alloc) {
-		resize(r.capacity());
-		internal_copy(r.data(), r.size());
+		if (r.size() > 0) {
+			resize(r.capacity());
+			internal_copy(r.data(), r.size());
+		}
 	}
 
 	~ShmString() {
