@@ -56,6 +56,7 @@ set(CONTAINER_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/../../include/container/pair.h
 	${CMAKE_CURRENT_SOURCE_DIR}/../../include/container/iterator.h
 	${CMAKE_CURRENT_SOURCE_DIR}/../../include/container/reverse_iterator.h
+	${CMAKE_CURRENT_SOURCE_DIR}/../../include/container/functional.h
 	)
 
 set(MEM_ALLOC_FILES

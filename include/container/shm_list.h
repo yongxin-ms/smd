@@ -77,6 +77,8 @@ public:
 	friend bool operator!=(const ListIterator<T>& lhs, const ListIterator<T>& rhs) {
 		return !(lhs == rhs);
 	}
+
+	void swap(ListIterator<T>& x) { smd::swap(p, x.p); }
 };
 
 template <class T>
@@ -195,6 +197,11 @@ private:
 	void DeleteNode(nodePtr p) {
 		p->prev = p->next = nullptr;
 		m_alloc.Delete(p);
+	}
+
+	void swap(ShmList<T>& x) {
+		smd::swap(m_head, x.m_head);
+		smd::swap(m_tail, x.m_tail);
 	}
 
 private:

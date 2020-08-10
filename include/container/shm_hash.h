@@ -2,6 +2,7 @@
 #include "shm_list.h"
 #include "shm_vector.h"
 #include "pair.h"
+#include "functional.h"
 
 namespace smd {
 
@@ -95,11 +96,11 @@ public:
 	void rehash(size_type n) {
 		if (n <= m_buckets.size())
 			return;
-		ShmHash<Key> temp(m_alloc, m_name, next_prime(n));
+		ShmHash<Key> temp(m_alloc, next_prime(n));
 		for (auto& val : *this) {
 			temp.insert(val);
 		}
-		swap(*this, temp);
+		smd::swap(*this, temp);
 	}
 
 	iterator begin() {
@@ -123,7 +124,7 @@ public:
 	iterator find(const key_type& key) {
 		auto index = bucket_index(key);
 		for (auto it = begin(index); it != end(index); ++it) {
-			if (key_equal()(key, *it))
+			if (equal_to<key_type>()(key, *it))
 				return iterator(index, it, this);
 		}
 		return end();
@@ -164,10 +165,16 @@ public:
 		}
 	}
 
+	void swap(ShmHash<Key>& x) {
+		smd::swap(m_buckets, x.m_buckets);
+		smd::swap(m_size, x.m_size);
+		smd::swap(m_max_load_factor, x.m_max_load_factor);
+	}
+
 private:
 	size_type next_prime(size_type n) const { return m_primeUtil.NextPrime(n); }
 	size_type bucket_index(const key_type& key) const {
-		return std::hash<key_type>(key) % m_buckets.size();
+		return std::hash<key_type>()(key) % m_buckets.size();
 	}
 
 	bool has_key(const key_type& key) {

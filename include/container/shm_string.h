@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include <string>
 #include "shm_obj.h"
+#include "pair.h"
 #include "../common/utility.h"
 
 namespace smd {
@@ -9,37 +10,23 @@ class ShmString : public ShmObj {
 public:
 	ShmString(Alloc& alloc, size_t capacity = 0)
 		: ShmObj(alloc) {
-		m_capacity = GetSuitableCapacity(capacity);
-		m_ptr	   = m_alloc.Malloc<char>(m_capacity);
-		m_size	   = 0;
+		resize(capacity);
 	}
 
 	ShmString(Alloc& alloc, const std::string& r)
 		: ShmObj(alloc) {
-		m_capacity = GetSuitableCapacity(r.size() + 1);
-		m_ptr	   = m_alloc.Malloc<char>(m_capacity);
-
-		memcpy(data(), r.data(), r.size());
-		*(data() + r.size()) = '\0';
-		m_size				 = r.size();
+		resize(GetSuitableCapacity(r.size() + 1));
+		internal_copy(r.data(), r.size());
 	}
 
 	ShmString(const ShmString& r)
 		: ShmObj(r.m_alloc) {
-		m_capacity = r.capacity();
-		m_ptr	   = m_alloc.Malloc<char>(m_capacity);
-
-		memcpy(data(), r.data(), r.size());
-		*(data() + r.size()) = '\0';
-		m_size				 = r.size();
+		resize(r.capacity());
+		internal_copy(r.data(), r.size());
 	}
 
 	~ShmString() {
-		if (m_ptr != nullptr) {
-			m_alloc.Free(m_ptr, m_capacity);
-			m_capacity = 0;
-		}
-
+		resize(0);
 		m_size = 0;
 	}
 
@@ -51,27 +38,27 @@ public:
 
 	ShmString& assign(const std::string& r) {
 		if (r.size() < m_capacity) {
-			memcpy(data(), r.data(), r.size());
-			*(data() + r.size()) = '\0';
-			m_size				 = r.size();
-			return *this;
+			internal_copy(r.data(), r.size());
+			shrink_to_fit();
+		} else {
+			resize(GetSuitableCapacity(r.size() + 1));
+			internal_copy(r.data(), r.size());
 		}
 
-		if (m_ptr != nullptr) {
-			m_alloc.Free(m_ptr, m_capacity);
-			m_capacity = 0;
-		}
-
-		m_capacity = GetSuitableCapacity(r.size() + 1);
-		m_ptr	   = m_alloc.Malloc<char>(m_capacity);
-
-		memcpy(data(), r.data(), r.size());
-		*(data() + r.size()) = '\0';
-		m_size				 = r.size();
 		return *this;
 	}
 
-	ShmString& operator=(const std::string& r) { return assign(r); }
+	ShmString& operator=(const std::string& r) {
+		ShmString(m_alloc, r).swap(*this);
+		return *this;
+	}
+
+	ShmString& operator=(const ShmString& r) {
+		if (this != &r) {
+			ShmString(r).swap(*this);
+		}
+		return *this;
+	}
 
 	int compare(const ShmString& b) const {
 		const size_t min_len = (size() < b.size()) ? size() : b.size();
@@ -85,9 +72,16 @@ public:
 		return r;
 	}
 
-	void clear() { m_size = 0; }
+	void clear() {
+		m_size = 0;
+		shrink_to_fit();
+	}
 
 	std::string ToString() const { return std::string(data(), size()); }
+
+	bool operator==(const ShmString& rhs) const {
+		return ((size() == rhs.size()) && (memcmp(data(), rhs.data(), size()) == 0));
+	}
 
 private:
 	static size_t GetSuitableCapacity(size_t size) {
@@ -97,18 +91,57 @@ private:
 			return Utility::NextPowOf2(size);
 	}
 
-private:
-	char*  m_ptr;
-	size_t m_capacity;
-	size_t m_size;
-};
+	void swap(ShmString& x) {
+		smd::swap(m_ptr, x.m_ptr);
+		smd::swap(m_capacity, x.m_capacity);
+		smd::swap(m_size, x.m_size);
+	}
 
-inline bool operator==(const ShmString& x, const ShmString& y) {
-	return ((x.size() == y.size()) && (memcmp(x.data(), y.data(), x.size()) == 0));
-}
+	void resize(size_t capacity) {
+		if (m_ptr != nullptr) {
+			m_alloc.Free(m_ptr, m_capacity);
+			m_capacity = 0;
+		}
+
+		if (capacity > 0) {
+			m_capacity = capacity;
+			m_ptr	   = m_alloc.Malloc<char>(m_capacity);
+		}
+	}
+
+	void internal_copy(const char* buf, size_t len) {
+		assert(m_capacity > len + 1);
+
+		memcpy(data(), buf, len);
+		*(data() + len) = '\0';
+		m_size			= len;
+	}
+
+	void shrink_to_fit() {
+		// 在此添加代码缩容
+	}
+
+private:
+	char*  m_ptr	  = nullptr;
+	size_t m_capacity = 0;
+	size_t m_size	  = 0;
+};
 
 inline bool operator!=(const ShmString& x, const ShmString& y) { return !(x == y); }
 inline bool operator<(const ShmString& x, const ShmString& y) { return x.compare(y) < 0; }
 inline bool operator>(const ShmString& x, const ShmString& y) { return x.compare(y) > 0; }
 
 } // namespace smd
+
+namespace std {
+template <>
+struct hash<smd::ShmString> {
+	typedef smd::ShmString argument_type;
+	typedef std::size_t	   result_type;
+
+	result_type operator()(argument_type const& s) const {
+		return std::hash<std::string>()(s.ToString());
+	}
+};
+
+} // namespace std
