@@ -194,4 +194,7 @@ private:
 	static PrimeUtil m_primeUtil;
 };
 
+template <class Key>
+PrimeUtil ShmHash<Key>::m_primeUtil;
+
 } // namespace smd
