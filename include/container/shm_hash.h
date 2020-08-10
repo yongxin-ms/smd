@@ -12,16 +12,16 @@ private:
 	friend class ShmHash;
 
 private:
-	typedef ShmHash<Key>* cntrPtr;
 	size_t bucket_index_;
 	ListIterator iterator_;
-	cntrPtr container_;
+	ShmHash<Key>* container_;
 
 public:
-	HashIterator(size_t index, ListIterator it, cntrPtr ptr)
+	HashIterator(size_t index, ListIterator it, ShmHash<Key>* ptr)
 		: bucket_index_(index)
 		, iterator_(it)
 		, container_(ptr){};
+
 	HashIterator& operator++() {
 		++iterator_;
 		//如果前进一位后到达了list的末尾，则需要跳转到下一个有item的bucket的list
@@ -32,7 +32,7 @@ public:
 					break;
 				} else {
 					++bucket_index_;
-					if (!(container_->m_buckets[bucket_index_].empty())) { //此list不为空
+					if (!container_->m_buckets[bucket_index_].empty()) { //此list不为空
 						iterator_ = container_->m_buckets[bucket_index_].begin();
 						break;
 					}
@@ -68,6 +68,8 @@ private:
 
 template <class Key>
 class ShmHash : public ShmObj {
+	friend class HashIterator<Key, typename ShmList<Key>::iterator>;
+
 public:
 	typedef size_t size_type;
 	typedef Key key_type;
@@ -152,13 +154,13 @@ public:
 		return position;
 	}
 
-	size_type erase(const key_type& key) {
+	bool erase(const key_type& key) {
 		auto it = find(key);
 		if (it == end()) {
-			return 0;
+			return false;
 		} else {
 			erase(it);
-			return 1;
+			return true;
 		}
 	}
 
@@ -167,6 +169,7 @@ private:
 	size_type bucket_index(const key_type& key) const {
 		return std::hash<key_type>(key) % m_buckets.size();
 	}
+
 	bool has_key(const key_type& key) {
 		auto& list = m_buckets[bucket_index(key)];
 		for (auto it = list.begin(); it != list.end(); ++it) {

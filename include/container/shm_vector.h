@@ -34,7 +34,7 @@ public:
 	size_t capacity() const { return m_endOfStorage - m_start + 1; }
 
 	//访问元素相关
-	reference operator[](size_t i) { return m_start[i]; }
+	reference operator[](size_t i) { return *m_start[i]; }
 	reference front() { return *m_start[0]; }
 	reference back() { return *m_start[size() - 1]; }
 	pointer	  data() { return m_start; }

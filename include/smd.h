@@ -84,6 +84,7 @@ public:
 
 	// 还需要一个遍历接口
 
+	Log&   GetLog() { return m_log; }
 	Alloc& GetMalloc() { return m_alloc; }
 
 private:
