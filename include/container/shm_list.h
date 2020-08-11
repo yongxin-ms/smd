@@ -157,7 +157,7 @@ public:
 	iterator begin() { return m_head; }
 	iterator end() { return m_tail; }
 
-	bool   empty() { return m_head != m_tail; }
+	bool   empty() { return m_head == m_tail; }
 	size_t size() {
 		size_t length = 0;
 		for (auto h = m_head; h != m_tail; ++h)

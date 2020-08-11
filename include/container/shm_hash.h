@@ -80,7 +80,7 @@ public:
 	ShmHash(Alloc& alloc, size_t bucket_count = 1)
 		: ShmObj(alloc)
 		, m_buckets(alloc, m_primeUtil.NextPrime(bucket_count)) {
-		m_buckets.resize(m_buckets.capacity(), ShmList<Key>(alloc));
+		m_buckets.resize(m_buckets.capacity(), ShmList<key_type>(alloc));
 	}
 
 	~ShmHash() { m_buckets.clear(); }
