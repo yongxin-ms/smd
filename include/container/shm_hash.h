@@ -77,9 +77,11 @@ public:
 	typedef HashIterator<Key, typename ShmList<key_type>::iterator> iterator;
 	typedef typename ShmList<key_type>::iterator local_iterator;
 
-	ShmHash(Alloc& alloc, size_t bucket_count = 0)
+	ShmHash(Alloc& alloc, size_t bucket_count = 1)
 		: ShmObj(alloc)
-		, m_buckets(alloc, m_primeUtil.NextPrime(bucket_count)) {}
+		, m_buckets(alloc, m_primeUtil.NextPrime(bucket_count)) {
+		m_buckets.resize(m_buckets.capacity(), ShmList<Key>(alloc));
+	}
 
 	~ShmHash() { m_buckets.clear(); }
 
@@ -176,9 +178,6 @@ private:
 	}
 
 	bool has_key(const key_type& key) {
-		if (m_size == 0)
-			return false;
-
 		auto& list = m_buckets[bucket_index(key)];
 		for (auto it = list.begin(); it != list.end(); ++it) {
 			if (key == *it)
