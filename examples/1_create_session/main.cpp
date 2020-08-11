@@ -3,7 +3,8 @@
 #include "smd.h"
 #include "util.h"
 
-void TestShmString(smd::Alloc& alloc) {
+void TestShmString(smd::Env* env) {
+	auto& alloc		= env->GetMalloc();
 	auto mem_usage = alloc.GetUsed();
 	auto s = alloc.New<smd::ShmString>(alloc, 16);
 	assert(s->capacity() == 16);
@@ -28,9 +29,12 @@ void TestShmString(smd::Alloc& alloc) {
 	alloc.Delete(s);
 	assert(s == nullptr);
 	assert(mem_usage == alloc.GetUsed());
+
+	env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "String test complete");
 }
 
-void TestShmList(smd::Alloc& alloc) {
+void TestShmList(smd::Env* env) {
+	auto& alloc		= env->GetMalloc();
 	auto mem_usage = alloc.GetUsed();
 	auto l = alloc.New<smd::ShmList<smd::ShmString>>(alloc);
 
@@ -61,9 +65,11 @@ void TestShmList(smd::Alloc& alloc) {
 	alloc.Delete(l);
 	assert(l == nullptr);
 	assert(mem_usage == alloc.GetUsed());
+	env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "List test complete");
 }
 
-void TestShmListPushFront(smd::Alloc& alloc) {
+void TestShmListPushFront(smd::Env* env) {
+	auto& alloc		= env->GetMalloc();
 	auto mem_usage = alloc.GetUsed();
 	auto l		   = alloc.New<smd::ShmList<smd::ShmString>>(alloc);
 
@@ -94,10 +100,13 @@ void TestShmListPushFront(smd::Alloc& alloc) {
 	alloc.Delete(l);
 	assert(l == nullptr);
 	assert(mem_usage == alloc.GetUsed());
+
+	env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "ListPushFront test complete");
 }
 
 
-void TestShmVector(smd::Alloc& alloc) {
+void TestShmVector(smd::Env* env) {
+	auto& alloc		= env->GetMalloc();
 	auto mem_usage = alloc.GetUsed();
 	auto v		   = alloc.New<smd::ShmVector<smd::ShmString>>(alloc);
 
@@ -133,41 +142,59 @@ void TestShmVector(smd::Alloc& alloc) {
 	alloc.Delete(v);
 	assert(v == nullptr);
 	assert(mem_usage == alloc.GetUsed());
+
+	env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "Vector test complete");
+}
+
+void TestShmVectorResize(smd::Env* env) {
+	auto& alloc		= env->GetMalloc();
+	auto  mem_usage = alloc.GetUsed();
+	auto  v			= alloc.New<smd::ShmVector<smd::ShmString>>(alloc, 64);
+	v->resize(v->capacity(), smd::ShmString(alloc));
+
+	alloc.Delete(v);
+	assert(v == nullptr);
+	assert(mem_usage == alloc.GetUsed());
+
+	env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "VectorResize test complete");
 }
 
 void TestHash(smd::Env* env) {
-	smd::Alloc& alloc	  = env->GetMalloc();
+	auto& alloc	  = env->GetMalloc();
 	auto mem_usage = alloc.GetUsed();
 	auto h		   = alloc.New<smd::ShmHash<smd::ShmString>>(alloc);
 
-	assert(h->size() == 0);
-	h->insert(smd::ShmString(alloc, "hello"));
-	assert(h->size() == 1);
-	assert((*h->begin()).ToString() == "hello");
-	assert(h->count(smd::ShmString(alloc, "hello")));
+// 	assert(h->size() == 0);
+// 	h->insert(smd::ShmString(alloc, "hello"));
+// 	assert(h->size() == 1);
+// 	assert((*h->begin()).ToString() == "hello");
+// 	assert(h->count(smd::ShmString(alloc, "hello")));
+// 	h->clear();
 
-	h->insert(smd::ShmString(alloc, "world"));
-	assert(h->size() == 2);
-	assert((*h->begin()).ToString() == "hello");
-	assert(h->count(smd::ShmString(alloc, "world")));
-
-	h->insert(smd::ShmString(alloc, "will"));
-	assert(h->size() == 3);
-	assert((*h->begin()).ToString() == "hello");
-	assert(h->count(smd::ShmString(alloc, "will")));
-
-	for (auto it = h->begin(); it != h->end(); ++it) {
-		env->GetLog().DoLog(smd::Log::LogLevel::kDebug, "%s", it->ToString().data());
-	}
-
-	for (auto it = h->begin(); it != h->end();) {
-		it = h->erase(it);
-	}
+// 	h->insert(smd::ShmString(alloc, "world"));
+// 	assert(h->size() == 2);
+// 	assert((*h->begin()).ToString() == "hello");
+// 	assert(h->count(smd::ShmString(alloc, "world")));
+// 
+// 	h->insert(smd::ShmString(alloc, "will"));
+// 	assert(h->size() == 3);
+// 	assert((*h->begin()).ToString() == "hello");
+// 	assert(h->count(smd::ShmString(alloc, "will")));
+// 
+// 	for (auto it = h->begin(); it != h->end(); ++it) {
+// 		env->GetLog().DoLog(smd::Log::LogLevel::kDebug, "%s", it->ToString().data());
+// 	}
+// 
+// 	for (auto it = h->begin(); it != h->end();) {
+// 		it = h->erase(it);
+// 	}
 
 	assert(h->size() == 0);
 	alloc.Delete(h);
 	assert(h == nullptr);
 	assert(mem_usage == alloc.GetUsed());
+
+	env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "Hash test complete");
 }
 
 int main() {
@@ -198,10 +225,11 @@ int main() {
 	auto env = mgr->CreateEnv(GUID, 20, smd::create);
 	assert(env != nullptr);
 
-// 	TestShmString(env->GetMalloc());
-// 	TestShmList(env->GetMalloc());
-// 	TestShmListPushFront(env->GetMalloc());
-// 	TestShmVector(env->GetMalloc());
+// 	TestShmString(env);
+	TestShmList(env);
+// 	TestShmListPushFront(env);
+// 	TestShmVector(env);
+	TestShmVectorResize(env);
 	TestHash(env);
 
 // 	std::string key("Alice");

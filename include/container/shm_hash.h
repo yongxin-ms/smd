@@ -165,6 +165,13 @@ public:
 		}
 	}
 
+	void clear() {
+		auto it_end = end();
+		for (auto it = begin(); it != it_end;) {
+			it = erase(it);
+		}
+	}
+
 	void swap(ShmHash<Key>& x) {
 		smd::swap(m_buckets, x.m_buckets);
 		smd::swap(m_size, x.m_size);
