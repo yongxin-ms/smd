@@ -73,7 +73,7 @@ void TestShmString(smd::Env* env) {
 void TestShmList(smd::Env* env) {
 	auto& alloc		= env->GetMalloc();
 	auto mem_usage = alloc.GetUsed();
-	auto l = alloc.New<smd::ShmList<smd::ShmString>>(alloc);
+	auto  l			= alloc.New<smd::ShmList<smd::ShmString>>(alloc, smd::ShmString(alloc));
 
 	// 验证在尾部添加元素
 	assert(l->size() == 0);
@@ -147,7 +147,7 @@ void TestShmList(smd::Env* env) {
 		assert(l1.front().ToString() == "hello");
 		assert(l1.back().ToString() == "TestText99");
 
-		smd::ShmList<smd::ShmString> l2(env->GetMalloc());
+		smd::ShmList<smd::ShmString> l2(alloc, smd::ShmString(alloc));
 		l2 = *l;
 		// 验证在尾部添加多个元素
 		for (int i = 0; i < 100; i++) {
@@ -183,23 +183,27 @@ void TestShmList(smd::Env* env) {
 }
 
 void TestShmListPod(smd::Env* env) {
-	struct StMyData : public smd::ShmObj{
+	struct StMyData {
 		uint64_t role_id_;
 		int		 hp_;
 
-		StMyData(smd::Alloc& alloc, uint64_t role_id = 0, int hp = 0)
-			: smd::ShmObj(alloc)
-			, role_id_(role_id)
+		StMyData(uint64_t role_id = 0, int hp = 0)
+			: role_id_(role_id)
 			, hp_(hp) {}
+
+		void swap(StMyData& x) {
+			smd::swap(role_id_, x.role_id_);
+			smd::swap(hp_, x.hp_);
+		}
 	};
 
 	auto& alloc		= env->GetMalloc();
 	auto  mem_usage = alloc.GetUsed();
-	auto  l			= alloc.New<smd::ShmList<StMyData>>(alloc);
+	auto  l			= alloc.New<smd::ShmList<StMyData>>(alloc, StMyData());
 
 	// 验证在尾部添加元素
 	assert(l->size() == 0);
-	l->push_back(StMyData(alloc, 7131, 14));
+	l->push_back(StMyData(7131, 14));
 	assert(l->size() == 1);
 	auto& element = l->front();
 
@@ -328,7 +332,7 @@ void TestShmVectorPod(smd::Env* env) {
 void TestHash(smd::Env* env) {
 	auto& alloc	  = env->GetMalloc();
 	auto mem_usage = alloc.GetUsed();
-	auto h		   = alloc.New<smd::ShmHash<smd::ShmString>>(alloc);
+	auto  h			= alloc.New<smd::ShmHash<smd::ShmString>>(alloc, smd::ShmString(alloc));
 
 	assert(h->size() == 0);
 	h->insert(smd::ShmString(alloc, "hello"));

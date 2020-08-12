@@ -83,15 +83,15 @@ public:
 	typedef ListNode<T>*	nodePtr;
 	typedef ListIterator<T> iterator;
 
-	ShmList(Alloc& alloc)
+	ShmList(Alloc& alloc, const T& dummy)
 		: ShmObj(alloc) {
-		m_head = NewNode(T(alloc)); // add a dummy node
+		m_head = NewNode(dummy); // add a dummy node
 		m_tail = m_head;
 	}
 
 	ShmList(const ShmList<T>& r)
 		: ShmObj(r.m_alloc) {
-		m_head = NewNode(T(r.m_alloc)); // add a dummy node
+		m_head = NewNode(*((ShmList<T>&)r).end()); // add a dummy node
 		m_tail = m_head;
 
 		ShmList<T>* r1 = (ShmList<T>*)&r;

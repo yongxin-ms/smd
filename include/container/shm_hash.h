@@ -77,10 +77,11 @@ public:
 	typedef HashIterator<Key, typename ShmList<key_type>::iterator> iterator;
 	typedef typename ShmList<key_type>::iterator local_iterator;
 
-	ShmHash(Alloc& alloc, size_t bucket_count = 1)
+	ShmHash(Alloc& alloc, const key_type& val, size_t bucket_count = 1)
 		: ShmObj(alloc)
+		, m_dummyKey(val)
 		, m_buckets(alloc, m_primeUtil.NextPrime(bucket_count)) {
-		m_buckets.resize(m_buckets.capacity(), ShmList<key_type>(alloc));
+		m_buckets.resize(m_buckets.capacity(), ShmList<key_type>(alloc, m_dummyKey));
 	}
 
 	~ShmHash() { m_buckets.clear(); }
@@ -96,10 +97,10 @@ public:
 	void rehash(size_type n) {
 		if (n <= m_buckets.size())
 			return;
-		ShmHash<Key> temp(m_alloc, next_prime(n));
-		for (auto& val : *this) {
-			temp.insert(val);
-		}
+		 ShmHash<Key> temp(m_alloc, m_dummyKey, next_prime(n));
+		 for (auto& val : *this) {
+			 temp.insert(val);
+		 }
 		smd::swap(*this, temp);
 	}
 
@@ -173,6 +174,7 @@ public:
 	}
 
 	void swap(ShmHash<Key>& x) {
+		smd::swap(m_dummyKey, x.m_dummyKey);
 		smd::swap(m_buckets, x.m_buckets);
 		smd::swap(m_size, x.m_size);
 		smd::swap(m_max_load_factor, x.m_max_load_factor);
@@ -194,6 +196,7 @@ private:
 	}
 
 private:
+	key_type				m_dummyKey;
 	ShmVector<ShmList<Key>> m_buckets;
 	size_t m_size = 0;
 	float m_max_load_factor = 0.0f;
