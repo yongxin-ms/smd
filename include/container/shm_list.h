@@ -31,14 +31,13 @@ class ListIterator {
 	friend class ShmList;
 
 public:
-	typedef ListNode<T>* nodePtr;
-	nodePtr				 p;
+	ListNode<T>* p;
 
 public:
-	explicit ListIterator(nodePtr ptr = nullptr)
+	explicit ListIterator(ListNode<T>* ptr = nullptr)
 		: p(ptr) {}
 
-	ListIterator& operator=(nodePtr ptr) {
+	ListIterator& operator=(ListNode<T>* ptr) {
 		p = ptr;
 		return *this;
 	}
@@ -66,7 +65,7 @@ public:
 	}
 
 	T& operator*() { return p->data; }
-	T* operator->() { return &(operator*()); }
+	T* operator->() { return &(p->data); }
 
 	void swap(ListIterator<T>& x) { smd::swap(p, x.p); }
 
@@ -78,13 +77,11 @@ public:
 	}
 };
 
-
 template <class T>
 class ShmList : public ShmObj {
 public:
 	typedef ListNode<T>*	nodePtr;
 	typedef ListIterator<T> iterator;
-	typedef ListIterator<const T> const_iterator;
 
 	ShmList(Alloc& alloc)
 		: ShmObj(alloc) {
@@ -97,8 +94,9 @@ public:
 		m_head = NewNode(T(r.m_alloc)); // add a dummy node
 		m_tail = m_head;
 
-		for (const_iterator it = r.begin(); it != r.end(); ++it) {
-			const auto& element = *it;
+		ShmList<T>* r1 = (ShmList<T>*)&r;
+		for (iterator it = r1->begin(); it != r1->end(); ++it) {
+			auto& element = *it;
 			push_back(element);
 		}
 	}
@@ -173,14 +171,6 @@ public:
 
 	iterator begin() { return m_head; }
 	iterator end() { return m_tail; }
-	const_iterator begin() const {
-		auto temp = (ShmList* const)this;
-		return changeIteratorToConstIterator(temp->m_head);
-	}
-	const_iterator end() const {
-		auto temp = (ShmList* const)this;
-		return changeIteratorToConstIterator(temp->m_tail);
-	}
 
 	bool   empty() const { return m_head == m_tail; }
 	size_t size() const {
@@ -227,15 +217,6 @@ private:
 	void swap(ShmList<T>& x) {
 		smd::swap(m_head, x.m_head);
 		smd::swap(m_tail, x.m_tail);
-	}
-
-	const_iterator changeIteratorToConstIterator(iterator& it) const {
-		using nodeP = ListNode<const T>*;
-		auto temp	= (ShmList<const T>* const)this;
-		auto ptr	= it.p;
-
-		ListNode<const T> node(*temp, ptr->data, (nodeP)(ptr->prev), (nodeP)(ptr->next));
-		return const_iterator(&node);
 	}
 
 private:
