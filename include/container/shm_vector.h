@@ -82,6 +82,8 @@ public:
 	void reserve(size_t new_capacity) {
 		auto old_size = size();
 		new_capacity  = GetSuitableCapacity(std::max(old_size, new_capacity));
+
+		//多分配一个，用来存放尾结点
 		auto new_list	  = m_alloc.Malloc<value_type*>(new_capacity + 1);
 		if (old_size > 0) {
 			memcpy(new_list, m_start, sizeof(value_type*) * old_size);

@@ -300,13 +300,12 @@ void TestShmVectorResize(smd::Env* env) {
 }
 
 void TestShmVectorPod(smd::Env* env) {
-	struct StMyData : public smd::ShmObj {
+	struct StMyData {
 		uint64_t role_id_;
 		int		 hp_;
 
-		StMyData(smd::Alloc& alloc, uint64_t role_id = 0, int hp = 0)
-			: smd::ShmObj(alloc)
-			, role_id_(role_id)
+		StMyData(uint64_t role_id = 0, int hp = 0)
+			: role_id_(role_id)
 			, hp_(hp) {}
 	};
 
@@ -316,7 +315,7 @@ void TestShmVectorPod(smd::Env* env) {
 
 	// 验证在尾部添加元素
 	assert(v->size() == 0);
-	v->push_back(StMyData(alloc, 7131, 14));
+	v->push_back(StMyData(7131, 14));
 	assert(v->size() == 1);
 	auto& element = v->front();
 
