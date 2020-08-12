@@ -190,11 +190,6 @@ void TestShmListPod(smd::Env* env) {
 		StMyData(uint64_t role_id = 0, int hp = 0)
 			: role_id_(role_id)
 			, hp_(hp) {}
-
-		void swap(StMyData& x) {
-			smd::swap(role_id_, x.role_id_);
-			smd::swap(hp_, x.hp_);
-		}
 	};
 
 	auto& alloc		= env->GetMalloc();
@@ -372,6 +367,41 @@ void TestHash(smd::Env* env) {
 	env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "Hash test complete");
 }
 
+void TestHashPod(smd::Env* env) {
+	auto& alloc		= env->GetMalloc();
+	auto  mem_usage = alloc.GetUsed();
+	auto  h			= alloc.New<smd::ShmHash<uint64_t>>(alloc, 0);
+
+	for (int i = 0; i < 10; ++i) {
+		h->insert(10000 + i);
+	}
+
+	assert(h->size() == 10);
+	assert(h->find(10000) != h->end());
+	assert(h->find(10008) != h->end());
+	assert(h->find(10) == h->end());
+
+	for (auto it = h->begin(); it != h->end(); ++it) {
+		env->GetLog().DoLog(smd::Log::LogLevel::kDebug, "%llu", *it);
+	}
+
+	for (auto it = h->begin(); it != h->end();) {
+		it = h->erase(it);
+	}
+
+	assert(h->find(10000) == h->end());
+	assert(h->find(10008) == h->end());
+	assert(h->find(10) == h->end());
+
+	assert(h->size() == 0);
+	alloc.Delete(h);
+	assert(h == nullptr);
+	assert(mem_usage == alloc.GetUsed());
+
+	env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "Hash test complete");
+}
+
+
 int main() {
 	auto mgr = new smd::EnvMgr;
 	mgr->SetLogLevel(smd::Log::LogLevel::kDebug);
@@ -407,6 +437,7 @@ int main() {
 	TestShmVectorResize(env);
 	TestShmVectorPod(env);
 	TestHash(env);
+	TestHashPod(env);
 
 // 	std::string key("Alice");
 // 	smd::Slice value;
