@@ -137,6 +137,27 @@ void TestShmList(smd::Env* env) {
 		assert(l->back().ToString() == "hello");
 	} while (false);
 
+	do  {
+		smd::ShmList<smd::ShmString> l1(*l);
+		// 验证在尾部添加多个元素
+		for (int i = 0; i < 100; i++) {
+			l1.push_back(smd::ShmString(alloc, Util::Text::Format("TestText%02d", i)));
+		}
+		assert(l1.size() == 101);
+		assert(l1.front().ToString() == "hello");
+		assert(l1.back().ToString() == "TestText99");
+
+		smd::ShmList<smd::ShmString> l2(env->GetMalloc());
+		l2 = *l;
+		// 验证在尾部添加多个元素
+		for (int i = 0; i < 100; i++) {
+			l2.push_back(smd::ShmString(alloc, Util::Text::Format("TestText%02d", i)));
+		}
+		assert(l2.size() == 101);
+		assert(l2.front().ToString() == "hello");
+		assert(l2.back().ToString() == "TestText99");
+	} while (false);
+
 	l->push_back(smd::ShmString(alloc, "world"));
 	assert(l->size() == 2);
 	assert(l->front().ToString() == "hello");

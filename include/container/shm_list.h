@@ -68,29 +68,46 @@ public:
 	T& operator*() { return p->data; }
 	T* operator->() { return &(operator*()); }
 
-	template <class T>
-	friend bool operator==(const ListIterator<T>& lhs, const ListIterator<T>& rhs) {
-		return lhs.p == rhs.p;
-	}
-
-	template <class T>
-	friend bool operator!=(const ListIterator<T>& lhs, const ListIterator<T>& rhs) {
-		return !(lhs == rhs);
-	}
-
 	void swap(ListIterator<T>& x) { smd::swap(p, x.p); }
+
+	friend bool operator!=(const ListIterator<T>& x, const ListIterator<T>& y) {
+		return x.p != y.p;
+	}
+	friend bool operator==(const ListIterator<T>& x, const ListIterator<T>& y) {
+		return x.p == y.p;
+	}
 };
+
 
 template <class T>
 class ShmList : public ShmObj {
 public:
 	typedef ListNode<T>*	nodePtr;
 	typedef ListIterator<T> iterator;
+	typedef ListIterator<const T> const_iterator;
 
 	ShmList(Alloc& alloc)
 		: ShmObj(alloc) {
 		m_head = NewNode(T(alloc)); // add a dummy node
 		m_tail = m_head;
+	}
+
+	ShmList(const ShmList<T>& r)
+		: ShmObj(r.m_alloc) {
+		m_head = NewNode(T(r.m_alloc)); // add a dummy node
+		m_tail = m_head;
+
+		for (const_iterator it = r.begin(); it != r.end(); ++it) {
+			const auto& element = *it;
+			push_back(element);
+		}
+	}
+
+	ShmList& operator=(const ShmList& l) {
+		if (this != &l) {
+			ShmList(l).swap(*this);
+		}
+		return *this;
 	}
 
 	~ShmList() {
@@ -156,9 +173,17 @@ public:
 
 	iterator begin() { return m_head; }
 	iterator end() { return m_tail; }
+	const_iterator begin() const {
+		auto temp = (ShmList* const)this;
+		return changeIteratorToConstIterator(temp->m_head);
+	}
+	const_iterator end() const {
+		auto temp = (ShmList* const)this;
+		return changeIteratorToConstIterator(temp->m_tail);
+	}
 
-	bool   empty() { return m_head == m_tail; }
-	size_t size() {
+	bool   empty() const { return m_head == m_tail; }
+	size_t size() const {
 		size_t length = 0;
 		for (auto h = m_head; h != m_tail; ++h)
 			++length;
@@ -202,6 +227,15 @@ private:
 	void swap(ShmList<T>& x) {
 		smd::swap(m_head, x.m_head);
 		smd::swap(m_tail, x.m_tail);
+	}
+
+	const_iterator changeIteratorToConstIterator(iterator& it) const {
+		using nodeP = ListNode<const T>*;
+		auto temp	= (ShmList<const T>* const)this;
+		auto ptr	= it.p;
+
+		ListNode<const T> node(*temp, ptr->data, (nodeP)(ptr->prev), (nodeP)(ptr->next));
+		return const_iterator(&node);
 	}
 
 private:
