@@ -11,9 +11,15 @@ void TestShmString(smd::Env* env) {
 	assert(s->size() == 0);
 	assert(s->ToString() == "");
 
+	const char* ori_ptr = s->data();
 	s->assign("hello");
 	assert(s->size() == strlen("hello"));
 	assert(s->ToString() == "hello");
+
+	//发生了扩容
+	s->assign("hellohellohellohellohellohellohellohellohellohello");
+	assert(s->data() != ori_ptr);
+	s->assign("hello");
 
 	// 验证两个对象的创建互不影响
 	auto t = alloc.New<smd::ShmString>(alloc, 32);
@@ -56,7 +62,7 @@ void TestShmString(smd::Env* env) {
 	assert(s->ToString() == "1234567812345678helloaaaa");
  	s->clear();
  	assert(s->ToString() == "");
-	*s = "1234567812345678helloaaaafdsfds";
+	*s = "1234567812345678helloaaaafdsfdsddddddddddddddddddddddddddddddddddddddddddd";
 	alloc.Delete(s);
 	assert(s == nullptr);
 	assert(mem_usage == alloc.GetUsed());
@@ -69,11 +75,67 @@ void TestShmList(smd::Env* env) {
 	auto mem_usage = alloc.GetUsed();
 	auto l = alloc.New<smd::ShmList<smd::ShmString>>(alloc);
 
+	// 验证在尾部添加元素
 	assert(l->size() == 0);
 	l->push_back(smd::ShmString(alloc, "hello"));
 	assert(l->size() == 1);
 	assert(l->front().ToString() == "hello");
 	assert(l->back().ToString() == "hello");
+
+	do  {
+
+		// 验证在尾部添加多个元素
+		for (int i = 0; i < 100; i++) {
+			l->push_back(smd::ShmString(alloc, Util::Text::Format("TestText%02d", i)));
+		}
+		assert(l->size() == 101);
+		assert(l->front().ToString() == "hello");
+		assert(l->back().ToString() == "TestText99");
+
+		// 验证在尾部删除多个元素
+		for (int i = 0; i < 100; i++) {
+			l->pop_back();
+		}
+		assert(l->size() == 1);
+		assert(l->front().ToString() == "hello");
+		assert(l->back().ToString() == "hello");
+
+		// 验证在头部添加多个元素
+		for (int i = 0; i < 100; i++) {
+			l->push_front(smd::ShmString(alloc, Util::Text::Format("TestText%02d", i)));
+		}
+		assert(l->size() == 101);
+		assert(l->front().ToString() == "TestText99");
+		assert(l->back().ToString() == "hello");
+
+		// 验证在头部删除多个元素
+		for (int i = 0; i < 100; i++) {
+			l->pop_front();
+		}
+		assert(l->size() == 1);
+		assert(l->front().ToString() == "hello");
+		assert(l->back().ToString() == "hello");
+
+		// 验证在尾部添加多个元素
+		for (int i = 0; i < 100; i++) {
+			l->push_back(smd::ShmString(alloc, Util::Text::Format("TestText%02d", i)));
+		}
+		assert(l->size() == 101);
+		assert(l->front().ToString() == "hello");
+		assert(l->back().ToString() == "TestText99");
+
+		// 验证删除元素
+		for (auto it = l->begin(); it != l->end();) {
+			if (it->ToString().find("TestText") != std::string::npos) {
+				it = l->erase(it);
+			} else {
+				++it;
+			}
+		}
+		assert(l->size() == 1);
+		assert(l->front().ToString() == "hello");
+		assert(l->back().ToString() == "hello");
+	} while (false);
 
 	l->push_back(smd::ShmString(alloc, "world"));
 	assert(l->size() == 2);
