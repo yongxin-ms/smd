@@ -7,25 +7,56 @@ void TestShmString(smd::Env* env) {
 	auto& alloc		= env->GetMalloc();
 	auto mem_usage = alloc.GetUsed();
 	auto s = alloc.New<smd::ShmString>(alloc, 16);
-	assert(s->capacity() == 16);
+	assert(s->capacity() > 16);
 	assert(s->size() == 0);
 	assert(s->ToString() == "");
 
 	s->assign("hello");
+	assert(s->size() == strlen("hello"));
 	assert(s->ToString() == "hello");
 
+	// 验证两个对象的创建互不影响
 	auto t = alloc.New<smd::ShmString>(alloc, 32);
 	t->assign("world");
 	assert(t->ToString() == "world");
 	assert(s->ToString() == "hello");
 	alloc.Delete(t);
+	assert(t == nullptr);
 	assert(s->ToString() == "hello");
 
+	// 验证拷贝构造函数
+	t = alloc.New<smd::ShmString>(*s);
+	assert(t->data() != s->data());
+	assert(t->ToString() == "hello");
+	alloc.Delete(t);
+	assert(t == nullptr);
+	assert(s->ToString() == "hello");
+
+	// 验证拷贝构造函数
+	t = alloc.New<smd::ShmString>(alloc, std::string("hello"));
+	assert(t->data() != s->data());
+	assert(t->ToString() == "hello");
+	alloc.Delete(t);
+	assert(t == nullptr);
+	assert(s->ToString() == "hello");
+
+	do {
+		// 验证拷贝构造函数
+		smd::ShmString t1(*s);
+		assert(t1.data() != s->data());
+		assert(t1.ToString() == s->ToString());
+
+		// 验证赋值函数
+		t1 = "312423232";
+		assert(t1.ToString() == std::string("312423232"));
+	} while (false);
+
+	// 验证清除函数
 	*s = "1234567812345678helloaaaa";
 	assert(s->ToString() == "1234567812345678helloaaaa");
-	assert(s->capacity() == 32);
-	s->clear();
-	assert(s->ToString() == "");
+ 	s->clear();
+ 	assert(s->ToString() == "");
+	*s = "1234567812345678helloaaaafdsfds";
 	alloc.Delete(s);
 	assert(s == nullptr);
 	assert(mem_usage == alloc.GetUsed());
@@ -225,12 +256,12 @@ int main() {
 	auto env = mgr->CreateEnv(GUID, 20, smd::create);
 	assert(env != nullptr);
 
-// 	TestShmString(env);
+	TestShmString(env);
 	TestShmList(env);
 // 	TestShmListPushFront(env);
 // 	TestShmVector(env);
-	TestShmVectorResize(env);
-	TestHash(env);
+// 	TestShmVectorResize(env);
+// 	TestHash(env);
 
 // 	std::string key("Alice");
 // 	smd::Slice value;

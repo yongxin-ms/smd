@@ -8,10 +8,9 @@ namespace smd {
 
 class ShmString : public ShmObj {
 public:
-	ShmString(Alloc& alloc, size_t capacity = 0)
+	ShmString(Alloc& alloc, size_t size = 0)
 		: ShmObj(alloc) {
-		if (capacity > 0)
-			resize(capacity);
+		resize(GetSuitableCapacity(size + 1));
 	}
 
 	ShmString(Alloc& alloc, const std::string& r)
@@ -22,10 +21,8 @@ public:
 
 	ShmString(const ShmString& r)
 		: ShmObj(r.m_alloc) {
-		if (r.size() > 0) {
-			resize(r.capacity());
-			internal_copy(r.data(), r.size());
-		}
+		resize(GetSuitableCapacity(r.size() + 1));
+		internal_copy(r.data(), r.size());
 	}
 
 	~ShmString() {
