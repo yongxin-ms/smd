@@ -182,6 +182,33 @@ void TestShmList(smd::Env* env) {
 	env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "List test complete");
 }
 
+void TestShmListPod(smd::Env* env) {
+	struct StMyData : public smd::ShmObj{
+		uint64_t role_id_;
+		int		 hp_;
+
+		StMyData(smd::Alloc& alloc, uint64_t role_id = 0, int hp = 0)
+			: smd::ShmObj(alloc)
+			, role_id_(role_id)
+			, hp_(hp) {}
+	};
+
+	auto& alloc		= env->GetMalloc();
+	auto  mem_usage = alloc.GetUsed();
+	auto  l			= alloc.New<smd::ShmList<StMyData>>(alloc);
+
+	// 验证在尾部添加元素
+	assert(l->size() == 0);
+	l->push_back(StMyData(alloc, 7131, 14));
+	assert(l->size() == 1);
+	auto& element = l->front();
+
+	alloc.Delete(l);
+	assert(l == nullptr);
+	assert(mem_usage == alloc.GetUsed());
+	env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "ListPod test complete");
+}
+
 void TestShmVector(smd::Env* env) {
 	auto& alloc		= env->GetMalloc();
 	auto mem_usage = alloc.GetUsed();
@@ -272,6 +299,33 @@ void TestShmVectorResize(smd::Env* env) {
 	env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "VectorResize test complete");
 }
 
+void TestShmVectorPod(smd::Env* env) {
+	struct StMyData : public smd::ShmObj {
+		uint64_t role_id_;
+		int		 hp_;
+
+		StMyData(smd::Alloc& alloc, uint64_t role_id = 0, int hp = 0)
+			: smd::ShmObj(alloc)
+			, role_id_(role_id)
+			, hp_(hp) {}
+	};
+
+	auto& alloc		= env->GetMalloc();
+	auto  mem_usage = alloc.GetUsed();
+	auto  v			= alloc.New<smd::ShmVector<StMyData>>(alloc);
+
+	// 验证在尾部添加元素
+	assert(v->size() == 0);
+	v->push_back(StMyData(alloc, 7131, 14));
+	assert(v->size() == 1);
+	auto& element = v->front();
+
+	alloc.Delete(v);
+	assert(v == nullptr);
+	assert(mem_usage == alloc.GetUsed());
+	env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "VectorPod test complete");
+}
+
 void TestHash(smd::Env* env) {
 	auto& alloc	  = env->GetMalloc();
 	auto mem_usage = alloc.GetUsed();
@@ -302,6 +356,10 @@ void TestHash(smd::Env* env) {
 	for (auto it = h->begin(); it != h->end();) {
 		it = h->erase(it);
 	}
+
+	assert(h->find(smd::ShmString(alloc, "hello")) == h->end());
+	assert(h->find(smd::ShmString(alloc, "world")) == h->end());
+	assert(h->find(smd::ShmString(alloc, "will")) == h->end());
 
 	assert(h->size() == 0);
 	alloc.Delete(h);
@@ -341,8 +399,10 @@ int main() {
 
 	TestShmString(env);
 	TestShmList(env);
+	TestShmListPod(env);
 	TestShmVector(env);
 	TestShmVectorResize(env);
+	TestShmVectorPod(env);
 	TestHash(env);
 
 // 	std::string key("Alice");
