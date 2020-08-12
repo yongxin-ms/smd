@@ -277,30 +277,31 @@ void TestHash(smd::Env* env) {
 	auto mem_usage = alloc.GetUsed();
 	auto h		   = alloc.New<smd::ShmHash<smd::ShmString>>(alloc);
 
-// 	assert(h->size() == 0);
-// 	h->insert(smd::ShmString(alloc, "hello"));
-// 	assert(h->size() == 1);
-// 	assert((*h->begin()).ToString() == "hello");
-// 	assert(h->count(smd::ShmString(alloc, "hello")));
-// 	h->clear();
+	assert(h->size() == 0);
+	h->insert(smd::ShmString(alloc, "hello"));
+	assert(h->size() == 1);
+	assert((*h->begin()).ToString() == "hello");
+	assert(h->count(smd::ShmString(alloc, "hello")));
+	h->clear();
 
-// 	h->insert(smd::ShmString(alloc, "world"));
-// 	assert(h->size() == 2);
-// 	assert((*h->begin()).ToString() == "hello");
-// 	assert(h->count(smd::ShmString(alloc, "world")));
-// 
-// 	h->insert(smd::ShmString(alloc, "will"));
-// 	assert(h->size() == 3);
-// 	assert((*h->begin()).ToString() == "hello");
-// 	assert(h->count(smd::ShmString(alloc, "will")));
-// 
-// 	for (auto it = h->begin(); it != h->end(); ++it) {
-// 		env->GetLog().DoLog(smd::Log::LogLevel::kDebug, "%s", it->ToString().data());
-// 	}
-// 
-// 	for (auto it = h->begin(); it != h->end();) {
-// 		it = h->erase(it);
-// 	}
+	h->insert(smd::ShmString(alloc, "hello"));
+	h->insert(smd::ShmString(alloc, "world"));
+	assert(h->size() == 2);
+	assert((*h->begin()).ToString() == "hello");
+	assert(h->count(smd::ShmString(alloc, "world")));
+
+	h->insert(smd::ShmString(alloc, "will"));
+	assert(h->size() == 3);
+	assert((*h->begin()).ToString() == "hello");
+	assert(h->count(smd::ShmString(alloc, "will")));
+
+	for (auto it = h->begin(); it != h->end(); ++it) {
+		env->GetLog().DoLog(smd::Log::LogLevel::kDebug, "%s", it->ToString().data());
+	}
+
+	for (auto it = h->begin(); it != h->end();) {
+		it = h->erase(it);
+	}
 
 	assert(h->size() == 0);
 	alloc.Delete(h);
@@ -341,8 +342,8 @@ int main() {
 	TestShmString(env);
 	TestShmList(env);
 	TestShmVector(env);
-// 	TestShmVectorResize(env);
-// 	TestHash(env);
+	TestShmVectorResize(env);
+	TestHash(env);
 
 // 	std::string key("Alice");
 // 	smd::Slice value;
