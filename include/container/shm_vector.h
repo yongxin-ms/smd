@@ -16,6 +16,22 @@ public:
 		reserve(capacity);
 	}
 
+	ShmVector(const ShmVector& r)
+		: ShmObj(r.m_alloc) {
+		reserve(r.size());
+		for (int i = 0; i < r.size(); i++) {
+			auto& element = r[i];
+			push_back(element);
+		}
+	}
+
+	ShmVector& operator=(const ShmVector& r) {
+		if (this != &r) {
+			ShmVector(r).swap(*this);
+		}
+		return *this;
+	}
+
 	~ShmVector() {
 		while (!empty()) {
 			pop_back();
@@ -32,6 +48,7 @@ public:
 
 	//访问元素相关
 	reference operator[](size_t i) { return *m_start[i]; }
+	const reference operator[](size_t i) const { return *m_start[i]; }
 	reference front() { return *m_start[0]; }
 	reference back() { return *m_start[size() - 1]; }
 	pointer	  data() { return m_start; }
@@ -106,6 +123,12 @@ public:
 	}
 
 private:
+	void swap(ShmVector& x) {
+		smd::swap(m_start, x.m_start);
+		smd::swap(m_finish, x.m_finish);
+		smd::swap(m_endOfStorage, x.m_endOfStorage);
+	}
+
 	size_t GetSuitableCapacity(size_t size) {
 		if (size < 1)
 			size = 1;
