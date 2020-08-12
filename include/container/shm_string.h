@@ -25,6 +25,18 @@ public:
 		internal_copy(r.data(), r.size());
 	}
 
+	ShmString& operator=(const std::string& r) {
+		ShmString(m_alloc, r).swap(*this);
+		return *this;
+	}
+
+	ShmString& operator=(const ShmString& r) {
+		if (this != &r) {
+			ShmString(r).swap(*this);
+		}
+		return *this;
+	}
+
 	~ShmString() {
 		resize(0);
 		m_size = 0;
@@ -48,15 +60,40 @@ public:
 		return *this;
 	}
 
-	ShmString& operator=(const std::string& r) {
-		ShmString(m_alloc, r).swap(*this);
+	ShmString& append(const ShmString& str) {
+		if (capacity() <= size() + str.size()) {
+			resize(GetSuitableCapacity(size() + str.size() + 1));
+		}
+
+		internal_append(str.data(), str.size());
 		return *this;
 	}
 
-	ShmString& operator=(const ShmString& r) {
-		if (this != &r) {
-			ShmString(r).swap(*this);
+	ShmString& append(const std::string& str) {
+		if (capacity() <= size() + str.size()) {
+			resize(GetSuitableCapacity(size() + str.size() + 1));
 		}
+
+		internal_append(str.data(), str.size());
+		return *this;
+	}
+
+	ShmString& append(const char* s) {
+		size_t len = strlen(s);
+		if (capacity() <= size() + len) {
+			resize(GetSuitableCapacity(size() + len + 1));
+		}
+
+		internal_append(s, len);
+		return *this;
+	}
+
+	ShmString& append(const char* s, size_t n) {
+		if (capacity() <= size() + n) {
+			resize(GetSuitableCapacity(size() + n + 1));
+		}
+
+		internal_append(s, n);
 		return *this;
 	}
 
@@ -110,11 +147,17 @@ private:
 	}
 
 	void internal_copy(const char* buf, size_t len) {
-		assert(m_capacity > len + 1);
+		m_size = 0;
+		internal_append(buf, len);
+	}
 
-		memcpy(data(), buf, len);
-		*(data() + len) = '\0';
-		m_size			= len;
+	void internal_append(const char* buf, size_t len) {
+		// 最后有一个0
+		assert(m_capacity > m_size + len);
+
+		memcpy(&m_ptr[m_size], buf, len);
+		m_ptr[len] = '\0';
+		m_size	   = len;
 	}
 
 	void shrink_to_fit() {
