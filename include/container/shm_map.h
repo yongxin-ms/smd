@@ -8,16 +8,16 @@ enum COLOR { RED, BLACK };
 
 template <class K, class V>
 struct RBTreeNode {
+	COLOR			  _color;
 	RBTreeNode<K, V>* _pLeft;
 	RBTreeNode<K, V>* _pRight;
 	RBTreeNode<K, V>* _pParent;
 	pair<K, V>		  _value;
-	COLOR			  _color;
 
 	explicit RBTreeNode(const K& key, const V& value, COLOR color = RED)
-		: _pLeft(NULL)
-		, _pRight(NULL)
-		, _pParent(NULL)
+		: _pLeft(nullptr)
+		, _pRight(nullptr)
+		, _pParent(nullptr)
 		, _value(key, value)
 		, _color(color) {}
 };
@@ -28,7 +28,7 @@ class RBTreeIterator {
 	typedef RBTreeIterator<K, V> Self;
 
 public:
-	RBTreeIterator(Node* pNode = NULL)
+	RBTreeIterator(Node* pNode = nullptr)
 		: _pNode(pNode) {}
 	RBTreeIterator(const Self& s)
 		: _pNode(s._pNode) {}
@@ -65,18 +65,20 @@ private:
 	void RBTreeItIncrement() {
 		if (_pNode->_pRight) {
 			_pNode = _pNode->_pRight;
-			while (_pNode->_pLeft)
+			while (_pNode->_pLeft) {
 				_pNode = _pNode->_pLeft;
+			}
 		} else {
-			Node* pParent = _pNode->_pParent;
+			auto pParent = _pNode->_pParent;
 			while (pParent->_pRight == _pNode) {
 				_pNode	= pParent;
 				pParent = _pNode->_pParent;
 			}
 
 			// 如果树的根节点没有右孩子的情况且迭代器起始位置在根节点
-			if (_pNode->_pRight != pParent)
+			if (_pNode->_pRight != pParent) {
 				_pNode = pParent;
+			}
 		}
 	}
 
@@ -130,8 +132,8 @@ public:
 	PNode&				 GetRoot() { return _pHead->_pParent; }
 	pair<Iterator, bool> InsertUnique(const pair<K, V>& value) {
 		PNode& _pRoot  = GetRoot();
-		PNode  newNode = NULL;
-		if (NULL == _pRoot) {
+		PNode  newNode = nullptr;
+		if (nullptr == _pRoot) {
 			// newNode = _pRoot = new Node(value.first, value.second, BLACK);
 			auto p	= m_alloc.New<Node>(value.first, value.second, BLACK);
 			newNode = _pRoot = p;
@@ -203,7 +205,7 @@ public:
 		return make_pair(Iterator(newNode), true);
 	}
 
-	bool Empty() const { return NULL == GetRoot(); }
+	bool Empty() const { return nullptr == GetRoot(); }
 
 	size_t Size() const {
 		size_t	 count = 0;
@@ -224,7 +226,7 @@ public:
 
 	bool IsRBTree() {
 		PNode& _pRoot = GetRoot();
-		if (NULL == _pRoot)
+		if (nullptr == _pRoot)
 			return true;
 		if (RED == _pRoot->_color) {
 			cout << "根节点为红色违反性质2" << endl;
@@ -292,7 +294,7 @@ private:
 	}
 
 	bool _IsRBTree(PNode pRoot, size_t n, size_t blackCount) {
-		if (NULL == pRoot)
+		if (nullptr == pRoot)
 			return true;
 		if (BLACK == pRoot->_color)
 			++n;
@@ -301,7 +303,7 @@ private:
 			cout << "有连在一起的红色结点违反性质3" << endl;
 			return false;
 		}
-		if (NULL == pRoot->_pLeft && NULL == pRoot->_pRight) {
+		if (nullptr == pRoot->_pLeft && nullptr == pRoot->_pRight) {
 			if (n != blackCount) {
 				cout << "路径中黑色结点个数不同违反性质4" << endl;
 				return false;
@@ -312,8 +314,8 @@ private:
 
 	PNode MostLeft() {
 		PNode pCur = GetRoot();
-		if (NULL == pCur)
-			return NULL;
+		if (nullptr == pCur)
+			return nullptr;
 		while (pCur->_pLeft)
 			pCur = pCur->_pLeft;
 		return pCur;
@@ -321,8 +323,8 @@ private:
 
 	PNode MostRight() {
 		PNode pCur = GetRoot();
-		if (NULL == pCur)
-			return NULL;
+		if (nullptr == pCur)
+			return nullptr;
 		while (pCur->_pRight)
 			pCur = pCur->_pRight;
 		return pCur;
