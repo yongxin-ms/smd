@@ -19,15 +19,15 @@ struct rbtree_node_base {
 
 	rbtree_node_base()
 		: color(_red)
-		, parent(0)
-		, left(0)
-		, right(0) {}
+		, parent(nullptr)
+		, left(nullptr)
+		, right(nullptr) {}
 };
 
 rbtree_node_base* RBTreeIncrement(rbtree_node_base* p) {
-	if (p->right != 0) {
+	if (p->right != nullptr) {
 		p = p->right;
-		while (p->left != 0)
+		while (p->left != nullptr)
 			p = p->left;
 	} else {
 		rbtree_node_base* y = p->parent;
@@ -45,9 +45,9 @@ rbtree_node_base* RBTreeIncrement(rbtree_node_base* p) {
 rbtree_node_base* RBTreeDecrement(rbtree_node_base* p) {
 	if (p->color == _red && p->parent->parent == p)
 		p = p->right;
-	else if (p->left != 0) {
+	else if (p->left != nullptr) {
 		p = p->left;
-		while (p->right != 0)
+		while (p->right != nullptr)
 			p = p->right;
 	} else {
 		rbtree_node_base* y = p->parent;
@@ -61,13 +61,13 @@ rbtree_node_base* RBTreeDecrement(rbtree_node_base* p) {
 }
 
 rbtree_node_base* RBTreeMinimum(rbtree_node_base* p) {
-	while (p->left != 0)
+	while (p->left != nullptr)
 		p = p->left;
 	return p;
 }
 
 rbtree_node_base* RBTreeMaximum(rbtree_node_base* p) {
-	while (p->right != 0)
+	while (p->right != nullptr)
 		p = p->right;
 	return p;
 }
@@ -196,16 +196,16 @@ public:
 	}
 
 protected:
-	rbtree_node_ptr& root() const { return (rbtree_node_ptr&)header->parent; }
-	rbtree_node_ptr& leftmost() const { return (rbtree_node_ptr&)header->left; }
-	rbtree_node_ptr& rightmost() const { return (rbtree_node_ptr&)header->right; }
+	rbtree_node_ptr& root() const { return header->parent; }
+	rbtree_node_ptr& leftmost() const { return header->left; }
+	rbtree_node_ptr& rightmost() const { return header->right; }
 
-	static rbtree_node_ptr& left(rbtree_node_ptr x) { return (rbtree_node_ptr&)(x->left); }
-	static rbtree_node_ptr& right(rbtree_node_ptr x) { return (rbtree_node_ptr&)(x->right); }
-	static rbtree_node_ptr& parent(rbtree_node_ptr x) { return (rbtree_node_ptr&)(x->parent); }
+	static rbtree_node_ptr& left(rbtree_node_ptr x) { return x->left; }
+	static rbtree_node_ptr& right(rbtree_node_ptr x) { return x->right; }
+	static rbtree_node_ptr& parent(rbtree_node_ptr x) { return x->parent; }
 	static reference		value(rbtree_node_ptr x) { return x->value; }
 	static const key_type&	key(rbtree_node_ptr x) { return KeyOfValue()(value(x)); }
-	static color_type&		color(rbtree_node_ptr x) { return (color_type&)(x->color); }
+	static color_type&		color(rbtree_node_ptr x) { return x->color; }
 
 public:
 	iterator	   begin() { return iterator(leftmost()); }
@@ -578,7 +578,7 @@ public:
 	Iterator erase(Iterator it) { return m_tree.End(); }
 
 private:
-	RBTree<K, V> m_tree;
+	rb_tree<K, V> m_tree;
 };
 
 } // namespace smd
