@@ -401,6 +401,43 @@ void TestHashPod(smd::Env* env) {
 	env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "Hash test complete");
 }
 
+void TestMapString(smd::Env* env) {
+	auto& alloc		= env->GetMalloc();
+	auto  mem_usage = alloc.GetUsed();
+	auto  m			= alloc.New<smd::ShmMap<smd::ShmString>>(alloc);
+
+	for (int i = 0; i < 10; ++i) {
+		Util::Text::Format("TestText%02d", i);
+		auto key = smd::ShmString(alloc, Util::Text::Format("Key%02d", i));
+		auto value = smd::ShmString(alloc, Util::Text::Format("Value%02d", i));
+		m->insert(smd::make_pair(key, value));
+	}
+
+	assert(m->size() == 10);
+	assert(m->find(smd::ShmString(alloc, Util::Text::Format("Key%02d", 3))) != m->end());
+	assert(m->find(smd::ShmString(alloc, Util::Text::Format("Key%02d", 8))) != m->end());
+	assert(m->find(smd::ShmString(alloc, Util::Text::Format("Key%02d", 10))) == m->end());
+
+// 	for (auto it = h->begin(); it != h->end(); ++it) {
+// 		env->GetLog().DoLog(smd::Log::LogLevel::kDebug, "%llu", *it);
+// 	}
+// 
+// 	for (auto it = h->begin(); it != h->end();) {
+// 		it = h->erase(it);
+// 	}
+// 
+// 	assert(h->find(10000) == h->end());
+// 	assert(h->find(10008) == h->end());
+// 	assert(h->find(10) == h->end());
+// 
+// 	assert(h->size() == 0);
+// 	alloc.Delete(h);
+// 	assert(h == nullptr);
+// 	assert(mem_usage == alloc.GetUsed());
+
+	env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "MapPod test complete");
+}
+
 
 int main() {
 	auto mgr = new smd::EnvMgr;
@@ -438,6 +475,7 @@ int main() {
 	TestShmVectorPod(env);
 	TestHash(env);
 	TestHashPod(env);
+	TestMapString(env);
 
 // 	std::string key("Alice");
 // 	smd::Slice value;

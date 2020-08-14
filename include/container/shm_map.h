@@ -25,11 +25,10 @@ struct RBTreeNode {
 template <class K, class V>
 class RBTreeIterator {
 	typedef RBTreeNode<K, V>	 Node;
-	typedef Node*				 PNode;
 	typedef RBTreeIterator<K, V> Self;
 
 public:
-	RBTreeIterator(PNode pNode = NULL)
+	RBTreeIterator(Node* pNode = NULL)
 		: _pNode(pNode) {}
 	RBTreeIterator(const Self& s)
 		: _pNode(s._pNode) {}
@@ -69,7 +68,7 @@ private:
 			while (_pNode->_pLeft)
 				_pNode = _pNode->_pLeft;
 		} else {
-			PNode pParent = _pNode->_pParent;
+			Node* pParent = _pNode->_pParent;
 			while (pParent->_pRight == _pNode) {
 				_pNode	= pParent;
 				pParent = _pNode->_pParent;
@@ -90,7 +89,7 @@ private:
 			while (_pNode->_pRight)
 				_pNode = _pNode->_pRight;
 		} else {
-			PNode pParent = _pNode;
+			Node* pParent = _pNode;
 			while (pParent->_pLeft == _pNode) {
 				_pNode	= pParent;
 				pParent = _pNode->_pParent;
@@ -101,7 +100,7 @@ private:
 	}
 
 private:
-	PNode _pNode;
+	Node* _pNode;
 };
 
 template <class K, class V>
