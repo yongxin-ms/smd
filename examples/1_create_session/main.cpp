@@ -470,6 +470,8 @@ void TestMapPod(smd::Env* env) {
 	assert(m->find(10) == m->end());
 
 	assert(m->size() == 0);
+	m->clear();
+
 	alloc.Delete(m);
 	assert(m == nullptr);
 	assert(mem_usage == alloc.GetUsed());
