@@ -419,26 +419,63 @@ void TestMapString(smd::Env* env) {
 	assert(m->find(smd::ShmString(alloc, Util::Text::Format("Key%02d", 8))) != m->end());
 	assert(m->find(smd::ShmString(alloc, Util::Text::Format("Key%02d", 10))) == m->end());
 
-// 	for (auto it = h->begin(); it != h->end(); ++it) {
-// 		env->GetLog().DoLog(smd::Log::LogLevel::kDebug, "%llu", *it);
-// 	}
-// 
-// 	for (auto it = h->begin(); it != h->end();) {
-// 		it = h->erase(it);
-// 	}
-// 
-// 	assert(h->find(10000) == h->end());
-// 	assert(h->find(10008) == h->end());
-// 	assert(h->find(10) == h->end());
-// 
-// 	assert(h->size() == 0);
-// 	alloc.Delete(h);
-// 	assert(h == nullptr);
-// 	assert(mem_usage == alloc.GetUsed());
+	for (auto it = m->begin(); it != m->end(); ++it) {
+		const auto& k = it->first;
+		const auto& v = it->second;
+		env->GetLog().DoLog(smd::Log::LogLevel::kDebug, "%s, %s", k.data(), v.data());
+	}
+
+	for (auto it = m->begin(); it != m->end();) {
+		it = m->erase(it);
+	}
+
+	assert(m->find(smd::ShmString(alloc, Util::Text::Format("Key%02d", 10000))) == m->end());
+	assert(m->find(smd::ShmString(alloc, Util::Text::Format("Key%02d", 10008))) == m->end());
+	assert(m->find(smd::ShmString(alloc, Util::Text::Format("Key%02d", 10010))) == m->end());
+
+	assert(m->size() == 0);
+	alloc.Delete(m);
+	assert(m == nullptr);
+	assert(mem_usage == alloc.GetUsed());
 
 	env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "MapPod test complete");
 }
 
+void TestMapPod(smd::Env* env) {
+	auto& alloc		= env->GetMalloc();
+	auto  mem_usage = alloc.GetUsed();
+	auto  m			= alloc.New<smd::ShmMap<uint64_t, uint64_t>>(alloc, smd::make_pair(0, 0));
+
+	for (int i = 0; i < 10; ++i) {
+		m->insert(smd::make_pair(i, i * 3 + 2199));
+	}
+
+	assert(m->size() == 10);
+	assert(m->find(3) != m->end());
+	assert(m->find(8) != m->end());
+	assert(m->find(10) == m->end());
+
+	for (auto it = m->begin(); it != m->end(); ++it) {
+		const auto& k = it->first;
+		const auto& v = it->second;
+		env->GetLog().DoLog(smd::Log::LogLevel::kDebug, "%llu, %llu", k, v);
+	}
+
+	for (auto it = m->begin(); it != m->end();) {
+		it = m->erase(it);
+	}
+
+	assert(m->find(0) == m->end());
+	assert(m->find(8) == m->end());
+	assert(m->find(10) == m->end());
+
+	assert(m->size() == 0);
+	alloc.Delete(m);
+	assert(m == nullptr);
+	assert(mem_usage == alloc.GetUsed());
+
+	env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "MapPod test complete");
+}
 
 int main() {
 	auto mgr = new smd::EnvMgr;
@@ -477,8 +514,9 @@ int main() {
 	TestHash(env);
 	TestHashPod(env);
 	TestMapString(env);
+	TestMapPod(env);
 
-// 	std::string key("Alice");
+	// 	std::string key("Alice");
 // 	smd::Slice value;
 // 	assert(!env->SGet(key, nullptr));
 // 	assert(!env->SGet(key, &value));
