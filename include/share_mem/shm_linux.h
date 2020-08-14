@@ -1,4 +1,5 @@
-﻿#include <sys/shm.h>
+﻿#pragma once
+#include <sys/shm.h>
 #include <sys/stat.h>
 #include <sys/mman.h>
 #include <sys/types.h>

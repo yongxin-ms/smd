@@ -12,11 +12,6 @@ private:
 	template <class Key>
 	friend class ShmHash;
 
-private:
-	size_t bucket_index_;
-	ListIterator iterator_;
-	ShmHash<Key>* container_;
-
 public:
 	HashIterator(size_t index, ListIterator it, ShmHash<Key>* ptr)
 		: bucket_index_(index)
@@ -52,19 +47,19 @@ public:
 	Key& operator*() { return *iterator_; }
 	Key* operator->() { return &(operator*()); }
 
-private:
-	template <class Key, class ListIterator>
-	friend bool operator==(
-		const HashIterator<Key, ListIterator>& lhs, const HashIterator<Key, ListIterator>& rhs) {
-		return lhs.bucket_index_ == rhs.bucket_index_ && lhs.iterator_ == rhs.iterator_ &&
-			   lhs.container_ == rhs.container_;
+	bool operator==(const HashIterator<Key, ListIterator>& rhs) const {
+		return bucket_index_ == rhs.bucket_index_ && iterator_ == rhs.iterator_ &&
+			   container_ == rhs.container_;
 	}
 
-	template <class Key, class ListIterator>
-	friend bool operator!=(
-		const HashIterator<Key, ListIterator>& lhs, const HashIterator<Key, ListIterator>& rhs) {
-		return !(lhs == rhs);
+	bool operator!=(const HashIterator<Key, ListIterator>& rhs) const {
+		return !(*this == rhs);
 	}
+
+private:
+	size_t		  bucket_index_;
+	ListIterator  iterator_;
+	ShmHash<Key>* container_;
 };
 
 template <class Key>
