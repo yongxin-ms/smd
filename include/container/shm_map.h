@@ -112,9 +112,9 @@ public:
 	typedef RBTreeIterator<K, V> Iterator;
 
 public:
-	explicit RBTree(Alloc& alloc)
+	explicit RBTree(Alloc& alloc, const pair<K, V>& dummy)
 		: ShmObj::ShmObj(alloc) {
-		_pHead = alloc.New<Node>(K(alloc), V(alloc));
+		_pHead = alloc.New<Node>(dummy.first, dummy.second);
 	}
 
 	~RBTree() {
@@ -332,32 +332,26 @@ private:
 	PNode _pHead;
 };
 
-template <class V>
-class ShmMap : public ShmObj {
+template <class K, class V>
+class ShmMap {
 public:
-	typedef pair<ShmString, V>						valueType;
-	typename typedef RBTree<ShmString, V>::Iterator Iterator;
+	typedef pair<K, V>						valueType;
+	typename typedef RBTree<K, V>::Iterator Iterator;
 
-	explicit ShmMap(Alloc& alloc)
-		: ShmObj(alloc)
-		, m_tree(alloc) {}
+	explicit ShmMap(Alloc& alloc, const pair<K, V>& dummy)
+		: m_tree(alloc, dummy) {}
 
 	pair<Iterator, bool> insert(const valueType& v) { return m_tree.InsertUnique(v); }
 	bool				 empty() const { return m_tree.Empty(); }
 	size_t				 size() const { return m_tree.Size(); }
 
-	V& operator[](const ShmString& key) {
-		Iterator ret = m_tree.InsertUnique(pair<ShmString, V>(key, V(m_alloc))).first;
-		return (*ret).second;
-	}
-
 	Iterator begin() { return m_tree.Begin(); }
 	Iterator end() { return m_tree.End(); }
-	Iterator find(const ShmString& key) { return m_tree.End(); }
+	Iterator find(const K& key) { return m_tree.End(); }
 	Iterator erase(Iterator it) { return m_tree.End(); }
 
 private:
-	RBTree<ShmString, V> m_tree;
+	RBTree<K, V> m_tree;
 };
 
 } // namespace smd

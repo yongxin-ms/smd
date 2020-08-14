@@ -92,10 +92,10 @@ private:
 	Alloc m_alloc;
 	ShmHead& m_head;
 
-	ShmMap<ShmString>*& m_allStrings;
-	ShmMap<ShmList<ShmString>>*& m_allLists;
-	ShmMap<ShmMap<ShmString>>*& m_allMaps;
-	ShmMap<ShmHash<ShmString>>*& m_allHashes;
+	ShmMap<ShmString, ShmString>*&					  m_allStrings;
+	ShmMap<ShmString, ShmList<ShmString>>*&			  m_allLists;
+	ShmMap<ShmString, ShmMap<ShmString, ShmString>>*& m_allMaps;
+	ShmMap<ShmString, ShmHash<ShmString>>*&			  m_allHashes;
 };
 
 class EnvMgr {

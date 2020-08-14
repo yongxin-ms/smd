@@ -25,7 +25,7 @@ class ShmString;
 template <class T>
 class ShmList;
 
-template <class T>
+template <class K, class V>
 class ShmMap;
 
 template <class T>
@@ -47,10 +47,10 @@ struct ShmHead {
 	uint32_t visit_num;
 	uint32_t magic_num;
 
-	ShmMap<ShmString>*			allStrings;
-	ShmMap<ShmList<ShmString>>* allLists;
-	ShmMap<ShmMap<ShmString>>*	allMaps;
-	ShmMap<ShmHash<ShmString>>* allHashes;
+	ShmMap<ShmString, ShmString>*					 allStrings;
+	ShmMap<ShmString, ShmList<ShmString>>*			 allLists;
+	ShmMap<ShmString, ShmMap<ShmString, ShmString>>* allMaps;
+	ShmMap<ShmString, ShmHash<ShmString>>*			 allHashes;
 
 	char	 reserve[256];
 };

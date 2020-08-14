@@ -404,7 +404,8 @@ void TestHashPod(smd::Env* env) {
 void TestMapString(smd::Env* env) {
 	auto& alloc		= env->GetMalloc();
 	auto  mem_usage = alloc.GetUsed();
-	auto  m			= alloc.New<smd::ShmMap<smd::ShmString>>(alloc);
+	auto  m = alloc.New<smd::ShmMap<smd::ShmString, smd::ShmString>>(
+		 alloc, smd::make_pair(smd::ShmString(alloc), smd::ShmString(alloc)));
 
 	for (int i = 0; i < 10; ++i) {
 		Util::Text::Format("TestText%02d", i);
