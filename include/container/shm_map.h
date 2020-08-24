@@ -132,9 +132,8 @@ struct rbtree_iterator {
 	bool operator!=(const this_type& x) { return p != x.p; }
 };
 
-template <typename Key, typename Value, typename KeyOfValue, typename Compare,
-	typename Alloc = alloc>
-class rb_tree {
+template <typename Key, typename Value, typename KeyOfValue, typename Compare>
+class rb_tree : public ShmObj {
 public:
 	typedef rbtree_node_color color_type;
 	typedef ptrdiff_t		  difference_type;
@@ -149,8 +148,6 @@ public:
 	typedef rbtree_node<value_type> rbtreeNode;
 	typedef rbtreeNode*				rbtree_node_ptr;
 
-	typedef simple_alloc<rbtreeNode, Alloc> rb_tree_node_allocator;
-
 public:
 	typedef rbtree_iterator<value_type, pointer, reference>				iterator;
 	typedef rbtree_iterator<value_type, const_pointer, const_reference> const_iterator;
@@ -162,34 +159,21 @@ protected:
 
 protected:
 	// construct / destroy / init
-	rbtree_node_ptr getNode() { return rb_tree_node_allocator::allocate(); }
-	rbtree_node_ptr createNode(const Value& val = Value()) {
-		rbtree_node_ptr res = getNode();
-		construct(&res->value, val);
-		//并未赋值三个指针
-		return res;
-	}
+	rbtree_node_ptr createNode(const Value& val) { return m_alloc.New<rbtreeNode>(val); }
+	void deleteNode(rbtree_node_ptr p) { m_alloc.Delete(p); }
 
-	void putNode(rbtree_node_ptr p) { rb_tree_node_allocator::deallocate(p); }
-	void deleteNode(rbtree_node_ptr p) {
-		destroy(&p->value);
-		putNode(p);
-	}
-
-	void init() {
-		header		  = createNode();
+public:
+	rb_tree(const Compare& comp, Alloc& alloc, const Value& dummy)
+		: ShmObj(alloc)
+		, node_count(0)
+		, key_compare(comp) {
+		header		  = createNode(dummy);
 		leftmost()	  = header;
 		rightmost()	  = header;
 		color(header) = _red;
 		root()		  = 0;
 	}
 
-public:
-	rb_tree(const Compare& comp)
-		: node_count(0)
-		, key_compare(comp) {
-		init();
-	}
 	~rb_tree() {
 		clear();
 		deleteNode(header);
