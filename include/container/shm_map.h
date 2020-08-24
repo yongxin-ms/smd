@@ -171,6 +171,27 @@ public:
 		root()		  = 0;
 	}
 
+	rb_tree(const rb_tree<Key, Value, Compare>& r)
+		: ShmObj(r.m_alloc)
+		, node_count(r.size()) {
+		header		  = createNode(r.header);
+		leftmost()	  = header;
+		rightmost()	  = header;
+		color(header) = _red;
+		root()		  = 0;
+
+		for (auto it = r.begin(); it != r.end(); ++it) {
+			insert_unique(make_pair(it->first, it->second));
+		}
+	}
+
+	rb_tree& operator=(const rb_tree<Key, Value, Compare>& r) {
+		if (this != &r) {
+			rb_tree(r).swap(*this);
+		}
+		return *this;
+	}
+
 	~rb_tree() {
 		clear();
 		deleteNode(header);
@@ -522,11 +543,12 @@ public:
 		parent(header) = 0;
 	}
 
-	void erase(iterator position) {
-		auto to_be_delete =
-			rb_tree_rebalance_for_erase(position.p, root(), leftmost(), rightmost());
+	iterator erase(iterator position) {
+		auto next = rb_tree_rebalance_for_erase(position.p, root(), leftmost(), rightmost());
+		auto to_be_delete = next++;
 		deleteNode(to_be_delete);
 		--node_count;
+		return next;
 	}
 
 	iterator find(const key_type& k) {
@@ -549,6 +571,16 @@ public:
 	explicit ShmMap(Alloc& alloc, const valueType& dummy)
 		: m_tree(alloc, dummy) {}
 
+	ShmMap(const ShmMap<Key, Value, Compare>& r)
+		: m_tree(r.m_alloc, r.m_tree) {}
+
+	ShmMap& operator=(const ShmMap<Key, Value, Compare>& r) {
+		if (this != &r) {
+			ShmMap(r).swap(*this);
+		}
+		return *this;
+	}
+
 	pair<iterator, bool> insert(const valueType& v) { return m_tree.insert_unique(v); }
 
 	bool	 empty() const { return m_tree.empty(); }
@@ -557,14 +589,7 @@ public:
 	iterator begin() { return m_tree.begin(); }
 	iterator end() { return m_tree.end(); }
 	iterator find(const Key& k) { return m_tree.find(k); }
-	iterator erase(iterator it) {
-		//
-		// 未完成
-		//
-
-		m_tree.erase(it);
-		return end();
-	}
+	iterator erase(iterator it) { return m_tree.erase(it); }
 
 private:
 	rb_tree<Key, Value, Compare> m_tree;
