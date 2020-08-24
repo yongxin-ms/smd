@@ -32,10 +32,19 @@ public:
 
 		if (create_new) {
 			m_alloc.CreateNew(level);
-// 			m_allStrings = m_alloc.New<ShmMap<ShmString>>(m_alloc);
-// 			m_allLists	 = m_alloc.New<ShmMap<ShmList<ShmString>>>(m_alloc);
-// 			m_allMaps	 = m_alloc.New<ShmMap<ShmMap<ShmString>>>(m_alloc);
-// 			m_allHashes	 = m_alloc.New<ShmMap<ShmHash<ShmString>>>(m_alloc);
+			auto empty_str	= smd::ShmString(m_alloc);
+			auto empty_list = smd::ShmList<ShmString>(m_alloc, empty_str);
+			auto empty_map	= smd::ShmMap<ShmString, ShmString>(m_alloc, smd::make_pair(empty_str, empty_str));
+			auto empty_hash = ShmHash<ShmString>(m_alloc, empty_str);
+
+			m_allStrings = m_alloc.New<ShmMap<ShmString, ShmString>>(
+				m_alloc, smd::make_pair(empty_str, empty_str));
+			m_allLists = m_alloc.New<ShmMap<ShmString, ShmList<ShmString>>>(
+				m_alloc, smd::make_pair(empty_str, empty_list));
+			m_allMaps = m_alloc.New<ShmMap<ShmString, ShmMap<ShmString, ShmString>>>(
+				m_alloc, smd::make_pair(empty_str, empty_map));
+			m_allHashes = m_alloc.New<ShmMap<ShmString, ShmHash<ShmString>>>(
+				m_alloc, smd::make_pair(empty_str, empty_hash));
 		}
 	}
 

@@ -174,7 +174,7 @@ public:
 	rb_tree(const rb_tree<Key, Value, Compare>& r)
 		: ShmObj(r.m_alloc)
 		, node_count(r.size()) {
-		header		  = createNode(r.header);
+		header		  = createNode(r.header->value);
 		leftmost()	  = header;
 		rightmost()	  = header;
 		color(header) = _red;
@@ -573,7 +573,7 @@ public:
 		: m_tree(alloc, dummy) {}
 
 	ShmMap(const ShmMap<Key, Value, Compare>& r)
-		: m_tree(r.m_alloc, r.m_tree) {}
+		: m_tree(r.m_tree) {}
 
 	ShmMap& operator=(const ShmMap<Key, Value, Compare>& r) {
 		if (this != &r) {

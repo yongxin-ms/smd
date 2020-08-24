@@ -507,32 +507,32 @@ int main() {
 	auto env = mgr->CreateEnv(GUID, 20, smd::create);
 	assert(env != nullptr);
 
-	TestShmString(env);
-	TestShmList(env);
-	TestShmListPod(env);
-	TestShmVector(env);
-	TestShmVectorResize(env);
-	TestShmVectorPod(env);
-	TestHash(env);
-	TestHashPod(env);
-	TestMapString(env);
-	TestMapPod(env);
+// 	TestShmString(env);
+// 	TestShmList(env);
+// 	TestShmListPod(env);
+// 	TestShmVector(env);
+// 	TestShmVectorResize(env);
+// 	TestShmVectorPod(env);
+// 	TestHash(env);
+// 	TestHashPod(env);
+// 	TestMapString(env);
+// 	TestMapPod(env);
 
-	// 	std::string key("Alice");
-// 	smd::Slice value;
-// 	assert(!env->SGet(key, nullptr));
-// 	assert(!env->SGet(key, &value));
-// 	assert(!env->SDel(key));
-// 
-// 	env->SSet(key, "age 18");
-// 	assert(env->SGet(key, nullptr));
-// 	assert(env->SGet(key, &value));
-// 	assert(value == "age 18");
-// 	assert(env->SDel(key));
-// 
-// 	assert(!env->SGet(key, nullptr));
-// 	assert(!env->SGet(key, &value));
-// 	assert(!env->SDel(key));
+	std::string key("Alice");
+	smd::Slice value;
+	assert(!env->SGet(key, nullptr));
+	assert(!env->SGet(key, &value));
+	assert(!env->SDel(key));
+
+	env->SSet(key, "age 18");
+	assert(env->SGet(key, nullptr));
+	assert(env->SGet(key, &value));
+	assert(value == "age 18");
+	assert(env->SDel(key));
+
+	assert(!env->SGet(key, nullptr));
+	assert(!env->SGet(key, &value));
+	assert(!env->SDel(key));
 
 	int n = 0;
 	std::cin >> n;
