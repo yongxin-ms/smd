@@ -86,12 +86,12 @@ struct rbtree_iterator {
 	typedef rbtree_iterator<T, T*, T&>			   iterator;
 	typedef rbtree_iterator<T, const T*, const T&> const_iterator;
 
-	typedef ptrdiff_t				   difference_type;
-	typedef T						   value_type;
-	typedef rbtree_node_base		   base_node_type;
-	typedef rbtree_node<T>			   node_type;
-	typedef Pointer					   pointer;
-	typedef Reference				   reference;
+	typedef ptrdiff_t		 difference_type;
+	typedef T				 value_type;
+	typedef rbtree_node_base base_node_type;
+	typedef rbtree_node<T>	 node_type;
+	typedef Pointer			 pointer;
+	typedef Reference		 reference;
 
 	node_type* p;
 
@@ -158,7 +158,7 @@ protected:
 
 protected:
 	rbtree_node_ptr createNode(const value_type& val) { return m_alloc.New<rbtreeNode>(val); }
-	void deleteNode(rbtree_node_ptr p) { m_alloc.Delete(p); }
+	void			deleteNode(rbtree_node_ptr p) { m_alloc.Delete(p); }
 
 public:
 	rb_tree(Alloc& alloc, const value_type& dummy)
@@ -273,8 +273,8 @@ protected:
 	}
 
 	void rb_tree_rotate_left(rbtree_node_ptr x, rbtree_node_ptr& root) {
-		rbtree_node_ptr y = right(x);
-		right(x)		  = left(y);
+		auto y	 = right(x);
+		right(x) = left(y);
 		if (y->left != 0)
 			parent(left(y)) = x;
 
@@ -292,8 +292,8 @@ protected:
 	}
 
 	void rb_tree_rotate_right(rbtree_node_ptr x, rbtree_node_ptr& root) {
-		rbtree_node_ptr y = left(x);
-		left(x)			  = right(y);
+		auto y	= left(x);
+		left(x) = right(y);
 		if (y->right != 0)
 			parent(right(y)) = x;
 
@@ -462,8 +462,8 @@ protected:
 	}
 
 	rbtree_node_ptr findRBTree(const key_type& k, bool& isFind) {
-		rbtree_node_ptr res = parent(header);
-		isFind				= false;
+		auto res = parent(header);
+		isFind	 = false;
 		while (res != 0) {
 			if (key_compare(k, key(res))) {
 				res = left(res);
@@ -481,9 +481,9 @@ protected:
 
 public:
 	pair<iterator, bool> insert_unique(const value_type& val) {
-		rbtree_node_ptr p	= header;
-		rbtree_node_ptr x	= root();
-		bool			res = true;
+		auto p	 = header;
+		auto x	 = root();
+		bool res = true;
 		while (x != 0) {
 			p	= x;
 			res = key_compare(val.first, key(x));
@@ -493,12 +493,13 @@ public:
 				x = right(x);
 			}
 		}
+
 		//尚未有一个节点，此时根本没有进入while循环
 		if (p == header) {
 			return pair<iterator, bool>(__insert(x, p, val), true);
 		}
 
-		iterator j = iterator(p);
+		auto j = iterator(p);
 		if (res) {
 			if (j == begin()) {
 				return pair<iterator, bool>(__insert(x, p, val), true);
@@ -522,15 +523,15 @@ public:
 	}
 
 	void erase(iterator position) {
-		rbtree_node_ptr to_be_delete =
+		auto to_be_delete =
 			rb_tree_rebalance_for_erase(position.p, root(), leftmost(), rightmost());
 		deleteNode(to_be_delete);
 		--node_count;
 	}
 
 	iterator find(const key_type& k) {
-		bool			isFind = false;
-		rbtree_node_ptr res	   = findRBTree(k, isFind);
+		bool isFind = false;
+		auto res	= findRBTree(k, isFind);
 		if (isFind) {
 			return iterator(res);
 		} else {
@@ -542,17 +543,17 @@ public:
 template <typename Key, typename Value, typename Compare = less<Key>>
 class ShmMap {
 public:
-	typedef pair<Key, Value>								valueType;
-	typename typedef rb_tree<Key, Value, Compare>::iterator iterator;
+	typedef typename rb_tree<Key, Value, Compare>::value_type valueType;
+	typedef typename rb_tree<Key, Value, Compare>::iterator	  iterator;
 
 	explicit ShmMap(Alloc& alloc, const valueType& dummy)
 		: m_tree(alloc, dummy) {}
 
 	pair<iterator, bool> insert(const valueType& v) { return m_tree.insert_unique(v); }
-	bool				 empty() const { return m_tree.empty(); }
-	size_t				 size() const { return m_tree.size(); }
-	void				 clear() { m_tree.clear(); }
 
+	bool	 empty() const { return m_tree.empty(); }
+	size_t	 size() const { return m_tree.size(); }
+	void	 clear() { m_tree.clear(); }
 	iterator begin() { return m_tree.begin(); }
 	iterator end() { return m_tree.end(); }
 	iterator find(const Key& k) { return m_tree.find(k); }
