@@ -177,13 +177,13 @@ public:
 	}
 
 protected:
-	rbtree_node_ptr& root() const { return header->parent; }
-	rbtree_node_ptr& leftmost() const { return header->left; }
-	rbtree_node_ptr& rightmost() const { return header->right; }
+	rbtree_node_ptr& root() const { return (rbtree_node_ptr&)header->parent; }
+	rbtree_node_ptr& leftmost() const { return (rbtree_node_ptr&)header->left; }
+	rbtree_node_ptr& rightmost() const { return (rbtree_node_ptr&)header->right; }
 
-	static rbtree_node_ptr& left(rbtree_node_ptr x) { return x->left; }
-	static rbtree_node_ptr& right(rbtree_node_ptr x) { return x->right; }
-	static rbtree_node_ptr& parent(rbtree_node_ptr x) { return x->parent; }
+	static rbtree_node_ptr& left(rbtree_node_ptr x) { return (rbtree_node_ptr&)x->left; }
+	static rbtree_node_ptr& right(rbtree_node_ptr x) { return (rbtree_node_ptr&)x->right; }
+	static rbtree_node_ptr& parent(rbtree_node_ptr x) { return (rbtree_node_ptr&)x->parent; }
 	static reference		value(rbtree_node_ptr x) { return x->value; }
 	static const key_type&	key(rbtree_node_ptr x) { return (value(x)).first; }
 	static color_type&		color(rbtree_node_ptr x) { return x->color; }
@@ -551,12 +551,19 @@ public:
 	pair<iterator, bool> insert(const valueType& v) { return m_tree.insert_unique(v); }
 	bool				 empty() const { return m_tree.empty(); }
 	size_t				 size() const { return m_tree.size(); }
-	void				 clear() { m_tree.Clear(); }
+	void				 clear() { m_tree.clear(); }
 
 	iterator begin() { return m_tree.begin(); }
 	iterator end() { return m_tree.end(); }
 	iterator find(const Key& k) { return m_tree.find(k); }
-	iterator erase(iterator it) { return m_tree.erase(it); }
+	iterator erase(iterator it) {
+		//
+		// 未完成
+		//
+
+		m_tree.erase(it);
+		return end();
+	}
 
 private:
 	rb_tree<Key, Value, Compare> m_tree;
