@@ -544,11 +544,12 @@ public:
 	}
 
 	iterator erase(iterator position) {
-		auto next = rb_tree_rebalance_for_erase(position.p, root(), leftmost(), rightmost());
-		auto to_be_delete = next++;
+		auto pos_erase = position++;
+		auto to_be_delete =
+			rb_tree_rebalance_for_erase(pos_erase.p, root(), leftmost(), rightmost());
 		deleteNode(to_be_delete);
 		--node_count;
-		return next;
+		return position;
 	}
 
 	iterator find(const key_type& k) {
