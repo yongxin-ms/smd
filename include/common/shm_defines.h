@@ -25,7 +25,7 @@ class ShmString;
 template <class T>
 class ShmList;
 
-template <class K, class V>
+template <typename K, typename V, typename Compare>
 class ShmMap;
 
 template <class T>
