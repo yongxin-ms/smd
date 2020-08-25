@@ -42,11 +42,11 @@ public:
 		m_size = 0;
 	}
 
-	char*		data() { return m_ptr; }
+	char* data() { return m_ptr; }
 	const char* data() const { return (const char*)m_ptr; }
-	size_t		size() const { return m_size; }
-	bool		empty() { return m_size > 0; }
-	size_t		capacity() const { return m_capacity; }
+	size_t size() const { return m_size; }
+	bool empty() { return m_size > 0; }
+	size_t capacity() const { return m_capacity; }
 
 	ShmString& assign(const std::string& r) {
 		if (r.size() < m_capacity) {
@@ -99,7 +99,7 @@ public:
 
 	int compare(const ShmString& b) const {
 		const size_t min_len = (size() < b.size()) ? size() : b.size();
-		int			 r		 = memcmp(data(), b.data(), min_len);
+		int r = memcmp(data(), b.data(), min_len);
 		if (r == 0) {
 			if (size() < b.size())
 				r = -1;
@@ -142,7 +142,7 @@ private:
 
 		if (capacity > 0) {
 			m_capacity = capacity;
-			m_ptr	   = m_alloc.Malloc<char>(m_capacity);
+			m_ptr = m_alloc.Malloc<char>(m_capacity);
 		}
 	}
 
@@ -157,7 +157,7 @@ private:
 
 		memcpy(&m_ptr[m_size], buf, len);
 		m_ptr[len] = '\0';
-		m_size	   = len;
+		m_size = len;
 	}
 
 	void shrink_to_fit() {
@@ -165,9 +165,9 @@ private:
 	}
 
 private:
-	char*  m_ptr	  = nullptr;
+	char* m_ptr = nullptr;
 	size_t m_capacity = 0;
-	size_t m_size	  = 0;
+	size_t m_size = 0;
 };
 
 inline bool operator!=(const ShmString& x, const ShmString& y) { return !(x == y); }
@@ -180,7 +180,7 @@ namespace std {
 template <>
 struct hash<smd::ShmString> {
 	typedef smd::ShmString argument_type;
-	typedef std::size_t	   result_type;
+	typedef std::size_t result_type;
 
 	result_type operator()(argument_type const& s) const {
 		return std::hash<std::string>()(s.ToString());

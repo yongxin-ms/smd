@@ -18,15 +18,15 @@ public:
 	template <class T>
 	T* Malloc(size_t n = 1) {
 		auto size = sizeof(T) * n;
-		auto ptr  = (T*)_Malloc(size);
-		//m_log.DoLog(Log::LogLevel::kDebug, "malloc: 0x%p:(%d)", ptr, size);
+		auto ptr = (T*)_Malloc(size);
+		// m_log.DoLog(Log::LogLevel::kDebug, "malloc: 0x%p:(%d)", ptr, size);
 		return ptr;
 	}
 
 	template <class T>
 	void Free(T*& p, size_t n = 1) {
 		auto size = sizeof(T) * n;
-		//m_log.DoLog(Log::LogLevel::kDebug, "free: 0x%p:(%d)", p, size);
+		// m_log.DoLog(Log::LogLevel::kDebug, "free: 0x%p:(%d)", p, size);
 		_Free(p, size);
 		p = nullptr;
 	}
@@ -69,11 +69,11 @@ private:
 	}
 
 private:
-	Log&				  m_log;
-	const char*			  m_basePtr;
+	Log& m_log;
+	const char* m_basePtr;
 	SmdBuddyAlloc::buddy* m_buddy;
-	size_t				  m_used = 0;
-	const char*			  m_storagePtr;
+	size_t m_used = 0;
+	const char* m_storagePtr;
 };
 
 } // namespace smd

@@ -52,13 +52,11 @@ public:
 			   container_ == rhs.container_;
 	}
 
-	bool operator!=(const HashIterator<Key, ListIterator>& rhs) const {
-		return !(*this == rhs);
-	}
+	bool operator!=(const HashIterator<Key, ListIterator>& rhs) const { return !(*this == rhs); }
 
 private:
-	size_t		  bucket_index_;
-	ListIterator  iterator_;
+	size_t bucket_index_;
+	ListIterator iterator_;
 	ShmHash<Key>* container_;
 };
 
@@ -92,10 +90,10 @@ public:
 	void rehash(size_type n) {
 		if (n <= m_buckets.size())
 			return;
-		 ShmHash<Key> temp(m_alloc, m_dummyKey, next_prime(n));
-		 for (auto& val : *this) {
-			 temp.insert(val);
-		 }
+		ShmHash<Key> temp(m_alloc, m_dummyKey, next_prime(n));
+		for (auto& val : *this) {
+			temp.insert(val);
+		}
 		smd::swap(*this, temp);
 	}
 
@@ -191,7 +189,7 @@ private:
 	}
 
 private:
-	key_type				m_dummyKey;
+	key_type m_dummyKey;
 	ShmVector<ShmList<Key>> m_buckets;
 	size_t m_size = 0;
 	float m_max_load_factor = 0.0f;

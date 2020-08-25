@@ -9,9 +9,9 @@ class ShmList;
 template <class T>
 struct ListNode {
 	ShmList<T>& container;
-	T			data;
-	ListNode*	prev;
-	ListNode*	next;
+	T data;
+	ListNode* prev;
+	ListNode* next;
 
 	ListNode(ShmList<T>& c, const T& d, ListNode* p, ListNode* n)
 		: container(c)
@@ -80,7 +80,7 @@ public:
 template <class T>
 class ShmList : public ShmObj {
 public:
-	typedef ListNode<T>*	nodePtr;
+	typedef ListNode<T>* nodePtr;
 	typedef ListIterator<T> iterator;
 
 	ShmList(Alloc& alloc, const T& dummy)
@@ -120,15 +120,15 @@ public:
 	T& back() { return (m_tail.p->prev->data); }
 
 	void push_front(const T& val) {
-		auto node	   = NewNode(val);
+		auto node = NewNode(val);
 		m_head.p->prev = node;
-		node->next	   = m_head.p;
-		m_head.p	   = node;
+		node->next = m_head.p;
+		m_head.p = node;
 	}
 
 	void pop_front() {
-		auto node	   = m_head.p;
-		m_head.p	   = node->next;
+		auto node = m_head.p;
+		m_head.p = node->next;
 		m_head.p->prev = nullptr;
 		DeleteNode(node);
 	}
@@ -142,14 +142,14 @@ public:
 			node->next = m_tail.p;
 
 			m_tail.p->prev = node;
-			node->prev	   = prev;
+			node->prev = prev;
 		} else {
 			// 空链表
 			node->next = m_tail.p;
 			node->prev = nullptr;
 
 			m_tail.p->prev = node;
-			m_head.p	   = node;
+			m_head.p = node;
 		}
 	}
 
@@ -161,7 +161,7 @@ public:
 
 			m_tail.p->prev = node->prev;
 		} else {
-			m_head.p	   = m_tail.p;
+			m_head.p = m_tail.p;
 			m_head.p->next = nullptr;
 			m_head.p->prev = nullptr;
 		}
@@ -172,7 +172,7 @@ public:
 	iterator begin() { return m_head; }
 	iterator end() { return m_tail; }
 
-	bool   empty() const { return m_head == m_tail; }
+	bool empty() const { return m_head == m_tail; }
 	size_t size() const {
 		size_t length = 0;
 		for (auto h = m_head; h != m_tail; ++h)
@@ -180,14 +180,14 @@ public:
 		return length;
 	}
 
-	void	 clear() { erase(begin(), end()); }
+	void clear() { erase(begin(), end()); }
 	iterator erase(iterator position) {
 		if (position == m_head) {
 			pop_front();
 			return m_head;
 		} else {
-			auto prev			   = position.p->prev;
-			prev->next			   = position.p->next;
+			auto prev = position.p->prev;
+			prev->next = position.p->next;
 			position.p->next->prev = prev;
 			DeleteNode(position.p);
 			return iterator(prev->next);
@@ -198,7 +198,7 @@ public:
 		iterator res;
 		for (; first != last;) {
 			auto temp = first++;
-			res		  = erase(temp);
+			res = erase(temp);
 		}
 		return res;
 	}

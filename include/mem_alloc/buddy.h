@@ -9,21 +9,21 @@ class SmdBuddyAlloc {
 public:
 	enum : uint8_t {
 		NODE_UNUSED = 0,
-		NODE_USED	= 1,
-		NODE_SPLIT	= 2,
-		NODE_FULL	= 3,
+		NODE_USED = 1,
+		NODE_SPLIT = 2,
+		NODE_FULL = 3,
 	};
 
 	enum {
 		MAX_LEVEL = 32,
 	};
 
-	#pragma pack(push, 1)
+#pragma pack(push, 1)
 	struct buddy {
-		int		level;
+		int level;
 		uint8_t tree[1];
 	};
-	#pragma pack(pop)
+#pragma pack(pop)
 
 	static int get_index_size(int level) {
 		int size = 1 << level;
@@ -76,7 +76,7 @@ public:
 					break;
 				case NODE_UNUSED:
 					// split first
-					self->tree[index]		  = NODE_SPLIT;
+					self->tree[index] = NODE_SPLIT;
 					self->tree[index * 2 + 1] = NODE_UNUSED;
 					self->tree[index * 2 + 2] = NODE_UNUSED;
 				default:
@@ -108,9 +108,9 @@ public:
 
 	static void buddy_free(buddy* self, int offset) {
 		assert(offset < (1 << self->level));
-		int left   = 0;
+		int left = 0;
 		int length = 1 << self->level;
-		int index  = 0;
+		int index = 0;
 
 		for (;;) {
 			switch (self->tree[index]) {
@@ -136,9 +136,9 @@ public:
 
 	static int buddy_size(buddy* self, int offset) {
 		assert(offset < (1 << self->level));
-		int left   = 0;
+		int left = 0;
 		int length = 1 << self->level;
-		int index  = 0;
+		int index = 0;
 
 		for (;;) {
 			switch (self->tree[index]) {
@@ -211,7 +211,7 @@ private:
 		for (;;) {
 			int buddy = index - 1 + (index & 1) * 2;
 			if (buddy > 0 && (self->tree[buddy] == NODE_USED || self->tree[buddy] == NODE_FULL)) {
-				index			  = (index + 1) / 2 - 1;
+				index = (index + 1) / 2 - 1;
 				self->tree[index] = NODE_FULL;
 			} else {
 				return;

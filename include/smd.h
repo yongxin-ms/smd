@@ -32,19 +32,19 @@ public:
 
 		if (create_new) {
 			m_alloc.CreateNew(level);
-			auto empty_str	= smd::ShmString(m_alloc);
-			auto empty_list = smd::ShmList<ShmString>(m_alloc, empty_str);
-			auto empty_map	= smd::ShmMap<ShmString, ShmString>(m_alloc, smd::make_pair(empty_str, empty_str));
+			auto empty_str = ShmString(m_alloc);
+			auto empty_list = ShmList<ShmString>(m_alloc, empty_str);
+			auto empty_map = ShmMap<ShmString, ShmString>(m_alloc, make_pair(empty_str, empty_str));
 			auto empty_hash = ShmHash<ShmString>(m_alloc, empty_str);
 
-			m_allStrings = m_alloc.New<ShmMap<ShmString, ShmString>>(
-				m_alloc, smd::make_pair(empty_str, empty_str));
+			m_allStrings =
+				m_alloc.New<ShmMap<ShmString, ShmString>>(m_alloc, make_pair(empty_str, empty_str));
 			m_allLists = m_alloc.New<ShmMap<ShmString, ShmList<ShmString>>>(
-				m_alloc, smd::make_pair(empty_str, empty_list));
+				m_alloc, make_pair(empty_str, empty_list));
 			m_allMaps = m_alloc.New<ShmMap<ShmString, ShmMap<ShmString, ShmString>>>(
-				m_alloc, smd::make_pair(empty_str, empty_map));
+				m_alloc, make_pair(empty_str, empty_map));
 			m_allHashes = m_alloc.New<ShmMap<ShmString, ShmHash<ShmString>>>(
-				m_alloc, smd::make_pair(empty_str, empty_hash));
+				m_alloc, make_pair(empty_str, empty_hash));
 		}
 	}
 
@@ -93,7 +93,7 @@ public:
 
 	// 还需要一个遍历接口
 
-	Log&   GetLog() { return m_log; }
+	Log& GetLog() { return m_log; }
 	Alloc& GetMalloc() { return m_alloc; }
 
 private:
@@ -101,10 +101,10 @@ private:
 	Alloc m_alloc;
 	ShmHead& m_head;
 
-	ShmMap<ShmString, ShmString>*&					  m_allStrings;
-	ShmMap<ShmString, ShmList<ShmString>>*&			  m_allLists;
+	ShmMap<ShmString, ShmString>*& m_allStrings;
+	ShmMap<ShmString, ShmList<ShmString>>*& m_allLists;
 	ShmMap<ShmString, ShmMap<ShmString, ShmString>>*& m_allMaps;
-	ShmMap<ShmString, ShmHash<ShmString>>*&			  m_allHashes;
+	ShmMap<ShmString, ShmHash<ShmString>>*& m_allHashes;
 };
 
 class EnvMgr {
@@ -139,7 +139,7 @@ public:
 		}
 
 		ShmHead* head = (ShmHead*)ptr;
-		bool	 create_new = false;
+		bool create_new = false;
 		if (option == open && strcmp(head->guid, guid.data()) == 0 &&
 			head->magic_num == MAGIC_NUM && head->total_size == sizeFact) {
 			m_log.DoLog(Log::LogLevel::kInfo, "attach existed memory, %s:%llu", guid.data(), size);
@@ -147,10 +147,10 @@ public:
 			create_new = true;
 			memset(head, 0, sizeof(ShmHead));
 			strncpy(head->guid, guid.data(), sizeof(head->guid) - 1);
-			head->total_size  = sizeFact;
+			head->total_size = sizeFact;
 			head->create_time = time(nullptr);
-			head->visit_num	  = 0;
-			head->magic_num	  = MAGIC_NUM;
+			head->visit_num = 0;
+			head->magic_num = MAGIC_NUM;
 
 			m_log.DoLog(Log::LogLevel::kInfo, "create new memory, %s:%llu", guid.data(), size);
 		}

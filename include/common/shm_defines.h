@@ -35,24 +35,24 @@ class ShmHash;
 struct ShmHead {
 	ShmHead() {
 		memset(guid, 0, sizeof(guid));
-		total_size	= 0;
+		total_size = 0;
 		create_time = 0;
-		visit_num	= 0;
-		magic_num	= 0;
+		visit_num = 0;
+		magic_num = 0;
 	}
 
-	char	 guid[GUID_SIZE + 1];
-	size_t	 total_size;
-	time_t	 create_time;
+	char guid[GUID_SIZE + 1];
+	size_t total_size;
+	time_t create_time;
 	uint32_t visit_num;
 	uint32_t magic_num;
 
-	ShmMap<ShmString, ShmString>*					 allStrings;
-	ShmMap<ShmString, ShmList<ShmString>>*			 allLists;
+	ShmMap<ShmString, ShmString>* allStrings;
+	ShmMap<ShmString, ShmList<ShmString>>* allLists;
 	ShmMap<ShmString, ShmMap<ShmString, ShmString>>* allMaps;
-	ShmMap<ShmString, ShmHash<ShmString>>*			 allHashes;
+	ShmMap<ShmString, ShmHash<ShmString>>* allHashes;
 
-	char	 reserve[256];
+	char reserve[256];
 };
 #pragma pack(pop)
 

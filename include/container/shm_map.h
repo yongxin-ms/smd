@@ -5,14 +5,14 @@
 namespace smd {
 
 enum rbtree_node_color : bool {
-	_red   = true,
+	_red = true,
 	_black = false,
 };
 
 struct rbtree_node_base {
 	typedef rbtree_node_color color_type;
 
-	color_type		  color;
+	color_type color;
 	rbtree_node_base* parent;
 	rbtree_node_base* left;
 	rbtree_node_base* right;
@@ -83,15 +83,15 @@ struct rbtree_node : public rbtree_node_base {
 template <typename T, typename Pointer, typename Reference>
 struct rbtree_iterator {
 	typedef rbtree_iterator<T, Pointer, Reference> this_type;
-	typedef rbtree_iterator<T, T*, T&>			   iterator;
+	typedef rbtree_iterator<T, T*, T&> iterator;
 	typedef rbtree_iterator<T, const T*, const T&> const_iterator;
 
-	typedef ptrdiff_t		 difference_type;
-	typedef T				 value_type;
+	typedef ptrdiff_t difference_type;
+	typedef T value_type;
 	typedef rbtree_node_base base_node_type;
-	typedef rbtree_node<T>	 node_type;
-	typedef Pointer			 pointer;
-	typedef Reference		 reference;
+	typedef rbtree_node<T> node_type;
+	typedef Pointer pointer;
+	typedef Reference reference;
 
 	node_type* p;
 
@@ -103,7 +103,7 @@ struct rbtree_iterator {
 		: p(x.p) {}
 
 	reference operator*() const { return p->value; }
-	pointer	  operator->() const { return &(p->value); }
+	pointer operator->() const { return &(p->value); }
 
 	rbtree_iterator& operator++() {
 		p = static_cast<node_type*>(RBTreeIncrement(p));
@@ -135,50 +135,50 @@ template <typename Key, typename Value, typename Compare>
 class rb_tree : public ShmObj {
 public:
 	typedef rbtree_node_color color_type;
-	typedef ptrdiff_t		  difference_type;
-	typedef size_t			  size_type;
-	typedef Key				  key_type;
-	typedef pair<Key, Value>  value_type;
-	typedef value_type*		  pointer;
-	typedef value_type&		  reference;
+	typedef ptrdiff_t difference_type;
+	typedef size_t size_type;
+	typedef Key key_type;
+	typedef pair<Key, Value> value_type;
+	typedef value_type* pointer;
+	typedef value_type& reference;
 	typedef const value_type* const_pointer;
 	typedef const value_type& const_reference;
 
 	typedef rbtree_node<value_type> rbtreeNode;
-	typedef rbtreeNode*				rbtree_node_ptr;
+	typedef rbtreeNode* rbtree_node_ptr;
 
 public:
-	typedef rbtree_iterator<value_type, pointer, reference>				iterator;
+	typedef rbtree_iterator<value_type, pointer, reference> iterator;
 	typedef rbtree_iterator<value_type, const_pointer, const_reference> const_iterator;
 
 protected:
 	rbtree_node_ptr header;
-	size_type		node_count;
-	Compare			key_compare;
+	size_type node_count;
+	Compare key_compare;
 
 protected:
 	rbtree_node_ptr createNode(const value_type& val) { return m_alloc.New<rbtreeNode>(val); }
-	void			deleteNode(rbtree_node_ptr p) { m_alloc.Delete(p); }
+	void deleteNode(rbtree_node_ptr p) { m_alloc.Delete(p); }
 
 public:
 	rb_tree(Alloc& alloc, const value_type& dummy)
 		: ShmObj(alloc)
 		, node_count(0) {
-		header		  = createNode(dummy);
-		leftmost()	  = header;
-		rightmost()	  = header;
+		header = createNode(dummy);
+		leftmost() = header;
+		rightmost() = header;
 		color(header) = _red;
-		root()		  = 0;
+		root() = 0;
 	}
 
 	rb_tree(const rb_tree<Key, Value, Compare>& r)
 		: ShmObj(r.m_alloc)
 		, node_count(r.size()) {
-		header		  = createNode(r.header->value);
-		leftmost()	  = header;
-		rightmost()	  = header;
+		header = createNode(r.header->value);
+		leftmost() = header;
+		rightmost() = header;
 		color(header) = _red;
-		root()		  = 0;
+		root() = 0;
 
 		for (auto it = r.begin(); it != r.end(); ++it) {
 			insert_unique(make_pair(it->first, it->second));
@@ -205,15 +205,15 @@ protected:
 	static rbtree_node_ptr& left(rbtree_node_ptr x) { return (rbtree_node_ptr&)x->left; }
 	static rbtree_node_ptr& right(rbtree_node_ptr x) { return (rbtree_node_ptr&)x->right; }
 	static rbtree_node_ptr& parent(rbtree_node_ptr x) { return (rbtree_node_ptr&)x->parent; }
-	static reference		value(rbtree_node_ptr x) { return x->value; }
-	static const key_type&	key(rbtree_node_ptr x) { return (value(x)).first; }
-	static color_type&		color(rbtree_node_ptr x) { return x->color; }
+	static reference value(rbtree_node_ptr x) { return x->value; }
+	static const key_type& key(rbtree_node_ptr x) { return (value(x)).first; }
+	static color_type& color(rbtree_node_ptr x) { return x->color; }
 
 public:
-	iterator	   begin() { return iterator(leftmost()); }
+	iterator begin() { return iterator(leftmost()); }
 	const_iterator begin() const { return const_iterator(leftmost()); }
 
-	iterator	   end() { return iterator(header); }
+	iterator end() { return iterator(header); }
 	const_iterator end() const { return const_iterator(header); }
 
 	size_type size() const { return node_count; }
@@ -225,17 +225,17 @@ protected:
 	iterator __insert(rbtree_node_ptr x, rbtree_node_ptr y, const value_type& val) {
 		rbtree_node_ptr z;
 		if (y == header || key_compare(val.first, key(y))) {
-			z		= createNode(val);
+			z = createNode(val);
 			left(y) = z;
 			if (y == header) {
-				root()		= z;
+				root() = z;
 				rightmost() = z;
 			} else if (y == leftmost()) {
 				leftmost() = z;
 			}
 
 		} else {
-			z		 = createNode(val);
+			z = createNode(val);
 			right(y) = z;
 			if (rightmost() == y) {
 				rightmost() = z;
@@ -243,8 +243,8 @@ protected:
 		}
 
 		parent(z) = y;
-		left(z)	  = 0;
-		right(z)  = 0;
+		left(z) = 0;
+		right(z) = 0;
 
 		rb_tree_rebalance(z, parent(header));
 		++node_count;
@@ -257,10 +257,10 @@ protected:
 			if (z->parent == ((rbtree_node_ptr)(z->parent->parent->left))) {
 				rbtree_node_ptr s = (rbtree_node_ptr)z->parent->parent->right;
 				if (s != 0 && s->color == _red) {
-					s->color				 = _black;
-					z->parent->color		 = _black;
+					s->color = _black;
+					z->parent->color = _black;
 					z->parent->parent->color = _red;
-					z						 = (rbtree_node_ptr)z->parent->parent;
+					z = (rbtree_node_ptr)z->parent->parent;
 
 				} else {
 					if (z == (rbtree_node_ptr)z->parent->right) {
@@ -268,24 +268,24 @@ protected:
 						rb_tree_rotate_left(z, root);
 					}
 					z->parent->parent->color = _red;
-					z->parent->color		 = _black;
+					z->parent->color = _black;
 					rb_tree_rotate_right((rbtree_node_ptr)z->parent->parent, root);
 				}
 
 			} else {
 				rbtree_node_ptr s = (rbtree_node_ptr)z->parent->parent->left;
 				if (s != 0 && s->color == _red) {
-					s->color				 = _black;
-					z->parent->color		 = _black;
+					s->color = _black;
+					z->parent->color = _black;
 					z->parent->parent->color = _red;
-					z						 = (rbtree_node_ptr)z->parent->parent;
+					z = (rbtree_node_ptr)z->parent->parent;
 				} else {
 					if (z == (rbtree_node_ptr)z->parent->left) {
 						z = (rbtree_node_ptr)z->parent;
 						rb_tree_rotate_right(z, root);
 					}
 					z->parent->parent->color = _red;
-					z->parent->color		 = _black;
+					z->parent->color = _black;
 					rb_tree_rotate_left((rbtree_node_ptr)z->parent->parent, root);
 				}
 			}
@@ -294,7 +294,7 @@ protected:
 	}
 
 	void rb_tree_rotate_left(rbtree_node_ptr x, rbtree_node_ptr& root) {
-		auto y	 = right(x);
+		auto y = right(x);
 		right(x) = left(y);
 		if (y->left != 0)
 			parent(left(y)) = x;
@@ -309,11 +309,11 @@ protected:
 		}
 
 		parent(x) = y;
-		left(y)	  = x;
+		left(y) = x;
 	}
 
 	void rb_tree_rotate_right(rbtree_node_ptr x, rbtree_node_ptr& root) {
-		auto y	= left(x);
+		auto y = left(x);
 		left(x) = right(y);
 		if (y->right != 0)
 			parent(right(y)) = x;
@@ -328,7 +328,7 @@ protected:
 		}
 
 		parent(x) = y;
-		right(y)  = x;
+		right(y) = x;
 	}
 
 	void recurErase(rbtree_node_ptr x) {
@@ -384,7 +384,7 @@ protected:
 					rightmost = (rbtree_node_ptr)(RBTreeMaximum(x));
 			}
 		} else {
-			left(y)			= left(z);
+			left(y) = left(z);
 			parent(left(z)) = y;
 			if (right(z) != y) {
 				x_parent = parent(y);
@@ -392,7 +392,7 @@ protected:
 					parent(x) = parent(y);
 				left(parent(y)) = x;
 
-				right(y)		 = right(z);
+				right(y) = right(z);
 				parent(right(z)) = y;
 			} else {
 				x_parent = y;
@@ -418,7 +418,7 @@ protected:
 				if (x == left(x_parent)) {
 					rbtree_node_ptr w = right(x_parent);
 					if (w->color == _red) {
-						w->color		= _black;
+						w->color = _black;
 						x_parent->color = _red;
 						rb_tree_rotate_left(x_parent, root);
 						w = right(x_parent);
@@ -426,7 +426,7 @@ protected:
 					if ((left(w) == 0 || color(left(w)) == _black) &&
 						(right(w) == 0 || color(right(w)) == _black)) {
 						w->color = _red;
-						x		 = x_parent;
+						x = x_parent;
 						x_parent = parent(x_parent);
 					} else {
 						if (right(w) == 0 || color(right(w)) == _black) {
@@ -436,7 +436,7 @@ protected:
 							rb_tree_rotate_right(w, root);
 							w = right(x_parent);
 						}
-						w->color		= x_parent->color;
+						w->color = x_parent->color;
 						x_parent->color = _black;
 						if (w->right != 0)
 							color(right(w)) = _black;
@@ -447,7 +447,7 @@ protected:
 				} else {
 					rbtree_node_ptr w = left(x_parent);
 					if (w->color == _red) {
-						w->color		= _black;
+						w->color = _black;
 						x_parent->color = _red;
 						rb_tree_rotate_right(x_parent, root);
 						w = left(x_parent);
@@ -456,7 +456,7 @@ protected:
 					if ((left(w) == 0 || color(left(w)) == _black) &&
 						(right(w) == 0 || color(right(w)) == _black)) {
 						w->color = _red;
-						x		 = x_parent;
+						x = x_parent;
 						x_parent = parent(x_parent);
 					} else {
 						if (left(w) == 0 || color(left(w)) == _black) {
@@ -466,7 +466,7 @@ protected:
 							rb_tree_rotate_left(w, root);
 							w = left(x_parent);
 						}
-						w->color		= x_parent->color;
+						w->color = x_parent->color;
 						x_parent->color = _black;
 						if (w->left != 0)
 							color(left(w)) = _black;
@@ -484,7 +484,7 @@ protected:
 
 	rbtree_node_ptr findRBTree(const key_type& k, bool& isFind) {
 		auto res = parent(header);
-		isFind	 = false;
+		isFind = false;
 		while (res != 0) {
 			if (key_compare(k, key(res))) {
 				res = left(res);
@@ -502,11 +502,11 @@ protected:
 
 public:
 	pair<iterator, bool> insert_unique(const value_type& val) {
-		auto p	 = header;
-		auto x	 = root();
+		auto p = header;
+		auto x = root();
 		bool res = true;
 		while (x != 0) {
-			p	= x;
+			p = x;
 			res = key_compare(val.first, key(x));
 			if (res) {
 				x = left(x);
@@ -538,8 +538,8 @@ public:
 
 	void clear() {
 		recurErase(root());
-		left(header)   = header;
-		right(header)  = header;
+		left(header) = header;
+		right(header) = header;
 		parent(header) = 0;
 	}
 
@@ -554,7 +554,7 @@ public:
 
 	iterator find(const key_type& k) {
 		bool isFind = false;
-		auto res	= findRBTree(k, isFind);
+		auto res = findRBTree(k, isFind);
 		if (isFind) {
 			return iterator(res);
 		} else {
@@ -567,7 +567,7 @@ template <typename Key, typename Value, typename Compare = less<Key>>
 class ShmMap {
 public:
 	typedef typename rb_tree<Key, Value, Compare>::value_type valueType;
-	typedef typename rb_tree<Key, Value, Compare>::iterator	  iterator;
+	typedef typename rb_tree<Key, Value, Compare>::iterator iterator;
 
 	explicit ShmMap(Alloc& alloc, const valueType& dummy)
 		: m_tree(alloc, dummy) {}
@@ -583,10 +583,9 @@ public:
 	}
 
 	pair<iterator, bool> insert(const valueType& v) { return m_tree.insert_unique(v); }
-
-	bool	 empty() const { return m_tree.empty(); }
-	size_t	 size() const { return m_tree.size(); }
-	void	 clear() { m_tree.clear(); }
+	bool empty() const { return m_tree.empty(); }
+	size_t size() const { return m_tree.size(); }
+	void clear() { m_tree.clear(); }
 	iterator begin() { return m_tree.begin(); }
 	iterator end() { return m_tree.end(); }
 	iterator find(const Key& k) { return m_tree.find(k); }
