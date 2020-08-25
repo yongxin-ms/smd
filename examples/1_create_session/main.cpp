@@ -480,7 +480,7 @@ void TestMapPod(smd::Env* env) {
 
 int main() {
 	auto mgr = new smd::EnvMgr;
-	mgr->SetLogLevel(smd::Log::LogLevel::kDebug);
+	mgr->SetLogLevel(smd::Log::LogLevel::kInfo);
 	mgr->SetLogHandler([](smd::Log::LogLevel lv, const char* s) {
 		std::string time_now = Util::Time::FormatDateTime(time(nullptr));
 		switch (lv) {
@@ -502,8 +502,8 @@ int main() {
 	});
 
 	const std::string GUID("0x1001187fb");
-	// auto env = mgr->CreateEnv(GUID, 28, smd::create | smd::open);
-	auto env = mgr->CreateEnv(GUID, 20, smd::create);
+	auto env = mgr->CreateEnv(GUID, 20, smd::create | smd::open);
+	//auto env = mgr->CreateEnv(GUID, 20, smd::create);
 	assert(env != nullptr);
 
 	// 	TestShmString(env);
@@ -517,23 +517,24 @@ int main() {
 	// 	TestMapString(env);
 	// 	TestMapPod(env);
 
-	std::string key("Alice");
+	std::string key("StartCounter");
 	smd::Slice value;
-	assert(!env->SGet(key, nullptr));
-	assert(!env->SGet(key, &value));
-	assert(!env->SDel(key));
+	if (env->SGet(key, &value)) {
+		// 如果已经存在
+		int count = 0;
+		memcpy(&count, value.data(), value.size());
+		count++;
 
-	env->SSet(key, "age 18");
-	assert(env->SGet(key, nullptr));
-	assert(env->SGet(key, &value));
-	assert(value == "age 18");
-	assert(env->SDel(key));
+		env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "%s is %d", key.data(), count);
+	} else {
+		// 如果不存在
+		env->GetLog().DoLog(
+			smd::Log::LogLevel::kInfo, "first time run");
 
-	assert(!env->SGet(key, nullptr));
-	assert(!env->SGet(key, &value));
-	assert(!env->SDel(key));
+		int count = 1;
+		value = smd::Slice((const char*)&count, sizeof(count));
+		env->SSet(key, value);
+	}
 
-	int n = 0;
-	std::cin >> n;
 	return 0;
 }
