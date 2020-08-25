@@ -502,7 +502,7 @@ int main() {
 	});
 
 	const std::string GUID("0x1001187fb");
-	auto env = mgr->CreateEnv(GUID, 20, smd::create | smd::open);
+	auto env = mgr->CreateEnv(GUID, 20, smd::kOpenExist);
 	//auto env = mgr->CreateEnv(GUID, 20, smd::create);
 	assert(env != nullptr);
 
@@ -536,5 +536,7 @@ int main() {
 		env->SSet(key, value);
 	}
 
+	int n = 0;
+	std::cin >> n;
 	return 0;
 }

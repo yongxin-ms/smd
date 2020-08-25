@@ -2,9 +2,9 @@
 
 namespace smd {
 
-enum : unsigned {
-	create = 0x01,
-	open = 0x02,
+enum ShareMemOpenMode {
+	kCreateAlways = 1,	//总是创建新的，不管之前是否存在
+	kOpenExist,			//打开已存在的，如果不存在则创建新的
 };
 
 enum {

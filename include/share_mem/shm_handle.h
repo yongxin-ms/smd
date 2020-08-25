@@ -16,7 +16,7 @@ public:
 	ShmHandle(Log& log)
 		: m_shm(log) {}
 
-	bool acquire(const std::string& name, std::size_t size, unsigned mode = create | open) {
+	bool acquire(const std::string& name, std::size_t size, ShareMemOpenMode mode) {
 		return m_shm.acquire(name, size, mode);
 	}
 

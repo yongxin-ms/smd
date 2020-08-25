@@ -118,7 +118,7 @@ public:
 	void SetLogLevel(Log::LogLevel lv) { m_log.SetLogLevel(lv); }
 	std::string NewGuid() { return ""; }
 
-	Env* CreateEnv(const std::string& guid, unsigned level, unsigned option) {
+	Env* CreateEnv(const std::string& guid, unsigned level, ShareMemOpenMode option) {
 		if (guid.size() > GUID_SIZE) {
 			m_log.DoLog(Log::LogLevel::kError, "guid too long, %s", guid.data());
 			return nullptr;
@@ -140,7 +140,7 @@ public:
 
 		ShmHead* head = (ShmHead*)ptr;
 		bool create_new = false;
-		if (option == open && strcmp(head->guid, guid.data()) == 0 &&
+		if (option == kOpenExist && strcmp(head->guid, guid.data()) == 0 &&
 			head->magic_num == MAGIC_NUM && head->total_size == sizeFact) {
 			m_log.DoLog(Log::LogLevel::kInfo, "attach existed memory, %s:%llu", guid.data(), size);
 		} else {

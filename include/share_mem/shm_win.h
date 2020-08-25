@@ -11,22 +11,26 @@ public:
 	ShmWin(Log& log)
 		: m_log(log) {}
 
-	bool acquire(const std::string& fmt_name, std::size_t size, unsigned mode) {
+	bool acquire(const std::string& fmt_name, std::size_t size, ShareMemOpenMode mode) {
 		if (fmt_name.size() <= 0) {
 			m_log.DoLog(Log::LogLevel::kError, "fail acquire: name is empty\n");
 			return false;
 		}
 
 		HANDLE h;
-		if (mode == open) {
+		if (mode == kOpenExist) {
 			h = ::OpenFileMapping(FILE_MAP_ALL_ACCESS, FALSE, fmt_name.c_str());
+			if (h == NULL) {
+				h = ::CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE | SEC_COMMIT, 0,
+					static_cast<DWORD>(size), fmt_name.c_str());
+			}
 		} else {
 			h = ::CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE | SEC_COMMIT, 0,
 				static_cast<DWORD>(size), fmt_name.c_str());
-			if ((mode == create) && (::GetLastError() == ERROR_ALREADY_EXISTS)) {
-				::CloseHandle(h);
-				h = NULL;
-			}
+// 			if ((::GetLastError() == ERROR_ALREADY_EXISTS)) {
+// 				::CloseHandle(h);
+// 				h = NULL;
+// 			}
 		}
 
 		if (h == NULL) {
