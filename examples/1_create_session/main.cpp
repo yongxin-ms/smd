@@ -4,7 +4,7 @@
 #include "util.h"
 
 void TestShmString(smd::Env* env) {
-	auto& alloc		= env->GetMalloc();
+	auto& alloc = env->GetMalloc();
 	auto mem_usage = alloc.GetUsed();
 	auto s = alloc.New<smd::ShmString>(alloc, 16);
 	assert(s->capacity() > 16);
@@ -60,8 +60,8 @@ void TestShmString(smd::Env* env) {
 	// 验证清除函数
 	*s = "1234567812345678helloaaaa";
 	assert(s->ToString() == "1234567812345678helloaaaa");
- 	s->clear();
- 	assert(s->ToString() == "");
+	s->clear();
+	assert(s->ToString() == "");
 	*s = "1234567812345678helloaaaafdsfdsddddddddddddddddddddddddddddddddddddddddddd";
 	alloc.Delete(s);
 	assert(s == nullptr);
@@ -71,9 +71,9 @@ void TestShmString(smd::Env* env) {
 }
 
 void TestShmList(smd::Env* env) {
-	auto& alloc		= env->GetMalloc();
+	auto& alloc = env->GetMalloc();
 	auto mem_usage = alloc.GetUsed();
-	auto  l			= alloc.New<smd::ShmList<smd::ShmString>>(alloc, smd::ShmString(alloc));
+	auto l = alloc.New<smd::ShmList<smd::ShmString>>(alloc, smd::ShmString(alloc));
 
 	// 验证在尾部添加元素
 	assert(l->size() == 0);
@@ -82,7 +82,7 @@ void TestShmList(smd::Env* env) {
 	assert(l->front().ToString() == "hello");
 	assert(l->back().ToString() == "hello");
 
-	do  {
+	do {
 
 		// 验证在尾部添加多个元素
 		for (int i = 0; i < 100; i++) {
@@ -137,7 +137,7 @@ void TestShmList(smd::Env* env) {
 		assert(l->back().ToString() == "hello");
 	} while (false);
 
-	do  {
+	do {
 		smd::ShmList<smd::ShmString> l1(*l);
 		// 验证在尾部添加多个元素
 		for (int i = 0; i < 100; i++) {
@@ -185,16 +185,16 @@ void TestShmList(smd::Env* env) {
 void TestShmListPod(smd::Env* env) {
 	struct StMyData {
 		uint64_t role_id_;
-		int		 hp_;
+		int hp_;
 
 		StMyData(uint64_t role_id = 0, int hp = 0)
 			: role_id_(role_id)
 			, hp_(hp) {}
 	};
 
-	auto& alloc		= env->GetMalloc();
-	auto  mem_usage = alloc.GetUsed();
-	auto  l			= alloc.New<smd::ShmList<StMyData>>(alloc, StMyData());
+	auto& alloc = env->GetMalloc();
+	auto mem_usage = alloc.GetUsed();
+	auto l = alloc.New<smd::ShmList<StMyData>>(alloc, StMyData());
 
 	// 验证在尾部添加元素
 	assert(l->size() == 0);
@@ -209,9 +209,9 @@ void TestShmListPod(smd::Env* env) {
 }
 
 void TestShmVector(smd::Env* env) {
-	auto& alloc		= env->GetMalloc();
+	auto& alloc = env->GetMalloc();
 	auto mem_usage = alloc.GetUsed();
-	auto v		   = alloc.New<smd::ShmVector<smd::ShmString>>(alloc);
+	auto v = alloc.New<smd::ShmVector<smd::ShmString>>(alloc);
 
 	assert(v->size() == 0);
 	v->push_back(smd::ShmString(alloc, "hello"));
@@ -254,7 +254,6 @@ void TestShmVector(smd::Env* env) {
 
 	} while (false);
 
-
 	v->push_back(smd::ShmString(alloc, "world"));
 	assert(v->size() == 2);
 	assert(v->front().ToString() == "hello");
@@ -286,9 +285,9 @@ void TestShmVector(smd::Env* env) {
 }
 
 void TestShmVectorResize(smd::Env* env) {
-	auto& alloc		= env->GetMalloc();
-	auto  mem_usage = alloc.GetUsed();
-	auto  v			= alloc.New<smd::ShmVector<smd::ShmString>>(alloc, 64);
+	auto& alloc = env->GetMalloc();
+	auto mem_usage = alloc.GetUsed();
+	auto v = alloc.New<smd::ShmVector<smd::ShmString>>(alloc, 64);
 	v->resize(v->capacity(), smd::ShmString(alloc));
 
 	alloc.Delete(v);
@@ -301,16 +300,16 @@ void TestShmVectorResize(smd::Env* env) {
 void TestShmVectorPod(smd::Env* env) {
 	struct StMyData {
 		uint64_t role_id_;
-		int		 hp_;
+		int hp_;
 
 		StMyData(uint64_t role_id = 0, int hp = 0)
 			: role_id_(role_id)
 			, hp_(hp) {}
 	};
 
-	auto& alloc		= env->GetMalloc();
-	auto  mem_usage = alloc.GetUsed();
-	auto  v			= alloc.New<smd::ShmVector<StMyData>>(alloc);
+	auto& alloc = env->GetMalloc();
+	auto mem_usage = alloc.GetUsed();
+	auto v = alloc.New<smd::ShmVector<StMyData>>(alloc);
 
 	// 验证在尾部添加元素
 	assert(v->size() == 0);
@@ -325,9 +324,9 @@ void TestShmVectorPod(smd::Env* env) {
 }
 
 void TestHash(smd::Env* env) {
-	auto& alloc	  = env->GetMalloc();
+	auto& alloc = env->GetMalloc();
 	auto mem_usage = alloc.GetUsed();
-	auto  h			= alloc.New<smd::ShmHash<smd::ShmString>>(alloc, smd::ShmString(alloc));
+	auto h = alloc.New<smd::ShmHash<smd::ShmString>>(alloc, smd::ShmString(alloc));
 
 	assert(h->size() == 0);
 	h->insert(smd::ShmString(alloc, "hello"));
@@ -368,9 +367,9 @@ void TestHash(smd::Env* env) {
 }
 
 void TestHashPod(smd::Env* env) {
-	auto& alloc		= env->GetMalloc();
-	auto  mem_usage = alloc.GetUsed();
-	auto  h			= alloc.New<smd::ShmHash<uint64_t>>(alloc, 0);
+	auto& alloc = env->GetMalloc();
+	auto mem_usage = alloc.GetUsed();
+	auto h = alloc.New<smd::ShmHash<uint64_t>>(alloc, 0);
 
 	for (int i = 0; i < 10; ++i) {
 		h->insert(10000 + i);
@@ -402,10 +401,10 @@ void TestHashPod(smd::Env* env) {
 }
 
 void TestMapString(smd::Env* env) {
-	auto& alloc		= env->GetMalloc();
-	auto  mem_usage = alloc.GetUsed();
-	auto  m = alloc.New<smd::ShmMap<smd::ShmString, smd::ShmString>>(
-		 alloc, smd::make_pair(smd::ShmString(alloc), smd::ShmString(alloc)));
+	auto& alloc = env->GetMalloc();
+	auto mem_usage = alloc.GetUsed();
+	auto m = alloc.New<smd::ShmMap<smd::ShmString, smd::ShmString>>(
+		alloc, smd::make_pair(smd::ShmString(alloc), smd::ShmString(alloc)));
 
 	for (int i = 0; i < 10; ++i) {
 		Util::Text::Format("TestText%02d", i);
@@ -442,9 +441,9 @@ void TestMapString(smd::Env* env) {
 }
 
 void TestMapPod(smd::Env* env) {
-	auto& alloc		= env->GetMalloc();
-	auto  mem_usage = alloc.GetUsed();
-	auto  m			= alloc.New<smd::ShmMap<uint64_t, uint64_t>>(alloc, smd::make_pair(0, 0));
+	auto& alloc = env->GetMalloc();
+	auto mem_usage = alloc.GetUsed();
+	auto m = alloc.New<smd::ShmMap<uint64_t, uint64_t>>(alloc, smd::make_pair(0, 0));
 
 	for (int i = 0; i < 10; ++i) {
 		m->insert(smd::make_pair(i, i * 3 + 2199));
@@ -503,20 +502,20 @@ int main() {
 	});
 
 	const std::string GUID("0x1001187fb");
-	//auto env = mgr->CreateEnv(GUID, 28, smd::create | smd::open);
+	// auto env = mgr->CreateEnv(GUID, 28, smd::create | smd::open);
 	auto env = mgr->CreateEnv(GUID, 20, smd::create);
 	assert(env != nullptr);
 
-// 	TestShmString(env);
-// 	TestShmList(env);
-// 	TestShmListPod(env);
-// 	TestShmVector(env);
-// 	TestShmVectorResize(env);
-// 	TestShmVectorPod(env);
-// 	TestHash(env);
-// 	TestHashPod(env);
-// 	TestMapString(env);
-// 	TestMapPod(env);
+	// 	TestShmString(env);
+	// 	TestShmList(env);
+	// 	TestShmListPod(env);
+	// 	TestShmVector(env);
+	// 	TestShmVectorResize(env);
+	// 	TestShmVectorPod(env);
+	// 	TestHash(env);
+	// 	TestHashPod(env);
+	// 	TestMapString(env);
+	// 	TestMapPod(env);
 
 	std::string key("Alice");
 	smd::Slice value;
@@ -538,4 +537,3 @@ int main() {
 	std::cin >> n;
 	return 0;
 }
-
