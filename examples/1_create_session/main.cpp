@@ -17,7 +17,7 @@ void TestPointer(smd::Env* env) {
 void TestShmString(smd::Env* env) {
 	auto& alloc = env->GetMalloc();
 	auto mem_usage = alloc.GetUsed();
-	auto s = alloc.New<smd::ShmString>(alloc, 16);
+	auto s = alloc.New<smd::ShmString>(alloc, 16)(alloc);
 	assert(s->capacity() > 16);
 	assert(s->size() == 0);
 	assert(s->ToString() == "");
@@ -33,7 +33,8 @@ void TestShmString(smd::Env* env) {
 	s->assign("hello");
 
 	// 验证两个对象的创建互不影响
-	auto t = alloc.New<smd::ShmString>(alloc, 32);
+	auto t = alloc.New<smd::ShmString>(alloc, 32)(alloc);
+
 	t->assign("world");
 	assert(t->ToString() == "world");
 	assert(s->ToString() == "hello");
@@ -42,7 +43,7 @@ void TestShmString(smd::Env* env) {
 	assert(s->ToString() == "hello");
 
 	// 验证拷贝构造函数
-	t = alloc.New<smd::ShmString>(*s);
+	t = alloc.New<smd::ShmString>(*s)(alloc);
 	assert(t->data() != s->data());
 	assert(t->ToString() == "hello");
 	alloc.Delete(t);
@@ -50,7 +51,7 @@ void TestShmString(smd::Env* env) {
 	assert(s->ToString() == "hello");
 
 	// 验证拷贝构造函数
-	t = alloc.New<smd::ShmString>(alloc, std::string("hello"));
+	t = alloc.New<smd::ShmString>(alloc, std::string("hello"))(alloc);
 	assert(t->data() != s->data());
 	assert(t->ToString() == "hello");
 	alloc.Delete(t);

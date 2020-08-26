@@ -42,8 +42,8 @@ public:
 		m_size = 0;
 	}
 
-	char* data() { return m_ptr; }
-	const char* data() const { return (const char*)m_ptr; }
+	char* data() { return m_ptr(m_alloc); }
+	const char* data() const { return m_ptr(m_alloc); }
 	size_t size() const { return m_size; }
 	bool empty() { return m_size > 0; }
 	size_t capacity() const { return m_capacity; }
@@ -135,7 +135,7 @@ private:
 	}
 
 	void resize(size_t capacity) {
-		if (m_ptr != nullptr) {
+		if (m_ptr(m_alloc) != m_alloc.StorageBasePtr()) {
 			m_alloc.Free(m_ptr, m_capacity);
 			m_capacity = 0;
 		}
@@ -154,9 +154,9 @@ private:
 	void internal_append(const char* buf, size_t len) {
 		// 最后有一个0
 		assert(m_capacity > m_size + len);
-
-		memcpy(&m_ptr[m_size], buf, len);
-		m_ptr[len] = '\0';
+		char* ptr = m_ptr(m_alloc);
+		memcpy(&ptr[m_size], buf, len);
+		ptr[len] = '\0';
 		m_size = len;
 	}
 
@@ -165,7 +165,7 @@ private:
 	}
 
 private:
-	char* m_ptr = nullptr;
+	Pointer<char> m_ptr = 0;
 	size_t m_capacity = 0;
 	size_t m_size = 0;
 };

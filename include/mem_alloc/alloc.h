@@ -3,11 +3,23 @@
 #include "buddy.h"
 
 namespace smd {
+class Alloc;
+
+template <typename T>
+class Pointer {
+public:
+	Pointer(int64_t addr)
+		: m_offSet(addr) {}
+
+	T& operator*(const Alloc& alloc) const;
+	T* operator()(const Alloc& alloc) const;
+	int64_t operator()() const { return m_offSet; }
+
+private:
+	int64_t m_offSet;
+};
 
 class Alloc {
-	template <typename T>
-	friend class Pointer;
-
 public:
 	Alloc(Log& log, void* ptr, size_t off_set, unsigned level, bool create_new)
 		: m_log(log)
@@ -21,56 +33,72 @@ public:
 	}
 
 	template <class T>
-	T* Malloc(size_t n = 1) {
+	Pointer<T> Malloc(size_t n = 1) {
 		auto size = sizeof(T) * n;
-		auto ptr = (T*)_Malloc(size);
+		auto addr = _Malloc(size);
 		// m_log.DoLog(Log::LogLevel::kDebug, "malloc: 0x%p:(%d)", ptr, size);
-		return ptr;
+		return Pointer<T>(addr);
 	}
 
 	template <class T>
-	void Free(T*& p, size_t n = 1) {
+	void Free(Pointer<T>& p, size_t n = 1) {
 		auto size = sizeof(T) * n;
 		// m_log.DoLog(Log::LogLevel::kDebug, "free: 0x%p:(%d)", p, size);
-		_Free(p, size);
+		_Free(p(*this), size);
 		p = nullptr;
 	}
 
 	template <class T, typename... P>
-	T* New(P&&... params) {
+	Pointer<T> New(P&&... params) {
 		auto t = Malloc<T>();
 		::new (t) T(std::forward<P>(params)...);
 		return t;
 	}
 
 	template <class T>
-	void Delete(T*& p) {
-		p->~T();
+	void Delete(Pointer<T>& p) {
+		p(*this)->~T();
 		Free(p);
 	}
 
-	size_t GetUsed() const { return m_used; }
-
-private:
-	void* _Malloc(size_t size) {
-		int64_t addr = SmdBuddyAlloc::buddy_alloc(m_buddy, size);
-		if (addr < 0) {
-			assert(false);
-			return nullptr;
-		}
-
-		m_log.DoLog(Log::LogLevel::kDebug, "malloc: 0x%08x:(%llu)", addr, size);
-
-		m_used += size;
-		return (void*)(addr + m_storagePtr);
+	template <class T>
+	void Delete(T*& p) {
+		p->~T();
+		auto ptr = ToPointer<T>(p);
+		Free(ptr);
 	}
 
-	void _Free(void* addr, size_t size) {
-		auto vir_addr = (int)((const char*)addr - m_storagePtr);
-		m_log.DoLog(Log::LogLevel::kDebug, "free: 0x%08x:(%llu)", vir_addr, size);
+	size_t GetUsed() const { return m_used; }
+	const char* StorageBasePtr() const { return m_storagePtr; }
 
+	template <class T>
+	Pointer<T> null_ptr() const {
+		return Pointer<T>(m_storagePtr);
+	}
+
+	template <class T>
+	Pointer<T> ToPointer(void* p) const {
+		int64_t offset = (const char*)p - m_storagePtr;
+		return Pointer<T>(offset);
+	}
+
+private:
+	int64_t _Malloc(size_t size) {
+		auto off_set = SmdBuddyAlloc::buddy_alloc(m_buddy, size);
+		if (off_set < 0) {
+			assert(false);
+			return 0;
+		}
+
+		m_log.DoLog(Log::LogLevel::kDebug, "malloc: 0x%08x:(%llu)", off_set, size);
+		m_used += size;
+		return off_set;
+	}
+
+	void _Free(int64_t off_set, size_t size) {
+		m_log.DoLog(Log::LogLevel::kDebug, "free: 0x%08x:(%llu)", off_set, size);
 		m_used -= size;
-		SmdBuddyAlloc::buddy_free(m_buddy, vir_addr);
+		SmdBuddyAlloc::buddy_free(m_buddy, int(off_set));
 	}
 
 private:
@@ -81,18 +109,14 @@ private:
 	const char* m_storagePtr;
 };
 
+template <typename T>
+T& Pointer<T>::operator*(const Alloc& alloc) const {
+	return *(T*)(alloc.StorageBasePtr() + m_offSet);
+}
 
 template <typename T>
-class Pointer {
-public:
-	Pointer(uint64_t addr)
-		: m_offSet(addr) {}
-
-	T& operator*(const Alloc& alloc) { return *(T*)(alloc.m_storagePtr + m_offSet); }
-	T* operator()(const Alloc& alloc) { return (T*)(alloc.m_storagePtr + m_offSet); }
-
-private:
-	uint64_t m_offSet;
-};
+T* Pointer<T>::operator()(const Alloc& alloc) const {
+	return (T*)(alloc.StorageBasePtr() + m_offSet);
+}
 
 } // namespace smd

@@ -36,14 +36,14 @@ public:
 			auto empty_map = ShmMap<ShmString, ShmString>(m_alloc, make_pair(empty_str, empty_str));
 			auto empty_hash = ShmHash<ShmString>(m_alloc, empty_str);
 
-			m_allStrings =
-				m_alloc.New<ShmMap<ShmString, ShmString>>(m_alloc, make_pair(empty_str, empty_str));
-			m_allLists = m_alloc.New<ShmMap<ShmString, ShmList<ShmString>>>(
-				m_alloc, make_pair(empty_str, empty_list));
-			m_allMaps = m_alloc.New<ShmMap<ShmString, ShmMap<ShmString, ShmString>>>(
-				m_alloc, make_pair(empty_str, empty_map));
-			m_allHashes = m_alloc.New<ShmMap<ShmString, ShmHash<ShmString>>>(
-				m_alloc, make_pair(empty_str, empty_hash));
+// 			m_allStrings =
+// 				m_alloc.New<ShmMap<ShmString, ShmString>>(m_alloc, make_pair(empty_str, empty_str));
+// 			m_allLists = m_alloc.New<ShmMap<ShmString, ShmList<ShmString>>>(
+// 				m_alloc, make_pair(empty_str, empty_list));
+// 			m_allMaps = m_alloc.New<ShmMap<ShmString, ShmMap<ShmString, ShmString>>>(
+// 				m_alloc, make_pair(empty_str, empty_map));
+// 			m_allHashes = m_alloc.New<ShmMap<ShmString, ShmHash<ShmString>>>(
+// 				m_alloc, make_pair(empty_str, empty_hash));
 		}
 	}
 
