@@ -6,14 +6,16 @@ namespace smd {
 
 class Alloc {
 public:
-	Alloc(Log& log, void* ptr, size_t off_set, unsigned level)
+	Alloc(Log& log, void* ptr, size_t off_set, unsigned level, bool create_new)
 		: m_log(log)
 		, m_basePtr((const char*)ptr + off_set) {
 		m_buddy = (SmdBuddyAlloc::buddy*)m_basePtr;
 		m_storagePtr = m_basePtr + SmdBuddyAlloc::get_index_size(level);
-	}
 
-	void CreateNew(unsigned level) { m_buddy = SmdBuddyAlloc::buddy_new(m_basePtr, level); }
+		if (create_new) {
+			m_buddy = SmdBuddyAlloc::buddy_new(m_basePtr, level);
+		}
+	}
 
 	template <class T>
 	T* Malloc(size_t n = 1) {

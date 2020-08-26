@@ -22,7 +22,7 @@ class Env {
 public:
 	Env(Log& log, void* ptr, unsigned level, bool create_new)
 		: m_log(log)
-		, m_alloc(log, ptr, sizeof(ShmHead), level)
+		, m_alloc(log, ptr, sizeof(ShmHead), level, create_new)
 		, m_head(*((ShmHead*)ptr))
 		, m_allStrings(m_head.allStrings)
 		, m_allLists(m_head.allLists)
@@ -31,7 +31,6 @@ public:
 		m_head.visit_num++;
 
 		if (create_new) {
-			m_alloc.CreateNew(level);
 			auto empty_str = ShmString(m_alloc);
 			auto empty_list = ShmList<ShmString>(m_alloc, empty_str);
 			auto empty_map = ShmMap<ShmString, ShmString>(m_alloc, make_pair(empty_str, empty_str));
