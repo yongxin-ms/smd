@@ -3,6 +3,17 @@
 #include "smd.h"
 #include "util.h"
 
+void TestPointer(smd::Env* env) {
+	auto& alloc = env->GetMalloc();
+	smd::Pointer<int> p(0);
+	int* tmp = p(alloc);
+	assert(tmp != nullptr);
+	*tmp = 10;
+
+	int n = *p(alloc);
+	assert(n == 10);
+}
+
 void TestShmString(smd::Env* env) {
 	auto& alloc = env->GetMalloc();
 	auto mem_usage = alloc.GetUsed();
@@ -505,6 +516,8 @@ int main() {
 	auto env = mgr->CreateEnv(GUID, 20, smd::kOpenExist);
 	//auto env = mgr->CreateEnv(GUID, 20, smd::create);
 	assert(env != nullptr);
+
+	TestPointer(env);
 
 	// 	TestShmString(env);
 	// 	TestShmList(env);

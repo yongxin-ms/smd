@@ -5,6 +5,9 @@
 namespace smd {
 
 class Alloc {
+	template <typename T>
+	friend class Pointer;
+
 public:
 	Alloc(Log& log, void* ptr, size_t off_set, unsigned level, bool create_new)
 		: m_log(log)
@@ -76,6 +79,20 @@ private:
 	SmdBuddyAlloc::buddy* m_buddy;
 	size_t m_used = 0;
 	const char* m_storagePtr;
+};
+
+
+template <typename T>
+class Pointer {
+public:
+	Pointer(uint64_t addr)
+		: m_offSet(addr) {}
+
+	T& operator*(const Alloc& alloc) { return *(T*)(alloc.m_storagePtr + m_offSet); }
+	T* operator()(const Alloc& alloc) { return (T*)(alloc.m_storagePtr + m_offSet); }
+
+private:
+	uint64_t m_offSet;
 };
 
 } // namespace smd
