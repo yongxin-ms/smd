@@ -55,7 +55,7 @@ public:
 
 	void push_back(const value_type& value) {
 		if (m_finish != m_endOfStorage) {
-			*m_finish = m_alloc.New<value_type>(value);
+			*m_finish = m_alloc.New<value_type>(value)(m_alloc);
 			++m_finish;
 		} else {
 			reserve(capacity() + 2);
@@ -142,9 +142,9 @@ private:
 	}
 
 private:
-	value_type** m_start = nullptr;
-	value_type** m_finish = nullptr;
-	value_type** m_endOfStorage = nullptr;
+	Pointer<Pointer<value_type>> m_start = nullptr;
+	Pointer<Pointer<value_type>> m_finish = nullptr;
+	Pointer<Pointer<value_type>> m_endOfStorage = nullptr;
 };
 
 } // namespace smd

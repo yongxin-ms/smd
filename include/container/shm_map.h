@@ -124,7 +124,7 @@ struct rbtree_iterator {
 	rbtree_iterator operator--(int) {
 		this_type tmp(*this);
 		p = static_cast<node_type*>(RBTreeDecrement(p));
-		return *this;
+		return tmp;
 	}
 
 	bool operator==(const this_type& x) { return p == x.p; }

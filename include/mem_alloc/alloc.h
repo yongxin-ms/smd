@@ -10,10 +10,35 @@ class Pointer {
 public:
 	Pointer(int64_t addr)
 		: m_offSet(addr) {}
+	Pointer(const Pointer& r) { m_offSet = r.m_offSet; }
 
 	T& operator*(const Alloc& alloc) const;
 	T* operator()(const Alloc& alloc) const;
 	int64_t operator()() const { return m_offSet; }
+	bool operator==(const Pointer& r) const { return m_offSet == r.m_offSet; } 
+	bool operator!=(const Pointer& r) const { return m_offSet != r.m_offSet; }
+
+	Pointer& operator++() {
+		m_offSet += sizeof(T);
+		return *this;
+	}
+
+	Pointer operator++(int) {
+		Pointer tmp(*this);
+		m_offSet += sizeof(T);
+		return tmp;
+	}
+
+	Pointer& operator--() {
+		m_offSet -= sizeof(T);
+		return *this;
+	}
+
+	Pointer operator--(int) {
+		Pointer tmp(*this);
+		m_offSet -= sizeof(T);
+		return tmp;
+	}
 
 private:
 	int64_t m_offSet;
