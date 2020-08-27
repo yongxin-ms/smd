@@ -22,8 +22,6 @@ public:
 
 	T& operator*() const;
 	T* operator->() const;
-	T& ObjRef() const;
-	T* ObjPtr() const;
 	T* operator&() const { return (T*)(g_alloc->StorageBasePtr() + m_offSet); }
 
 	int64_t operator()() const { return m_offSet; }
@@ -40,13 +38,13 @@ public:
 	T& operator[](int n) {
 		ShmPointer tmp(*this);
 		tmp.m_offSet += n * sizeof(T);
-		return tmp.ObjRef();
+		return *tmp;
 	}
 
 	const T& operator[](int n) const {
 		ShmPointer tmp(*this);
 		tmp.m_offSet += n * sizeof(T);
-		return tmp.ObjRef();
+		return *tmp;
 	}
 
 	ShmPointer& operator++() {
@@ -107,13 +105,13 @@ public:
 	template <class T, typename... P>
 	ShmPointer<T> New(P&&... params) {
 		auto t = Malloc<T>();
-		::new (t.ObjPtr()) T(std::forward<P>(params)...);
+		::new (&t) T(std::forward<P>(params)...);
 		return t;
 	}
 
 	template <class T>
 	void Delete(ShmPointer<T>& p) {
-		p.ObjPtr()->~T();
+		(&p)->~T();
 		Free(p);
 	}
 
@@ -175,16 +173,5 @@ template <typename T>
 T* ShmPointer<T>::operator->() const {
 	return (T*)(g_alloc->StorageBasePtr() + m_offSet);
 }
-
-template <typename T>
-T& ShmPointer<T>::ObjRef() const {
-	return *((T*)(g_alloc->StorageBasePtr() + m_offSet));
-}
-
-template <typename T>
-T* ShmPointer<T>::ObjPtr() const {
-	return (T*)(g_alloc->StorageBasePtr() + m_offSet);
-}
-
 
 } // namespace smd

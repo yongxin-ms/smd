@@ -52,9 +52,9 @@ public:
 	const reference operator[](size_t i) const {
 		return *m_start[i];
 	}
-	reference front() { return *m_start.ObjRef(); }
+	reference front() { return **m_start; }
 	reference back() { return *(m_start[size() - 1]); }
-	pointer data() { return m_start.ObjRef(); }
+	pointer data() { return *m_start; }
 
 	void push_back(const value_type& value) {
 		if (m_finish != m_endOfStorage) {
@@ -69,7 +69,7 @@ public:
 
 	void pop_back() {
 		--m_finish;
-		auto d = m_finish.ObjRef();
+		auto d = *m_finish;
 		g_alloc->Delete(d);
 	}
 

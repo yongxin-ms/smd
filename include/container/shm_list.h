@@ -63,8 +63,8 @@ public:
 		return res;
 	}
 
-	T& operator*() { return p.ObjRef().data; }
-	T* operator->() { return &(p.ObjRef().data); }
+	T& operator*() { return (*p).data; }
+	T* operator->() { return &(*p).data; }
 
 	void swap(ListIterator<T>& x) { smd::swap(p, x.p); }
 
