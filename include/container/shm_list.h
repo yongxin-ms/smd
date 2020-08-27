@@ -8,12 +8,12 @@ class ShmList;
 
 template <class T>
 struct ListNode {
-	ShmList<T>& container;
+	ShmPointer<ShmList<T>> container;
 	T data;
 	ShmPointer<ListNode> prev;
 	ShmPointer<ListNode> next;
 
-	ListNode(ShmList<T>& c, const T& d, ShmPointer<ListNode> p, ShmPointer<ListNode> n)
+	ListNode(ShmPointer<ShmList<T>> c, const T& d, ShmPointer<ListNode> p, ShmPointer<ListNode> n)
 		: container(c)
 		, data(d)
 		, prev(p)
@@ -26,16 +26,15 @@ struct ListNode {
 
 // the class of list iterator
 template <class T>
-class ListIterator : public ShmObj{
+class ListIterator {
 public:
 	typedef ShmPointer<ListNode<T>> nodePtr;
 
 	nodePtr p;
 
 public:
-	explicit ListIterator(Alloc& alloc, nodePtr ptr = shm_nullptr)
-		: ShmObj(alloc)
-		, p(ptr) {}
+	explicit ListIterator(nodePtr ptr = shm_nullptr)
+		: p(ptr) {}
 
 	ListIterator& operator=(nodePtr ptr) {
 		p = ptr;
@@ -43,7 +42,7 @@ public:
 	}
 
 	ListIterator& operator++() {
-		p = p.ObjPtr(m_alloc)->next;
+		p = p->next;
 		return *this;
 	}
 
@@ -54,7 +53,7 @@ public:
 	}
 
 	ListIterator& operator--() {
-		p = p.ObjPtr(m_alloc)->prev;
+		p = p->prev;
 		return *this;
 	}
 
@@ -64,8 +63,8 @@ public:
 		return res;
 	}
 
-	T& operator*() { return p.ObjRef(m_alloc).data; }
-	T* operator->() { return &(p.ObjRef(m_alloc).data); }
+	T& operator*() { return p.ObjRef().data; }
+	T* operator->() { return &(p.ObjRef().data); }
 
 	void swap(ListIterator<T>& x) { smd::swap(p, x.p); }
 
@@ -78,19 +77,17 @@ public:
 };
 
 template <class T>
-class ShmList : public ShmObj {
+class ShmList {
 public:
 	typedef ShmPointer<ListNode<T>> nodePtr;
 	typedef ListIterator<T> iterator;
 
-	ShmList(Alloc& alloc, const T& dummy)
-		: ShmObj(alloc)
-		, m_head(alloc, NewNode(dummy))
+	ShmList()
+		: m_head(NewNode(T()))
 		, m_tail(m_head) {}
 
 	ShmList(const ShmList<T>& r)
-		: ShmObj(r.m_alloc)
-		, m_head(r.m_alloc, NewNode(*((ShmList<T>&)r).end()))
+		: m_head(NewNode(*((ShmList<T>&)r).end()))
 		, m_tail(m_head) {
 		ShmList<T>* r1 = (ShmList<T>*)&r;
 		for (iterator it = r1->begin(); it != r1->end(); ++it) {
@@ -108,60 +105,60 @@ public:
 
 	~ShmList() {
 		clear();
-		m_alloc.Delete(m_tail.p);
+		g_alloc->Delete(m_tail.p);
 
 		m_head = shm_nullptr;
 		m_tail = shm_nullptr;
 	}
 
-	T& front() { return (m_head.p.ObjPtr(m_alloc)->data); }
-	T& back() { return (m_tail.p.ObjPtr(m_alloc)->prev.ObjPtr(m_alloc)->data); }
+	T& front() { return (m_head.p->data); }
+	T& back() { return (m_tail.p->prev->data); }
 
 	void push_front(const T& val) {
 		auto node = NewNode(val);
-		m_head.p.ObjPtr(m_alloc)->prev = node;
-		node.ObjPtr(m_alloc)->next = m_head.p;
+		m_head.p->prev = node;
+		node->next = m_head.p;
 		m_head.p = node;
 	}
 
 	void pop_front() {
 		auto node = m_head.p;
-		m_head.p = node.ObjPtr(m_alloc)->next;
-		m_head.p.ObjPtr(m_alloc)->prev = shm_nullptr;
+		m_head.p = node->next;
+		m_head.p->prev = shm_nullptr;
 		DeleteNode(node);
 	}
 
 	void push_back(const T& val) {
 		auto node = NewNode(val);
-		if (m_tail.p.ObjPtr(m_alloc)->prev != shm_nullptr) {
+		if (m_tail.p->prev != shm_nullptr) {
 			// 已有元素
-			auto prev = m_tail.p.ObjPtr(m_alloc)->prev;
-			prev.ObjPtr(m_alloc)->next = node;
-			node.ObjPtr(m_alloc)->next = m_tail.p;
+			auto prev = m_tail.p->prev;
+			prev->next = node;
+			node->next = m_tail.p;
 
-			m_tail.p.ObjPtr(m_alloc)->prev = node;
-			node.ObjPtr(m_alloc)->prev = prev;
+			m_tail.p->prev = node;
+			node->prev = prev;
 		} else {
 			// 空链表
-			node.ObjPtr(m_alloc)->next = m_tail.p;
-			node.ObjPtr(m_alloc)->prev = shm_nullptr;
+			node->next = m_tail.p;
+			node->prev = shm_nullptr;
 
-			m_tail.p.ObjPtr(m_alloc)->prev = node;
+			m_tail.p->prev = node;
 			m_head.p = node;
 		}
 	}
 
 	void pop_back() {
-		auto node = m_tail.p.ObjPtr(m_alloc)->prev;
-		if (node.ObjPtr(m_alloc)->prev != shm_nullptr) {
-			auto& prev = node.ObjPtr(m_alloc)->prev;
-			prev.ObjPtr(m_alloc)->next = node.ObjPtr(m_alloc)->next;
+		auto node = m_tail.p->prev;
+		if (node->prev != shm_nullptr) {
+			auto& prev = node->prev;
+			prev->next = node->next;
 
-			m_tail.p.ObjPtr(m_alloc)->prev = node.ObjPtr(m_alloc)->prev;
+			m_tail.p->prev = node->prev;
 		} else {
 			m_head.p = m_tail.p;
-			m_head.p.ObjPtr(m_alloc)->next = shm_nullptr;
-			m_head.p.ObjPtr(m_alloc)->prev = shm_nullptr;
+			m_head.p->next = shm_nullptr;
+			m_head.p->prev = shm_nullptr;
 		}
 
 		DeleteNode(node);
@@ -184,16 +181,16 @@ public:
 			pop_front();
 			return m_head;
 		} else {
-			auto prev = position.p.ObjPtr(m_alloc)->prev;
-			prev.ObjPtr(m_alloc)->next = position.p.ObjPtr(m_alloc)->next;
-			position.p.ObjPtr(m_alloc)->next.ObjPtr(m_alloc)->prev = prev;
+			auto prev = position.p->prev;
+			prev->next = position.p->next;
+			position.p->next->prev = prev;
 			DeleteNode(position.p);
-			return iterator(m_alloc, prev.ObjPtr(m_alloc)->next);
+			return iterator(prev->next);
 		}
 	}
 
 	iterator erase(iterator first, iterator last) {
-		iterator res(m_alloc);
+		iterator res;
 		for (; first != last;) {
 			auto temp = first++;
 			res = erase(temp);
@@ -203,13 +200,14 @@ public:
 
 private:
 	nodePtr NewNode(const T& val) {
-		auto p = m_alloc.New<ListNode<T>>(*this, val, shm_nullptr, shm_nullptr);
+		auto p = g_alloc->New<ListNode<T>>(
+			g_alloc->ToShmPointer<ShmList<T>>(this), val, shm_nullptr, shm_nullptr);
 		return p;
 	}
 
 	void DeleteNode(nodePtr p) {
-		p.ObjPtr(m_alloc)->prev = p.ObjPtr(m_alloc)->next = shm_nullptr;
-		m_alloc.Delete(p);
+		p->prev = p->next = shm_nullptr;
+		g_alloc->Delete(p);
 	}
 
 	void swap(ShmList<T>& x) {

@@ -3,6 +3,9 @@
 #include "buddy.h"
 
 namespace smd {
+class Alloc;
+extern Alloc* g_alloc;
+
 enum : int64_t {
 	shm_nullptr = -1,
 };
@@ -17,8 +20,11 @@ public:
 	ShmPointer(const ShmPointer&) = default;
 	ShmPointer& operator=(const ShmPointer&) = default;
 
-	T& ObjRef(const Alloc& alloc) const;
-	T* ObjPtr(const Alloc& alloc) const;
+	T& operator*() const;
+	T* operator->() const;
+	T& ObjRef() const;
+	T* ObjPtr() const;
+
 	int64_t operator()() const { return m_offSet; }
 	bool operator==(const ShmPointer& r) const { return m_offSet == r.m_offSet; }
 	bool operator!=(const ShmPointer& r) const { return m_offSet != r.m_offSet; }
@@ -88,13 +94,13 @@ public:
 	template <class T, typename... P>
 	ShmPointer<T> New(P&&... params) {
 		auto t = Malloc<T>();
-		::new (t.ObjPtr(*this)) T(std::forward<P>(params)...);
+		::new (t.ObjPtr()) T(std::forward<P>(params)...);
 		return t;
 	}
 
 	template <class T>
 	void Delete(ShmPointer<T>& p) {
-		p.ObjPtr(*this)->~T();
+		p.ObjPtr()->~T();
 		Free(p);
 	}
 
@@ -148,13 +154,24 @@ private:
 };
 
 template <typename T>
-T& ShmPointer<T>::ObjRef(const Alloc& alloc) const {
-	return *((T*)(alloc.StorageBasePtr() + m_offSet));
+T& ShmPointer<T>::operator*() const {
+	return *((T*)(g_alloc->StorageBasePtr() + m_offSet));
 }
 
 template <typename T>
-T* ShmPointer<T>::ObjPtr(const Alloc& alloc) const {
-	return (T*)(alloc.StorageBasePtr() + m_offSet);
+T* ShmPointer<T>::operator->() const {
+	return (T*)(g_alloc->StorageBasePtr() + m_offSet);
 }
+
+template <typename T>
+T& ShmPointer<T>::ObjRef() const {
+	return *((T*)(g_alloc->StorageBasePtr() + m_offSet));
+}
+
+template <typename T>
+T* ShmPointer<T>::ObjPtr() const {
+	return (T*)(g_alloc->StorageBasePtr() + m_offSet);
+}
+
 
 } // namespace smd

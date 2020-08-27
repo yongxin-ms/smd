@@ -5,28 +5,26 @@
 #include "../common/utility.h"
 
 namespace smd {
+extern Alloc* g_alloc;
 
-class ShmString : public ShmObj {
+class ShmString {
 public:
-	ShmString(Alloc& alloc, size_t size = 0)
-		: ShmObj(alloc) {
+	ShmString(size_t size = 0) {
 		resize(GetSuitableCapacity(size + 1));
 	}
 
-	ShmString(Alloc& alloc, const std::string& r)
-		: ShmObj(alloc) {
+	ShmString(const std::string& r) {
 		resize(GetSuitableCapacity(r.size() + 1));
 		internal_copy(r.data(), r.size());
 	}
 
-	ShmString(const ShmString& r)
-		: ShmObj(r.m_alloc) {
+	ShmString(const ShmString& r) {
 		resize(GetSuitableCapacity(r.size() + 1));
 		internal_copy(r.data(), r.size());
 	}
 
 	ShmString& operator=(const std::string& r) {
-		ShmString(m_alloc, r).swap(*this);
+		ShmString(r).swap(*this);
 		return *this;
 	}
 
@@ -42,8 +40,8 @@ public:
 		m_size = 0;
 	}
 
-	char* data() { return m_ptr.ObjPtr(m_alloc); }
-	const char* data() const { return m_ptr.ObjPtr(m_alloc); }
+	char* data() { return m_ptr.ObjPtr(); }
+	const char* data() const { return m_ptr.ObjPtr(); }
 	size_t size() const { return m_size; }
 	bool empty() { return m_size > 0; }
 	size_t capacity() const { return m_capacity; }
@@ -136,13 +134,13 @@ private:
 
 	void resize(size_t capacity) {
 		if (m_ptr != shm_nullptr) {
-			m_alloc.Free(m_ptr, m_capacity);
+			g_alloc->Free(m_ptr, m_capacity);
 			m_capacity = 0;
 		}
 
 		if (capacity > 0) {
 			m_capacity = capacity;
-			m_ptr = m_alloc.Malloc<char>(m_capacity);
+			m_ptr = g_alloc->Malloc<char>(m_capacity);
 		}
 	}
 
@@ -154,7 +152,7 @@ private:
 	void internal_append(const char* buf, size_t len) {
 		// 最后有一个0
 		assert(m_capacity > m_size + len);
-		char* ptr = m_ptr.ObjPtr(m_alloc);
+		char* ptr = m_ptr.ObjPtr();
 		memcpy(&ptr[m_size], buf, len);
 		ptr[len] = '\0';
 		m_size = len;
