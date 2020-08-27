@@ -3,8 +3,8 @@
 #include "buddy.h"
 
 namespace smd {
-enum {
-	shm_nullptr = 0,
+enum : int64_t {
+	shm_nullptr = -1,
 };
 
 class Alloc;

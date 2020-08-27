@@ -165,7 +165,7 @@ private:
 	}
 
 private:
-	ShmPointer<char> m_ptr = 0;
+	ShmPointer<char> m_ptr = shm_nullptr;
 	size_t m_capacity = 0;
 	size_t m_size = 0;
 };
