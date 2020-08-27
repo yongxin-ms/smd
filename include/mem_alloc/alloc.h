@@ -3,39 +3,44 @@
 #include "buddy.h"
 
 namespace smd {
+enum {
+	shm_null_ptr = 0,
+};
+
 class Alloc;
 
 template <typename T>
-class Pointer {
+class ShmPointer {
 public:
-	Pointer(int64_t addr)
+	ShmPointer(int64_t addr)
 		: m_offSet(addr) {}
-	Pointer(const Pointer& r) { m_offSet = r.m_offSet; }
+	ShmPointer(const ShmPointer&) = default;
+	ShmPointer& operator=(const ShmPointer&) = default;
 
-	T& operator*(const Alloc& alloc) const;
-	T* operator()(const Alloc& alloc) const;
+	T& ObjRef(const Alloc& alloc) const;
+	T* ObjPtr(const Alloc& alloc) const;
 	int64_t operator()() const { return m_offSet; }
-	bool operator==(const Pointer& r) const { return m_offSet == r.m_offSet; } 
-	bool operator!=(const Pointer& r) const { return m_offSet != r.m_offSet; }
+	bool operator==(const ShmPointer& r) const { return m_offSet == r.m_offSet; }
+	bool operator!=(const ShmPointer& r) const { return m_offSet != r.m_offSet; }
 
-	Pointer& operator++() {
+	ShmPointer& operator++() {
 		m_offSet += sizeof(T);
 		return *this;
 	}
 
-	Pointer operator++(int) {
-		Pointer tmp(*this);
+	ShmPointer operator++(int) {
+		ShmPointer tmp(*this);
 		m_offSet += sizeof(T);
 		return tmp;
 	}
 
-	Pointer& operator--() {
+	ShmPointer& operator--() {
 		m_offSet -= sizeof(T);
 		return *this;
 	}
 
-	Pointer operator--(int) {
-		Pointer tmp(*this);
+	ShmPointer operator--(int) {
+		ShmPointer tmp(*this);
 		m_offSet -= sizeof(T);
 		return tmp;
 	}
@@ -58,15 +63,15 @@ public:
 	}
 
 	template <class T>
-	Pointer<T> Malloc(size_t n = 1) {
+	ShmPointer<T> Malloc(size_t n = 1) {
 		auto size = sizeof(T) * n;
 		auto addr = _Malloc(size);
 		// m_log.DoLog(Log::LogLevel::kDebug, "malloc: 0x%p:(%d)", ptr, size);
-		return Pointer<T>(addr);
+		return ShmPointer<T>(addr);
 	}
 
 	template <class T>
-	void Free(Pointer<T>& p, size_t n = 1) {
+	void Free(ShmPointer<T>& p, size_t n = 1) {
 		auto size = sizeof(T) * n;
 		// m_log.DoLog(Log::LogLevel::kDebug, "free: 0x%p:(%d)", p, size);
 		_Free(p(*this), size);
@@ -74,14 +79,14 @@ public:
 	}
 
 	template <class T, typename... P>
-	Pointer<T> New(P&&... params) {
+	ShmPointer<T> New(P&&... params) {
 		auto t = Malloc<T>();
 		::new (t) T(std::forward<P>(params)...);
 		return t;
 	}
 
 	template <class T>
-	void Delete(Pointer<T>& p) {
+	void Delete(ShmPointer<T>& p) {
 		p(*this)->~T();
 		Free(p);
 	}
@@ -97,14 +102,14 @@ public:
 	const char* StorageBasePtr() const { return m_storagePtr; }
 
 	template <class T>
-	Pointer<T> null_ptr() const {
-		return Pointer<T>(m_storagePtr);
+	ShmPointer<T> null_ptr() const {
+		return ShmPointer<T>(m_storagePtr);
 	}
 
 	template <class T>
-	Pointer<T> ToPointer(void* p) const {
+	ShmPointer<T> ToShmPointer(void* p) const {
 		int64_t offset = (const char*)p - m_storagePtr;
-		return Pointer<T>(offset);
+		return ShmPointer<T>(offset);
 	}
 
 private:
@@ -135,12 +140,12 @@ private:
 };
 
 template <typename T>
-T& Pointer<T>::operator*(const Alloc& alloc) const {
+T& ShmPointer<T>::ObjRef(const Alloc& alloc) const {
 	return *(T*)(alloc.StorageBasePtr() + m_offSet);
 }
 
 template <typename T>
-T* Pointer<T>::operator()(const Alloc& alloc) const {
+T* ShmPointer<T>::ObjPtr(const Alloc& alloc) const {
 	return (T*)(alloc.StorageBasePtr() + m_offSet);
 }
 
