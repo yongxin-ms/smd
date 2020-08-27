@@ -32,13 +32,14 @@ public:
 // 		, m_allHashes(m_head.allHashes)
 	{
 		m_head.visit_num++;
+		g_alloc = &m_alloc;
 
 		if (create_new) {
-			if (m_testStrings != shm_nullptr) {
-				m_alloc.Delete(m_testStrings);
-			}
+// 			if (m_testStrings != shm_nullptr) {
+// 				m_alloc.Delete(m_testStrings);
+// 			}
 
-			m_testStrings = m_alloc.New<ShmList<ShmString>>(m_alloc, ShmString(m_alloc));
+			m_testStrings = m_alloc.New<ShmList<ShmString>>();
 			m_head.testStrings = m_testStrings();
 
 // 			auto empty_str = ShmString(m_alloc);
@@ -55,9 +56,6 @@ public:
 // 			m_allHashes = m_alloc.New<ShmMap<ShmString, ShmHash<ShmString>>>(
 // 				m_alloc, make_pair(empty_str, empty_hash));
 		}
-
-		int size = m_testStrings.ObjPtr(m_alloc)->size();
-		m_testStrings.ObjPtr(m_alloc)->push_back(ShmString(m_alloc, "11"));
 	}
 
 	~Env() {}
@@ -107,6 +105,7 @@ public:
 
 	Log& GetLog() { return m_log; }
 	Alloc& GetMalloc() { return m_alloc; }
+	ShmList<ShmString>& GetTestString() { return *m_testStrings; }
 
 private:
 	Log& m_log;
@@ -119,6 +118,8 @@ private:
 // 	ShmMap<ShmString, ShmMap<ShmString, ShmString>>*& m_allMaps;
 // 	ShmMap<ShmString, ShmHash<ShmString>>*& m_allHashes;
 };
+
+extern Alloc* g_alloc = nullptr;
 
 class EnvMgr {
 public:

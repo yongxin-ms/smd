@@ -24,6 +24,7 @@ public:
 	T* operator->() const;
 	T& ObjRef() const;
 	T* ObjPtr() const;
+	T* operator&() const { return (T*)(g_alloc->StorageBasePtr() + m_offSet); }
 
 	int64_t operator()() const { return m_offSet; }
 	bool operator==(const ShmPointer& r) const { return m_offSet == r.m_offSet; }
@@ -34,6 +35,18 @@ public:
 		ShmPointer tmp(*this);
 		tmp.m_offSet += n * sizeof(T);
 		return tmp;
+	}
+
+	T& operator[](int n) {
+		ShmPointer tmp(*this);
+		tmp.m_offSet += n * sizeof(T);
+		return tmp.ObjRef();
+	}
+
+	const T& operator[](int n) const {
+		ShmPointer tmp(*this);
+		tmp.m_offSet += n * sizeof(T);
+		return tmp.ObjRef();
 	}
 
 	ShmPointer& operator++() {

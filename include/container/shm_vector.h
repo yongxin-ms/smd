@@ -4,20 +4,18 @@
 namespace smd {
 
 template <class T>
-class ShmVector : public ShmObj {
+class ShmVector {
 	typedef T value_type;
 	typedef ShmPointer<T> iterator;
 	typedef T& reference;
 	typedef iterator pointer;
 
 public:
-	ShmVector(Alloc& alloc, size_t capacity = 1)
-		: ShmObj(alloc) {
+	ShmVector(size_t capacity = 1) {
 		reserve(capacity);
 	}
 
-	ShmVector(const ShmVector& r)
-		: ShmObj(r.m_alloc) {
+	ShmVector(const ShmVector& r) {
 		reserve(r.size());
 		for (int i = 0; i < r.size(); i++) {
 			const auto& element = r[i];
@@ -38,7 +36,7 @@ public:
 		}
 
 		//实际分配的空间比容量大1.
-		m_alloc.Free(m_start, capacity() + 1);
+		g_alloc->Free(m_start, capacity() + 1);
 		m_finish = shm_nullptr;
 		m_endOfStorage = shm_nullptr;
 	}
@@ -49,19 +47,19 @@ public:
 
 	//访问元素相关
 	reference operator[](size_t i) {
-		return (m_start.ObjRef(m_alloc) + i).ObjRef(m_alloc);
+		return *m_start[i];
 	}
 	const reference operator[](size_t i) const {
-		return (m_start.ObjRef(m_alloc) + i).ObjRef(m_alloc);
+		return *m_start[i];
 	}
-	reference front() { return (m_start.ObjRef(m_alloc)).ObjRef(m_alloc); }
-	reference back() { return (m_start.ObjRef(m_alloc) + (size() - 1)).ObjRef(m_alloc); }
-	pointer data() { return m_start.ObjPtr(m_alloc); }
+	reference front() { return *m_start.ObjRef(); }
+	reference back() { return *(m_start[size() - 1]); }
+	pointer data() { return m_start.ObjRef(); }
 
 	void push_back(const value_type& value) {
 		if (m_finish != m_endOfStorage) {
-			auto new_element = m_alloc.New<value_type>(value);
-			m_finish.ObjRef(m_alloc) = new_element;
+			auto new_element = g_alloc->New<value_type>(value);
+			*m_finish = new_element;
 			++m_finish;
 		} else {
 			reserve(capacity() + 2);
@@ -71,8 +69,8 @@ public:
 
 	void pop_back() {
 		--m_finish;
-		auto d = m_finish.ObjRef(m_alloc);
-		m_alloc.Delete(d);
+		auto d = m_finish.ObjRef();
+		g_alloc->Delete(d);
 	}
 
 	void clear() {
@@ -81,8 +79,8 @@ public:
 		}
 	}
 
-	iterator begin() { return m_start.ObjPtr(m_alloc); }
-	iterator end() { return m_finish.ObjPtr(m_alloc); }
+	iterator begin() { return m_start.ObjPtr(); }
+	iterator end() { return m_finish.ObjPtr(); }
 
 	// 设置容量
 	void reserve(size_t new_capacity) {
@@ -90,18 +88,15 @@ public:
 		new_capacity = GetSuitableCapacity(std::max(old_size, new_capacity));
 
 		//多分配一个，用来存放尾结点
-		auto new_list = m_alloc.Malloc<ShmPointer<value_type>>(new_capacity + 1);
+		auto new_list = g_alloc->Malloc<ShmPointer<value_type>>(new_capacity + 1);
 		if (old_size > 0) {
-			memcpy(new_list.ObjPtr(m_alloc), m_start.ObjPtr(m_alloc),
-				sizeof(ShmPointer<value_type>) * old_size);
-			m_alloc.Free(m_start, capacity() + 1);
+			memcpy(&new_list, &m_start, sizeof(ShmPointer<value_type>) * old_size);
+			g_alloc->Free(m_start, capacity() + 1);
 		}
 
 		m_start = new_list;
-		m_finish =
-			m_alloc.ToShmPointer<ShmPointer<value_type>>((m_start + old_size).ObjPtr(m_alloc));
-		m_endOfStorage =
-			m_alloc.ToShmPointer<ShmPointer<value_type>>((m_start + new_capacity).ObjPtr(m_alloc));
+		m_finish = m_start + old_size;
+		m_endOfStorage = m_start + new_capacity;
 	}
 
 	// 改变vector中元素的数目
