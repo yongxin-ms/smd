@@ -5,19 +5,24 @@
 
 void TestPointer(smd::Env* env) {
 	auto& alloc = env->GetMalloc();
-	smd::ShmPointer<int> p(smd::shm_null_ptr);
-	int* tmp = p.ObjPtr(alloc);
+	auto mem_usage = alloc.GetUsed();
+	smd::ShmPointer<int> shm_ptr = alloc.New<int>();
+	int* tmp = shm_ptr.ObjPtr(alloc);
 	assert(tmp != nullptr);
 	*tmp = 10;
 
-	int n = p.ObjRef(alloc);
+	int n = shm_ptr.ObjRef(alloc);
 	assert(n == 10);
+
+	alloc.Delete(tmp);
+	assert(mem_usage == alloc.GetUsed());
 }
 
 void TestShmString(smd::Env* env) {
 	auto& alloc = env->GetMalloc();
 	auto mem_usage = alloc.GetUsed();
-	auto s = alloc.New<smd::ShmString>(alloc, 16).ObjPtr(alloc);
+	auto temp = alloc.New<smd::ShmString>(alloc, 16);
+	auto s = temp.ObjPtr(alloc);
 	assert(s->capacity() > 16);
 	assert(s->size() == 0);
 	assert(s->ToString() == "");
@@ -85,6 +90,7 @@ void TestShmString(smd::Env* env) {
 void TestShmList(smd::Env* env) {
 	auto& alloc = env->GetMalloc();
 	auto mem_usage = alloc.GetUsed();
+
 	auto l = alloc.New<smd::ShmList<smd::ShmString>>(alloc, smd::ShmString(alloc)).ObjPtr(alloc);
 
 	// 验证在尾部添加元素
@@ -190,6 +196,7 @@ void TestShmList(smd::Env* env) {
 
 	alloc.Delete(l);
 	assert(l == nullptr);
+
 	assert(mem_usage == alloc.GetUsed());
 	env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "List test complete");
 }
@@ -220,279 +227,279 @@ void TestShmListPod(smd::Env* env) {
 	env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "ListPod test complete");
 }
 
-void TestShmVector(smd::Env* env) {
-	auto& alloc = env->GetMalloc();
-	auto mem_usage = alloc.GetUsed();
-	auto v = alloc.New<smd::ShmVector<smd::ShmString>>(alloc).ObjPtr(alloc);
+// void TestShmVector(smd::Env* env) {
+// 	auto& alloc = env->GetMalloc();
+// 	auto mem_usage = alloc.GetUsed();
+// 	auto v = alloc.New<smd::ShmVector<smd::ShmString>>(alloc).ObjPtr(alloc);
+// 
+// 	assert(v->size() == 0);
+// 	v->push_back(smd::ShmString(alloc, "hello"));
+// 	assert(v->size() == 1);
+// 	assert(v->front().ToString() == "hello");
+// 	assert(v->back().ToString() == "hello");
+// 
+// 	do {
+// 		smd::ShmVector<smd::ShmString> v1(*v);
+// 		for (int i = 0; i < 100; ++i) {
+// 			v1.push_back(smd::ShmString(alloc, Util::Text::Format("TestText%02d", i)));
+// 		}
+// 		assert(v1.size() == 101);
+// 		assert(v1[0].ToString() == "hello");
+// 		assert(v1[100].ToString() == "TestText99");
+// 
+// 		for (int i = 0; i < 100; ++i) {
+// 			v1.pop_back();
+// 		}
+// 		assert(v1.size() == 1);
+// 		assert(v1[0].ToString() == "hello");
+// 
+// 		for (int i = 0; i < 100; ++i) {
+// 			v1.push_back(smd::ShmString(alloc, Util::Text::Format("TestText%02d", i)));
+// 		}
+// 		assert(v1.size() == 101);
+// 		assert(v1[0].ToString() == "hello");
+// 		assert(v1[100].ToString() == "TestText99");
+// 
+// 		v1.clear();
+// 		assert(v1.size() == 0);
+// 
+// 		v1 = *v;
+// 		assert(v1.size() == 1);
+// 		assert(v1[0].ToString() == "hello");
+// 
+// 		v1.resize(300, smd::ShmString(env->GetMalloc(), "123"));
+// 		assert(v1.size() == 300);
+// 		assert(v1[299].ToString() == "123");
+// 
+// 	} while (false);
+// 
+// 	v->push_back(smd::ShmString(alloc, "world"));
+// 	assert(v->size() == 2);
+// 	assert(v->front().ToString() == "hello");
+// 	assert(v->back().ToString() == "world");
+// 
+// 	v->push_back(smd::ShmString(alloc, "will"));
+// 	assert(v->size() == 3);
+// 	assert(v->front().ToString() == "hello");
+// 	assert(v->back().ToString() == "will");
+// 
+// 	v->pop_back();
+// 	assert(v->size() == 2);
+// 	assert(v->front().ToString() == "hello");
+// 	assert(v->back().ToString() == "world");
+// 
+// 	v->pop_back();
+// 	assert(v->size() == 1);
+// 	assert(v->front().ToString() == "hello");
+// 	assert(v->back().ToString() == "hello");
+// 
+// 	v->pop_back();
+// 	assert(v->size() == 0);
+// 
+// 	alloc.Delete(v);
+// 	assert(v == nullptr);
+// 	assert(mem_usage == alloc.GetUsed());
+// 
+// 	env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "Vector test complete");
+// }
 
-	assert(v->size() == 0);
-	v->push_back(smd::ShmString(alloc, "hello"));
-	assert(v->size() == 1);
-	assert(v->front().ToString() == "hello");
-	assert(v->back().ToString() == "hello");
+// void TestShmVectorResize(smd::Env* env) {
+// 	auto& alloc = env->GetMalloc();
+// 	auto mem_usage = alloc.GetUsed();
+// 	auto v = alloc.New<smd::ShmVector<smd::ShmString>>(alloc, 64).ObjPtr(alloc);
+// 	v->resize(v->capacity(), smd::ShmString(alloc));
+// 
+// 	alloc.Delete(v);
+// 	assert(v == nullptr);
+// 	assert(mem_usage == alloc.GetUsed());
+// 
+// 	env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "VectorResize test complete");
+// }
 
-	do {
-		smd::ShmVector<smd::ShmString> v1(*v);
-		for (int i = 0; i < 100; ++i) {
-			v1.push_back(smd::ShmString(alloc, Util::Text::Format("TestText%02d", i)));
-		}
-		assert(v1.size() == 101);
-		assert(v1[0].ToString() == "hello");
-		assert(v1[100].ToString() == "TestText99");
-
-		for (int i = 0; i < 100; ++i) {
-			v1.pop_back();
-		}
-		assert(v1.size() == 1);
-		assert(v1[0].ToString() == "hello");
-
-		for (int i = 0; i < 100; ++i) {
-			v1.push_back(smd::ShmString(alloc, Util::Text::Format("TestText%02d", i)));
-		}
-		assert(v1.size() == 101);
-		assert(v1[0].ToString() == "hello");
-		assert(v1[100].ToString() == "TestText99");
-
-		v1.clear();
-		assert(v1.size() == 0);
-
-		v1 = *v;
-		assert(v1.size() == 1);
-		assert(v1[0].ToString() == "hello");
-
-		v1.resize(300, smd::ShmString(env->GetMalloc(), "123"));
-		assert(v1.size() == 300);
-		assert(v1[299].ToString() == "123");
-
-	} while (false);
-
-	v->push_back(smd::ShmString(alloc, "world"));
-	assert(v->size() == 2);
-	assert(v->front().ToString() == "hello");
-	assert(v->back().ToString() == "world");
-
-	v->push_back(smd::ShmString(alloc, "will"));
-	assert(v->size() == 3);
-	assert(v->front().ToString() == "hello");
-	assert(v->back().ToString() == "will");
-
-	v->pop_back();
-	assert(v->size() == 2);
-	assert(v->front().ToString() == "hello");
-	assert(v->back().ToString() == "world");
-
-	v->pop_back();
-	assert(v->size() == 1);
-	assert(v->front().ToString() == "hello");
-	assert(v->back().ToString() == "hello");
-
-	v->pop_back();
-	assert(v->size() == 0);
-
-	alloc.Delete(v);
-	assert(v == nullptr);
-	assert(mem_usage == alloc.GetUsed());
-
-	env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "Vector test complete");
-}
-
-void TestShmVectorResize(smd::Env* env) {
-	auto& alloc = env->GetMalloc();
-	auto mem_usage = alloc.GetUsed();
-	auto v = alloc.New<smd::ShmVector<smd::ShmString>>(alloc, 64).ObjPtr(alloc);
-	v->resize(v->capacity(), smd::ShmString(alloc));
-
-	alloc.Delete(v);
-	assert(v == nullptr);
-	assert(mem_usage == alloc.GetUsed());
-
-	env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "VectorResize test complete");
-}
-
-void TestShmVectorPod(smd::Env* env) {
-	struct StMyData {
-		uint64_t role_id_;
-		int hp_;
-
-		StMyData(uint64_t role_id = 0, int hp = 0)
-			: role_id_(role_id)
-			, hp_(hp) {}
-	};
-
-	auto& alloc = env->GetMalloc();
-	auto mem_usage = alloc.GetUsed();
-	auto v = alloc.New<smd::ShmVector<StMyData>>(alloc).ObjPtr(alloc);
-
-	// 验证在尾部添加元素
-	assert(v->size() == 0);
-	v->push_back(StMyData(7131, 14));
-	assert(v->size() == 1);
-	auto& element = v->front();
-
-	alloc.Delete(v);
-	assert(v == nullptr);
-	assert(mem_usage == alloc.GetUsed());
-	env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "VectorPod test complete");
-}
-
-void TestHash(smd::Env* env) {
-	auto& alloc = env->GetMalloc();
-	auto mem_usage = alloc.GetUsed();
-	auto h = alloc.New<smd::ShmHash<smd::ShmString>>(alloc, smd::ShmString(alloc)).ObjPtr(alloc);
-
-	assert(h->size() == 0);
-	h->insert(smd::ShmString(alloc, "hello"));
-	assert(h->size() == 1);
-	assert((*h->begin()).ToString() == "hello");
-	assert(h->count(smd::ShmString(alloc, "hello")));
-	h->clear();
-
-	h->insert(smd::ShmString(alloc, "hello"));
-	h->insert(smd::ShmString(alloc, "world"));
-	assert(h->size() == 2);
-	assert((*h->begin()).ToString() == "hello");
-	assert(h->count(smd::ShmString(alloc, "world")));
-
-	h->insert(smd::ShmString(alloc, "will"));
-	assert(h->size() == 3);
-	assert((*h->begin()).ToString() == "hello");
-	assert(h->count(smd::ShmString(alloc, "will")));
-
-	for (auto it = h->begin(); it != h->end(); ++it) {
-		env->GetLog().DoLog(smd::Log::LogLevel::kDebug, "%s", it->ToString().data());
-	}
-
-	for (auto it = h->begin(); it != h->end();) {
-		it = h->erase(it);
-	}
-
-	assert(h->find(smd::ShmString(alloc, "hello")) == h->end());
-	assert(h->find(smd::ShmString(alloc, "world")) == h->end());
-	assert(h->find(smd::ShmString(alloc, "will")) == h->end());
-
-	assert(h->size() == 0);
-	alloc.Delete(h);
-	assert(h == nullptr);
-	assert(mem_usage == alloc.GetUsed());
-
-	env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "Hash test complete");
-}
-
-void TestHashPod(smd::Env* env) {
-	auto& alloc = env->GetMalloc();
-	auto mem_usage = alloc.GetUsed();
-	auto h = alloc.New<smd::ShmHash<uint64_t>>(alloc, 0).ObjPtr(alloc);
-
-	for (int i = 0; i < 10; ++i) {
-		h->insert(10000 + i);
-	}
-
-	assert(h->size() == 10);
-	assert(h->find(10000) != h->end());
-	assert(h->find(10008) != h->end());
-	assert(h->find(10) == h->end());
-
-	for (auto it = h->begin(); it != h->end(); ++it) {
-		env->GetLog().DoLog(smd::Log::LogLevel::kDebug, "%llu", *it);
-	}
-
-	for (auto it = h->begin(); it != h->end();) {
-		it = h->erase(it);
-	}
-
-	assert(h->find(10000) == h->end());
-	assert(h->find(10008) == h->end());
-	assert(h->find(10) == h->end());
-
-	assert(h->size() == 0);
-	alloc.Delete(h);
-	assert(h == nullptr);
-	assert(mem_usage == alloc.GetUsed());
-
-	env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "Hash test complete");
-}
-
-void TestMapString(smd::Env* env) {
-	auto& alloc = env->GetMalloc();
-	auto mem_usage = alloc.GetUsed();
-	auto m = alloc.New<smd::ShmMap<smd::ShmString, smd::ShmString>>(
-		alloc, smd::make_pair(smd::ShmString(alloc), smd::ShmString(alloc))).ObjPtr(alloc);
-
-	for (int i = 0; i < 10; ++i) {
-		Util::Text::Format("TestText%02d", i);
-		auto key = smd::ShmString(alloc, Util::Text::Format("Key%02d", i));
-		auto value = smd::ShmString(alloc, Util::Text::Format("Value%02d", i));
-		m->insert(smd::make_pair(key, value));
-	}
-
-	assert(m->size() == 10);
-	assert(m->find(smd::ShmString(alloc, Util::Text::Format("Key%02d", 3))) != m->end());
-	assert(m->find(smd::ShmString(alloc, Util::Text::Format("Key%02d", 8))) != m->end());
-	assert(m->find(smd::ShmString(alloc, Util::Text::Format("Key%02d", 10))) == m->end());
-
-	for (auto it = m->begin(); it != m->end(); ++it) {
-		const auto& k = it->first;
-		const auto& v = it->second;
-		env->GetLog().DoLog(smd::Log::LogLevel::kDebug, "%s, %s", k.data(), v.data());
-	}
-
-	for (auto it = m->begin(); it != m->end();) {
-		it = m->erase(it);
-	}
-
-	assert(m->find(smd::ShmString(alloc, Util::Text::Format("Key%02d", 10000))) == m->end());
-	assert(m->find(smd::ShmString(alloc, Util::Text::Format("Key%02d", 10008))) == m->end());
-	assert(m->find(smd::ShmString(alloc, Util::Text::Format("Key%02d", 10010))) == m->end());
-
-	assert(m->size() == 0);
-	alloc.Delete(m);
-	assert(m == nullptr);
-	assert(mem_usage == alloc.GetUsed());
-
-	env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "MapPod test complete");
-}
-
-void TestMapPod(smd::Env* env) {
-	auto& alloc = env->GetMalloc();
-	auto mem_usage = alloc.GetUsed();
-	auto m = alloc.New<smd::ShmMap<uint64_t, uint64_t>>(alloc, smd::make_pair(0, 0)).ObjPtr(alloc);
-
-	for (int i = 0; i < 10; ++i) {
-		m->insert(smd::make_pair(i, i * 3 + 2199));
-	}
-
-	assert(m->size() == 10);
-	assert(m->find(3) != m->end());
-	assert(m->find(8) != m->end());
-	assert(m->find(10) == m->end());
-
-	for (auto it = m->begin(); it != m->end(); ++it) {
-		const auto& k = it->first;
-		const auto& v = it->second;
-		env->GetLog().DoLog(smd::Log::LogLevel::kDebug, "%llu, %llu", k, v);
-	}
-
-	for (auto it = m->begin(); it != m->end();) {
-		it = m->erase(it);
-	}
-
-	assert(m->find(0) == m->end());
-	assert(m->find(8) == m->end());
-	assert(m->find(10) == m->end());
-
-	assert(m->size() == 0);
-	m->clear();
-
-	alloc.Delete(m);
-	assert(m == nullptr);
-	assert(mem_usage == alloc.GetUsed());
-
-	env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "MapPod test complete");
-}
+// void TestShmVectorPod(smd::Env* env) {
+// 	struct StMyData {
+// 		uint64_t role_id_;
+// 		int hp_;
+// 
+// 		StMyData(uint64_t role_id = 0, int hp = 0)
+// 			: role_id_(role_id)
+// 			, hp_(hp) {}
+// 	};
+// 
+// 	auto& alloc = env->GetMalloc();
+// 	auto mem_usage = alloc.GetUsed();
+// 	auto v = alloc.New<smd::ShmVector<StMyData>>(alloc).ObjPtr(alloc);
+// 	
+// 	// 验证在尾部添加元素
+// 	assert(v->size() == 0);
+// 	v->push_back(StMyData(7131, 14));
+// 	assert(v->size() == 1);
+// 	auto& element = v->front();
+// 
+// 	alloc.Delete(v);
+// 	assert(v == nullptr);
+// 	assert(mem_usage == alloc.GetUsed());
+// 	env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "VectorPod test complete");
+// }
+// 
+// void TestHash(smd::Env* env) {
+// 	auto& alloc = env->GetMalloc();
+// 	auto mem_usage = alloc.GetUsed();
+// 	auto h = alloc.New<smd::ShmHash<smd::ShmString>>(alloc, smd::ShmString(alloc)).ObjPtr(alloc);
+// 
+// 	assert(h->size() == 0);
+// 	h->insert(smd::ShmString(alloc, "hello"));
+// 	assert(h->size() == 1);
+// 	assert((*h->begin()).ToString() == "hello");
+// 	assert(h->count(smd::ShmString(alloc, "hello")));
+// 	h->clear();
+// 
+// 	h->insert(smd::ShmString(alloc, "hello"));
+// 	h->insert(smd::ShmString(alloc, "world"));
+// 	assert(h->size() == 2);
+// 	assert((*h->begin()).ToString() == "hello");
+// 	assert(h->count(smd::ShmString(alloc, "world")));
+// 
+// 	h->insert(smd::ShmString(alloc, "will"));
+// 	assert(h->size() == 3);
+// 	assert((*h->begin()).ToString() == "hello");
+// 	assert(h->count(smd::ShmString(alloc, "will")));
+// 
+// 	for (auto it = h->begin(); it != h->end(); ++it) {
+// 		env->GetLog().DoLog(smd::Log::LogLevel::kDebug, "%s", it->ToString().data());
+// 	}
+// 
+// 	for (auto it = h->begin(); it != h->end();) {
+// 		it = h->erase(it);
+// 	}
+// 
+// 	assert(h->find(smd::ShmString(alloc, "hello")) == h->end());
+// 	assert(h->find(smd::ShmString(alloc, "world")) == h->end());
+// 	assert(h->find(smd::ShmString(alloc, "will")) == h->end());
+// 
+// 	assert(h->size() == 0);
+// 	alloc.Delete(h);
+// 	assert(h == nullptr);
+// 	assert(mem_usage == alloc.GetUsed());
+// 
+// 	env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "Hash test complete");
+// }
+// 
+// void TestHashPod(smd::Env* env) {
+// 	auto& alloc = env->GetMalloc();
+// 	auto mem_usage = alloc.GetUsed();
+// 	auto h = alloc.New<smd::ShmHash<uint64_t>>(alloc, 0).ObjPtr(alloc);
+// 
+// 	for (int i = 0; i < 10; ++i) {
+// 		h->insert(10000 + i);
+// 	}
+// 
+// 	assert(h->size() == 10);
+// 	assert(h->find(10000) != h->end());
+// 	assert(h->find(10008) != h->end());
+// 	assert(h->find(10) == h->end());
+// 
+// 	for (auto it = h->begin(); it != h->end(); ++it) {
+// 		env->GetLog().DoLog(smd::Log::LogLevel::kDebug, "%llu", *it);
+// 	}
+// 
+// 	for (auto it = h->begin(); it != h->end();) {
+// 		it = h->erase(it);
+// 	}
+// 
+// 	assert(h->find(10000) == h->end());
+// 	assert(h->find(10008) == h->end());
+// 	assert(h->find(10) == h->end());
+// 
+// 	assert(h->size() == 0);
+// 	alloc.Delete(h);
+// 	assert(h == nullptr);
+// 	assert(mem_usage == alloc.GetUsed());
+// 
+// 	env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "Hash test complete");
+// }
+// 
+// void TestMapString(smd::Env* env) {
+// 	auto& alloc = env->GetMalloc();
+// 	auto mem_usage = alloc.GetUsed();
+// 	auto m = alloc.New<smd::ShmMap<smd::ShmString, smd::ShmString>>(
+// 		alloc, smd::make_pair(smd::ShmString(alloc), smd::ShmString(alloc))).ObjPtr(alloc);
+// 
+// 	for (int i = 0; i < 10; ++i) {
+// 		Util::Text::Format("TestText%02d", i);
+// 		auto key = smd::ShmString(alloc, Util::Text::Format("Key%02d", i));
+// 		auto value = smd::ShmString(alloc, Util::Text::Format("Value%02d", i));
+// 		m->insert(smd::make_pair(key, value));
+// 	}
+// 
+// 	assert(m->size() == 10);
+// 	assert(m->find(smd::ShmString(alloc, Util::Text::Format("Key%02d", 3))) != m->end());
+// 	assert(m->find(smd::ShmString(alloc, Util::Text::Format("Key%02d", 8))) != m->end());
+// 	assert(m->find(smd::ShmString(alloc, Util::Text::Format("Key%02d", 10))) == m->end());
+// 
+// 	for (auto it = m->begin(); it != m->end(); ++it) {
+// 		const auto& k = it->first;
+// 		const auto& v = it->second;
+// 		env->GetLog().DoLog(smd::Log::LogLevel::kDebug, "%s, %s", k.data(), v.data());
+// 	}
+// 
+// 	for (auto it = m->begin(); it != m->end();) {
+// 		it = m->erase(it);
+// 	}
+// 
+// 	assert(m->find(smd::ShmString(alloc, Util::Text::Format("Key%02d", 10000))) == m->end());
+// 	assert(m->find(smd::ShmString(alloc, Util::Text::Format("Key%02d", 10008))) == m->end());
+// 	assert(m->find(smd::ShmString(alloc, Util::Text::Format("Key%02d", 10010))) == m->end());
+// 
+// 	assert(m->size() == 0);
+// 	alloc.Delete(m);
+// 	assert(m == nullptr);
+// 	assert(mem_usage == alloc.GetUsed());
+// 
+// 	env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "MapPod test complete");
+// }
+// 
+// void TestMapPod(smd::Env* env) {
+// 	auto& alloc = env->GetMalloc();
+// 	auto mem_usage = alloc.GetUsed();
+// 	auto m = alloc.New<smd::ShmMap<uint64_t, uint64_t>>(alloc, smd::make_pair(0, 0)).ObjPtr(alloc);
+// 
+// 	for (int i = 0; i < 10; ++i) {
+// 		m->insert(smd::make_pair(i, i * 3 + 2199));
+// 	}
+// 
+// 	assert(m->size() == 10);
+// 	assert(m->find(3) != m->end());
+// 	assert(m->find(8) != m->end());
+// 	assert(m->find(10) == m->end());
+// 
+// 	for (auto it = m->begin(); it != m->end(); ++it) {
+// 		const auto& k = it->first;
+// 		const auto& v = it->second;
+// 		env->GetLog().DoLog(smd::Log::LogLevel::kDebug, "%llu, %llu", k, v);
+// 	}
+// 
+// 	for (auto it = m->begin(); it != m->end();) {
+// 		it = m->erase(it);
+// 	}
+// 
+// 	assert(m->find(0) == m->end());
+// 	assert(m->find(8) == m->end());
+// 	assert(m->find(10) == m->end());
+// 
+// 	assert(m->size() == 0);
+// 	m->clear();
+// 
+// 	alloc.Delete(m);
+// 	assert(m == nullptr);
+// 	assert(mem_usage == alloc.GetUsed());
+// 
+// 	env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "MapPod test complete");
+// }
 
 int main() {
 	auto mgr = new smd::EnvMgr;
-	mgr->SetLogLevel(smd::Log::LogLevel::kInfo);
+	mgr->SetLogLevel(smd::Log::LogLevel::kDebug);
 	mgr->SetLogHandler([](smd::Log::LogLevel lv, const char* s) {
 		std::string time_now = Util::Time::FormatDateTime(time(nullptr));
 		switch (lv) {
@@ -518,12 +525,11 @@ int main() {
 	//auto env = mgr->CreateEnv(GUID, 20, smd::create);
 	assert(env != nullptr);
 
-	TestPointer(env);
-
-	// 	TestShmString(env);
-	// 	TestShmList(env);
-	// 	TestShmListPod(env);
-	// 	TestShmVector(env);
+ 	TestPointer(env);
+	TestShmString(env);
+ 	TestShmList(env);
+  	TestShmListPod(env);
+ 	//TestShmVector(env);
 	// 	TestShmVectorResize(env);
 	// 	TestShmVectorPod(env);
 	// 	TestHash(env);
@@ -531,24 +537,24 @@ int main() {
 	// 	TestMapString(env);
 	// 	TestMapPod(env);
 
-	std::string key("StartCounter");
-	smd::Slice value;
-	if (env->SGet(key, &value)) {
-		// 如果已经存在
-		int count = 0;
-		memcpy(&count, value.data(), value.size());
-		count++;
-
-		env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "%s is %d", key.data(), count);
-	} else {
-		// 如果不存在
-		env->GetLog().DoLog(
-			smd::Log::LogLevel::kInfo, "first time run");
-
-		int count = 1;
-		value = smd::Slice((const char*)&count, sizeof(count));
-		env->SSet(key, value);
-	}
+// 	std::string key("StartCounter");
+// 	smd::Slice value;
+// 	if (env->SGet(key, &value)) {
+// 		// 如果已经存在
+// 		int count = 0;
+// 		memcpy(&count, value.data(), value.size());
+// 		count++;
+// 
+// 		env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "%s is %d", key.data(), count);
+// 	} else {
+// 		// 如果不存在
+// 		env->GetLog().DoLog(
+// 			smd::Log::LogLevel::kInfo, "first time run");
+// 
+// 		int count = 1;
+// 		value = smd::Slice((const char*)&count, sizeof(count));
+// 		env->SSet(key, value);
+// 	}
 
 	int n = 0;
 	std::cin >> n;

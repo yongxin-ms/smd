@@ -7,8 +7,9 @@
 
 #include "container/shm_string.h"
 #include "container/shm_list.h"
-#include "container/shm_hash.h"
-#include "container/shm_map.h"
+#include "container/shm_vector.h"
+// #include "container/shm_hash.h"
+// #include "container/shm_map.h"
 #include "mem_alloc/alloc.h"
 #include "common/slice.h"
 #include "common/log.h"
@@ -24,18 +25,27 @@ public:
 		: m_log(log)
 		, m_alloc(log, ptr, sizeof(ShmHead), level, create_new)
 		, m_head(*((ShmHead*)ptr))
-		, m_allStrings(m_head.allStrings)
-		, m_allLists(m_head.allLists)
-		, m_allMaps(m_head.allMaps)
-		, m_allHashes(m_head.allHashes) {
+		, m_testStrings(m_head.testStrings)
+	// 		, m_allStrings(m_head.allStrings)
+// 		, m_allLists(m_head.allLists)
+// 		, m_allMaps(m_head.allMaps)
+// 		, m_allHashes(m_head.allHashes)
+	{
 		m_head.visit_num++;
 
 		if (create_new) {
-			auto empty_str = ShmString(m_alloc);
-			auto empty_list = ShmList<ShmString>(m_alloc, empty_str);
-			auto empty_map = ShmMap<ShmString, ShmString>(m_alloc, make_pair(empty_str, empty_str));
-			auto empty_hash = ShmHash<ShmString>(m_alloc, empty_str);
+			if (m_testStrings != shm_nullptr) {
+				m_alloc.Delete(m_testStrings);
+			}
 
+			m_testStrings = m_alloc.New<ShmList<ShmString>>(m_alloc, ShmString(m_alloc));
+			m_head.testStrings = m_testStrings();
+
+// 			auto empty_str = ShmString(m_alloc);
+// 			auto empty_list = ShmList<ShmString>(m_alloc, empty_str);
+// 			auto empty_map = ShmMap<ShmString, ShmString>(m_alloc, make_pair(empty_str, empty_str));
+// 			auto empty_hash = ShmHash<ShmString>(m_alloc, empty_str);
+// 
 // 			m_allStrings =
 // 				m_alloc.New<ShmMap<ShmString, ShmString>>(m_alloc, make_pair(empty_str, empty_str));
 // 			m_allLists = m_alloc.New<ShmMap<ShmString, ShmList<ShmString>>>(
@@ -45,50 +55,53 @@ public:
 // 			m_allHashes = m_alloc.New<ShmMap<ShmString, ShmHash<ShmString>>>(
 // 				m_alloc, make_pair(empty_str, empty_hash));
 		}
+
+		int size = m_testStrings.ObjPtr(m_alloc)->size();
+		m_testStrings.ObjPtr(m_alloc)->push_back(ShmString(m_alloc, "11"));
 	}
 
 	~Env() {}
 
 	size_t GetUsed() { return m_alloc.GetUsed(); }
 
-	//字符串
-	void SSet(const Slice& key, const Slice& value) {
-		ShmString strKey(m_alloc, key.ToString());
-		auto it = m_allStrings->find(strKey);
-		if (it == m_allStrings->end()) {
-			ShmString strValue(m_alloc, value.ToString());
-			m_allStrings->insert(make_pair(strKey, strValue));
-		} else {
-			it->second = value.ToString();
-		}
-	}
-
-	bool SGet(const Slice& key, Slice* value) {
-		ShmString strKey(m_alloc, key.ToString());
-		auto it = m_allStrings->find(strKey);
-		if (it == m_allStrings->end()) {
-			return false;
-		} else {
-			if (value != nullptr) {
-				const auto& strValue = it->second;
-				*value = Slice(strValue.data(), strValue.size());
-			}
-
-			return true;
-		}
-	}
-
-	bool SDel(const Slice& key) {
-		ShmString strKey(m_alloc, key.ToString());
-		auto it = m_allStrings->find(strKey);
-		if (it == m_allStrings->end()) {
-			return false;
-		}
-
-		ShmString& strValue = it->second;
-		it = m_allStrings->erase(it);
-		return true;
-	}
+// 	//字符串
+// 	void SSet(const Slice& key, const Slice& value) {
+// 		ShmString strKey(m_alloc, key.ToString());
+// 		auto it = m_allStrings->find(strKey);
+// 		if (it == m_allStrings->end()) {
+// 			ShmString strValue(m_alloc, value.ToString());
+// 			m_allStrings->insert(make_pair(strKey, strValue));
+// 		} else {
+// 			it->second = value.ToString();
+// 		}
+// 	}
+// 
+// 	bool SGet(const Slice& key, Slice* value) {
+// 		ShmString strKey(m_alloc, key.ToString());
+// 		auto it = m_allStrings->find(strKey);
+// 		if (it == m_allStrings->end()) {
+// 			return false;
+// 		} else {
+// 			if (value != nullptr) {
+// 				const auto& strValue = it->second;
+// 				*value = Slice(strValue.data(), strValue.size());
+// 			}
+// 
+// 			return true;
+// 		}
+// 	}
+// 
+// 	bool SDel(const Slice& key) {
+// 		ShmString strKey(m_alloc, key.ToString());
+// 		auto it = m_allStrings->find(strKey);
+// 		if (it == m_allStrings->end()) {
+// 			return false;
+// 		}
+// 
+// 		ShmString& strValue = it->second;
+// 		it = m_allStrings->erase(it);
+// 		return true;
+// 	}
 
 	// 还需要一个遍历接口
 
@@ -100,10 +113,11 @@ private:
 	Alloc m_alloc;
 	ShmHead& m_head;
 
-	ShmMap<ShmString, ShmString>*& m_allStrings;
-	ShmMap<ShmString, ShmList<ShmString>>*& m_allLists;
-	ShmMap<ShmString, ShmMap<ShmString, ShmString>>*& m_allMaps;
-	ShmMap<ShmString, ShmHash<ShmString>>*& m_allHashes;
+	ShmPointer<ShmList<ShmString>> m_testStrings;
+// 	ShmMap<ShmString, ShmString>*& m_allStrings;
+// 	ShmMap<ShmString, ShmList<ShmString>>*& m_allLists;
+// 	ShmMap<ShmString, ShmMap<ShmString, ShmString>>*& m_allMaps;
+// 	ShmMap<ShmString, ShmHash<ShmString>>*& m_allHashes;
 };
 
 class EnvMgr {

@@ -47,10 +47,12 @@ struct ShmHead {
 	uint32_t visit_num;
 	uint32_t magic_num;
 
-	ShmMap<ShmString, ShmString>* allStrings;
-	ShmMap<ShmString, ShmList<ShmString>>* allLists;
-	ShmMap<ShmString, ShmMap<ShmString, ShmString>>* allMaps;
-	ShmMap<ShmString, ShmHash<ShmString>>* allHashes;
+	int64_t testStrings;
+
+// 	ShmMap<ShmString, ShmString>* allStrings;
+// 	ShmMap<ShmString, ShmList<ShmString>>* allLists;
+// 	ShmMap<ShmString, ShmMap<ShmString, ShmString>>* allMaps;
+// 	ShmMap<ShmString, ShmHash<ShmString>>* allHashes;
 
 	char reserve[256];
 };
