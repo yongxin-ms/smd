@@ -4,7 +4,7 @@
 
 namespace smd {
 enum {
-	shm_null_ptr = 0,
+	shm_nullptr = 0,
 };
 
 class Alloc;
@@ -22,6 +22,13 @@ public:
 	int64_t operator()() const { return m_offSet; }
 	bool operator==(const ShmPointer& r) const { return m_offSet == r.m_offSet; }
 	bool operator!=(const ShmPointer& r) const { return m_offSet != r.m_offSet; }
+
+	int64_t operator-(const ShmPointer& r) const { return (m_offSet - r.m_offSet) / sizeof(T); }
+	ShmPointer operator+(int n) const {
+		ShmPointer tmp(*this);
+		tmp.m_offSet += n * sizeof(T);
+		return tmp;
+	}
 
 	ShmPointer& operator++() {
 		m_offSet += sizeof(T);
@@ -74,28 +81,29 @@ public:
 	void Free(ShmPointer<T>& p, size_t n = 1) {
 		auto size = sizeof(T) * n;
 		// m_log.DoLog(Log::LogLevel::kDebug, "free: 0x%p:(%d)", p, size);
-		_Free(p(*this), size);
-		p = nullptr;
+		_Free(p(), size);
+		p = shm_nullptr;
 	}
 
 	template <class T, typename... P>
 	ShmPointer<T> New(P&&... params) {
 		auto t = Malloc<T>();
-		::new (t) T(std::forward<P>(params)...);
+		::new (t.ObjPtr(*this)) T(std::forward<P>(params)...);
 		return t;
 	}
 
 	template <class T>
 	void Delete(ShmPointer<T>& p) {
-		p(*this)->~T();
+		p.ObjPtr(*this)->~T();
 		Free(p);
 	}
 
 	template <class T>
 	void Delete(T*& p) {
 		p->~T();
-		auto ptr = ToPointer<T>(p);
+		auto ptr = ToShmPointer<T>(p);
 		Free(ptr);
+		p = nullptr;
 	}
 
 	size_t GetUsed() const { return m_used; }
@@ -141,7 +149,7 @@ private:
 
 template <typename T>
 T& ShmPointer<T>::ObjRef(const Alloc& alloc) const {
-	return *(T*)(alloc.StorageBasePtr() + m_offSet);
+	return *((T*)(alloc.StorageBasePtr() + m_offSet));
 }
 
 template <typename T>

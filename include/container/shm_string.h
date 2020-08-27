@@ -135,7 +135,7 @@ private:
 	}
 
 	void resize(size_t capacity) {
-		if (m_ptr != shm_null_ptr) {
+		if (m_ptr != shm_nullptr) {
 			m_alloc.Free(m_ptr, m_capacity);
 			m_capacity = 0;
 		}
