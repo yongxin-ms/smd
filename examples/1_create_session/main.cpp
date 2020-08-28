@@ -342,83 +342,83 @@ void TestShmVectorPod(smd::Env* env) {
 	env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "VectorPod test complete");
 }
 
-// void TestHash(smd::Env* env) {
-// 	auto& alloc = env->GetMalloc();
-// 	auto mem_usage = alloc.GetUsed();
-// 	auto h = alloc.New<smd::ShmHash<smd::ShmString>>(alloc, smd::ShmString(alloc)).ObjPtr(alloc);
-// 
-// 	assert(h->size() == 0);
-// 	h->insert(smd::ShmString(alloc, "hello"));
-// 	assert(h->size() == 1);
-// 	assert((*h->begin()).ToString() == "hello");
-// 	assert(h->count(smd::ShmString(alloc, "hello")));
-// 	h->clear();
-// 
-// 	h->insert(smd::ShmString(alloc, "hello"));
-// 	h->insert(smd::ShmString(alloc, "world"));
-// 	assert(h->size() == 2);
-// 	assert((*h->begin()).ToString() == "hello");
-// 	assert(h->count(smd::ShmString(alloc, "world")));
-// 
-// 	h->insert(smd::ShmString(alloc, "will"));
-// 	assert(h->size() == 3);
-// 	assert((*h->begin()).ToString() == "hello");
-// 	assert(h->count(smd::ShmString(alloc, "will")));
-// 
-// 	for (auto it = h->begin(); it != h->end(); ++it) {
-// 		env->GetLog().DoLog(smd::Log::LogLevel::kDebug, "%s", it->ToString().data());
-// 	}
-// 
-// 	for (auto it = h->begin(); it != h->end();) {
-// 		it = h->erase(it);
-// 	}
-// 
-// 	assert(h->find(smd::ShmString(alloc, "hello")) == h->end());
-// 	assert(h->find(smd::ShmString(alloc, "world")) == h->end());
-// 	assert(h->find(smd::ShmString(alloc, "will")) == h->end());
-// 
-// 	assert(h->size() == 0);
-// 	alloc.Delete(h);
-// 	assert(h == nullptr);
-// 	assert(mem_usage == alloc.GetUsed());
-// 
-// 	env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "Hash test complete");
-// }
-// 
-// void TestHashPod(smd::Env* env) {
-// 	auto& alloc = env->GetMalloc();
-// 	auto mem_usage = alloc.GetUsed();
-// 	auto h = alloc.New<smd::ShmHash<uint64_t>>(alloc, 0).ObjPtr(alloc);
-// 
-// 	for (int i = 0; i < 10; ++i) {
-// 		h->insert(10000 + i);
-// 	}
-// 
-// 	assert(h->size() == 10);
-// 	assert(h->find(10000) != h->end());
-// 	assert(h->find(10008) != h->end());
-// 	assert(h->find(10) == h->end());
-// 
-// 	for (auto it = h->begin(); it != h->end(); ++it) {
-// 		env->GetLog().DoLog(smd::Log::LogLevel::kDebug, "%llu", *it);
-// 	}
-// 
-// 	for (auto it = h->begin(); it != h->end();) {
-// 		it = h->erase(it);
-// 	}
-// 
-// 	assert(h->find(10000) == h->end());
-// 	assert(h->find(10008) == h->end());
-// 	assert(h->find(10) == h->end());
-// 
-// 	assert(h->size() == 0);
-// 	alloc.Delete(h);
-// 	assert(h == nullptr);
-// 	assert(mem_usage == alloc.GetUsed());
-// 
-// 	env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "Hash test complete");
-// }
-// 
+void TestHash(smd::Env* env) {
+	auto& alloc = env->GetMalloc();
+	auto mem_usage = alloc.GetUsed();
+	auto h = &alloc.New<smd::ShmHash<smd::ShmString>>();
+
+	assert(h->size() == 0);
+	h->insert(smd::ShmString("hello"));
+	assert(h->size() == 1);
+	assert((*h->begin()).ToString() == "hello");
+	assert(h->count(smd::ShmString("hello")));
+	h->clear();
+
+	h->insert(smd::ShmString("hello"));
+	h->insert(smd::ShmString("world"));
+	assert(h->size() == 2);
+	assert((*h->begin()).ToString() == "hello");
+	assert(h->count(smd::ShmString("world")));
+
+	h->insert(smd::ShmString("will"));
+	assert(h->size() == 3);
+	assert((*h->begin()).ToString() == "hello");
+	assert(h->count(smd::ShmString("will")));
+
+	for (auto it = h->begin(); it != h->end(); ++it) {
+		env->GetLog().DoLog(smd::Log::LogLevel::kDebug, "%s", it->ToString().data());
+	}
+
+	for (auto it = h->begin(); it != h->end();) {
+		it = h->erase(it);
+	}
+
+	assert(h->find(smd::ShmString("hello")) == h->end());
+	assert(h->find(smd::ShmString("world")) == h->end());
+	assert(h->find(smd::ShmString("will")) == h->end());
+
+	assert(h->size() == 0);
+	alloc.Delete(h);
+	assert(h == nullptr);
+	assert(mem_usage == alloc.GetUsed());
+
+	env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "Hash test complete");
+}
+
+void TestHashPod(smd::Env* env) {
+	auto& alloc = env->GetMalloc();
+	auto mem_usage = alloc.GetUsed();
+	auto h = &alloc.New<smd::ShmHash<uint64_t>>();
+
+	for (int i = 0; i < 10; ++i) {
+		h->insert(10000 + i);
+	}
+
+	assert(h->size() == 10);
+	assert(h->find(10000) != h->end());
+	assert(h->find(10008) != h->end());
+	assert(h->find(10) == h->end());
+
+	for (auto it = h->begin(); it != h->end(); ++it) {
+		env->GetLog().DoLog(smd::Log::LogLevel::kDebug, "%llu", *it);
+	}
+
+	for (auto it = h->begin(); it != h->end();) {
+		it = h->erase(it);
+	}
+
+	assert(h->find(10000) == h->end());
+	assert(h->find(10008) == h->end());
+	assert(h->find(10) == h->end());
+
+	assert(h->size() == 0);
+	alloc.Delete(h);
+	assert(h == nullptr);
+	assert(mem_usage == alloc.GetUsed());
+
+	env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "Hash test complete");
+}
+
 // void TestMapString(smd::Env* env) {
 // 	auto& alloc = env->GetMalloc();
 // 	auto mem_usage = alloc.GetUsed();
@@ -541,8 +541,8 @@ int main() {
 	TestShmVector(env);
 	TestShmVectorResize(env);
 	TestShmVectorPod(env);
-	// 	TestHash(env);
-	// 	TestHashPod(env);
+	TestHash(env);
+ 	TestHashPod(env);
 	// 	TestMapString(env);
 	// 	TestMapPod(env);
 
