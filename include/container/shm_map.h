@@ -195,13 +195,13 @@ public:
 	}
 
 protected:
-	rbtree_node_ptr& root() const { return (rbtree_node_ptr&)header->parent; }
-	rbtree_node_ptr& leftmost() const { return (rbtree_node_ptr&)header->left; }
-	rbtree_node_ptr& rightmost() const { return (rbtree_node_ptr&)header->right; }
+	rbtree_node_ptr& root() const { return header->parent; }
+	rbtree_node_ptr& leftmost() const { return header->left; }
+	rbtree_node_ptr& rightmost() const { return header->right; }
 
-	static rbtree_node_ptr& left(rbtree_node_ptr x) { return (rbtree_node_ptr&)x->left; }
-	static rbtree_node_ptr& right(rbtree_node_ptr x) { return (rbtree_node_ptr&)x->right; }
-	static rbtree_node_ptr& parent(rbtree_node_ptr x) { return (rbtree_node_ptr&)x->parent; }
+	static rbtree_node_ptr& left(rbtree_node_ptr x) { return x->left; }
+	static rbtree_node_ptr& right(rbtree_node_ptr x) { return x->right; }
+	static rbtree_node_ptr& parent(rbtree_node_ptr x) { return x->parent; }
 	static reference value(rbtree_node_ptr x) { return x->value; }
 	static const key_type& key(rbtree_node_ptr x) { return (value(x)).first; }
 	static color_type& color(rbtree_node_ptr x) { return x->color; }
@@ -251,39 +251,39 @@ protected:
 	void rb_tree_rebalance(rbtree_node_ptr z, rbtree_node_ptr& root) {
 		z->color = _red;
 		while (z != root && z->parent->color == _red) {
-			if (z->parent == ((rbtree_node_ptr)(z->parent->parent->left))) {
-				rbtree_node_ptr s = (rbtree_node_ptr)z->parent->parent->right;
+			if (z->parent == z->parent->parent->left) {
+				rbtree_node_ptr s = z->parent->parent->right;
 				if (s != shm_nullptr && s->color == _red) {
 					s->color = _black;
 					z->parent->color = _black;
 					z->parent->parent->color = _red;
-					z = (rbtree_node_ptr)z->parent->parent;
+					z = z->parent->parent;
 
 				} else {
-					if (z == (rbtree_node_ptr)z->parent->right) {
-						z = (rbtree_node_ptr)z->parent;
+					if (z == z->parent->right) {
+						z = z->parent;
 						rb_tree_rotate_left(z, root);
 					}
 					z->parent->parent->color = _red;
 					z->parent->color = _black;
-					rb_tree_rotate_right((rbtree_node_ptr)z->parent->parent, root);
+					rb_tree_rotate_right(z->parent->parent, root);
 				}
 
 			} else {
-				rbtree_node_ptr s = (rbtree_node_ptr)z->parent->parent->left;
+				rbtree_node_ptr s = z->parent->parent->left;
 				if (s != shm_nullptr && s->color == _red) {
 					s->color = _black;
 					z->parent->color = _black;
 					z->parent->parent->color = _red;
-					z = (rbtree_node_ptr)z->parent->parent;
+					z = z->parent->parent;
 				} else {
-					if (z == (rbtree_node_ptr)z->parent->left) {
-						z = (rbtree_node_ptr)z->parent;
+					if (z == z->parent->left) {
+						z = z->parent;
 						rb_tree_rotate_right(z, root);
 					}
 					z->parent->parent->color = _red;
 					z->parent->color = _black;
-					rb_tree_rotate_left((rbtree_node_ptr)z->parent->parent, root);
+					rb_tree_rotate_left(z->parent->parent, root);
 				}
 			}
 		}
@@ -371,14 +371,14 @@ protected:
 				if (right(z) == shm_nullptr)
 					leftmost = parent(z);
 				else
-					leftmost = (rbtree_node_ptr)(RBTreeMinimum(x));
+					leftmost = RBTreeMinimum(x);
 			}
 
 			if (z == rightmost) {
 				if (z->left == shm_nullptr)
 					rightmost = parent(z);
 				else
-					rightmost = (rbtree_node_ptr)(RBTreeMaximum(x));
+					rightmost = RBTreeMaximum(x);
 			}
 		} else {
 			left(y) = left(z);

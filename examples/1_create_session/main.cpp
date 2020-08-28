@@ -16,6 +16,7 @@ void TestPointer(smd::Env* env) {
 
 	alloc.Delete(tmp);
 	assert(mem_usage == alloc.GetUsed());
+	env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "TestPointer complete");
 }
 
 void TestShmString(smd::Env* env) {
@@ -84,7 +85,7 @@ void TestShmString(smd::Env* env) {
 	assert(s == nullptr);
 	assert(mem_usage == alloc.GetUsed());
 
-	env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "String test complete");
+	env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "TestShmString complete");
 }
 
 void TestShmList(smd::Env* env) {
@@ -198,7 +199,7 @@ void TestShmList(smd::Env* env) {
 	assert(l == nullptr);
 
 	assert(mem_usage == alloc.GetUsed());
-	env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "List test complete");
+	env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "TestShmList complete");
 }
 
 void TestShmListPod(smd::Env* env) {
@@ -224,7 +225,7 @@ void TestShmListPod(smd::Env* env) {
 	alloc.Delete(l);
 	assert(l == nullptr);
 	assert(mem_usage == alloc.GetUsed());
-	env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "ListPod test complete");
+	env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "TestShmListPod complete");
 }
 
 void TestShmVector(smd::Env* env) {
@@ -300,7 +301,7 @@ void TestShmVector(smd::Env* env) {
 	assert(v == nullptr);
 	assert(mem_usage == alloc.GetUsed());
 
-	env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "Vector test complete");
+	env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "TestShmVector complete");
 }
 
 void TestShmVectorResize(smd::Env* env) {
@@ -313,7 +314,7 @@ void TestShmVectorResize(smd::Env* env) {
 	assert(v == nullptr);
 	assert(mem_usage == alloc.GetUsed());
 
-	env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "VectorResize test complete");
+	env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "TestShmVectorResize complete");
 }
 
 void TestShmVectorPod(smd::Env* env) {
@@ -339,7 +340,7 @@ void TestShmVectorPod(smd::Env* env) {
 	alloc.Delete(v);
 	assert(v == nullptr);
 	assert(mem_usage == alloc.GetUsed());
-	env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "VectorPod test complete");
+	env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "TestShmVectorPod complete");
 }
 
 void TestHash(smd::Env* env) {
@@ -366,7 +367,7 @@ void TestHash(smd::Env* env) {
 	assert(h->count(smd::ShmString("will")));
 
 	for (auto it = h->begin(); it != h->end(); ++it) {
-		env->GetLog().DoLog(smd::Log::LogLevel::kDebug, "%s", it->ToString().data());
+		env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "%s", it->ToString().data());
 	}
 
 	for (auto it = h->begin(); it != h->end();) {
@@ -382,7 +383,7 @@ void TestHash(smd::Env* env) {
 	assert(h == nullptr);
 	assert(mem_usage == alloc.GetUsed());
 
-	env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "Hash test complete");
+	env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "TestHash complete");
 }
 
 void TestHashPod(smd::Env* env) {
@@ -390,33 +391,42 @@ void TestHashPod(smd::Env* env) {
 	auto mem_usage = alloc.GetUsed();
 	auto h = &alloc.New<smd::ShmHash<uint64_t>>();
 
-	for (int i = 0; i < 10; ++i) {
-		h->insert(10000 + i);
+	std::vector<uint64_t> vRoleIds;
+	for (int i = 0; i < 1000; i++) {
+		vRoleIds.push_back(i);
 	}
 
-	assert(h->size() == 10);
-	assert(h->find(10000) != h->end());
-	assert(h->find(10008) != h->end());
-	assert(h->find(10) == h->end());
+	std::random_shuffle(vRoleIds.begin(), vRoleIds.end());
+
+	for (int i = 0; i < vRoleIds.size(); i++) {
+		const auto& role_id = vRoleIds[i];
+		h->insert(role_id);
+	}
+
+	assert(h->size() == 1000);
+	assert(h->find(1) != h->end());
+	assert(h->find(8) != h->end());
+	assert(h->find(1000) == h->end());
 
 	for (auto it = h->begin(); it != h->end(); ++it) {
-		env->GetLog().DoLog(smd::Log::LogLevel::kDebug, "%llu", *it);
+		env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "%llu", *it);
 	}
 
 	for (auto it = h->begin(); it != h->end();) {
 		it = h->erase(it);
 	}
 
-	assert(h->find(10000) == h->end());
-	assert(h->find(10008) == h->end());
-	assert(h->find(10) == h->end());
+	assert(h->size() == 0);
+	assert(h->find(1) == h->end());
+	assert(h->find(8) == h->end());
+	assert(h->find(1000) == h->end());
 
 	assert(h->size() == 0);
 	alloc.Delete(h);
 	assert(h == nullptr);
 	assert(mem_usage == alloc.GetUsed());
 
-	env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "Hash test complete");
+	env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "TestHashPod complete");
 }
 
 void TestMapString(smd::Env* env) {
@@ -424,38 +434,39 @@ void TestMapString(smd::Env* env) {
 	auto mem_usage = alloc.GetUsed();
 	auto m = &alloc.New<smd::ShmMap<smd::ShmString, smd::ShmString>>();
 
-	for (int i = 0; i < 10; ++i) {
+	const int COUNT = 100;
+	for (int i = 0; i < COUNT; ++i) {
 		Util::Text::Format("TestText%02d", i);
 		auto key = smd::ShmString(Util::Text::Format("Key%02d", i));
 		auto value = smd::ShmString(Util::Text::Format("Value%02d", i));
 		m->insert(smd::make_pair(key, value));
 	}
 
-	assert(m->size() == 10);
+	assert(m->size() == COUNT);
 	assert(m->find(smd::ShmString(Util::Text::Format("Key%02d", 3))) != m->end());
 	assert(m->find(smd::ShmString(Util::Text::Format("Key%02d", 8))) != m->end());
-	assert(m->find(smd::ShmString(Util::Text::Format("Key%02d", 10))) == m->end());
+	assert(m->find(smd::ShmString(Util::Text::Format("Key%02d", COUNT))) == m->end());
 
 	for (auto it = m->begin(); it != m->end(); ++it) {
 		const auto& k = it->first;
 		const auto& v = it->second;
-		env->GetLog().DoLog(smd::Log::LogLevel::kDebug, "%s, %s", k.data(), v.data());
+		env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "%s, %s", k.data(), v.data());
 	}
 
 	for (auto it = m->begin(); it != m->end();) {
 		it = m->erase(it);
 	}
 
-	assert(m->find(smd::ShmString(Util::Text::Format("Key%02d", 10000))) == m->end());
-	assert(m->find(smd::ShmString(Util::Text::Format("Key%02d", 10008))) == m->end());
-	assert(m->find(smd::ShmString(Util::Text::Format("Key%02d", 10010))) == m->end());
+	assert(m->find(smd::ShmString(Util::Text::Format("Key%02d", 3))) == m->end());
+	assert(m->find(smd::ShmString(Util::Text::Format("Key%02d", 8))) == m->end());
+	assert(m->find(smd::ShmString(Util::Text::Format("Key%02d", COUNT))) == m->end());
 
 	assert(m->size() == 0);
 	alloc.Delete(m);
 	assert(m == nullptr);
 	assert(mem_usage == alloc.GetUsed());
 
-	env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "MapPod test complete");
+	env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "TestMapString complete");
 }
 
 void TestMapPod(smd::Env* env) {
@@ -463,19 +474,28 @@ void TestMapPod(smd::Env* env) {
 	auto mem_usage = alloc.GetUsed();
 	auto m = &alloc.New<smd::ShmMap<uint64_t, uint64_t>>();
 
-	for (int i = 0; i < 10; ++i) {
-		m->insert(smd::make_pair(i, i * 3 + 2199));
+	std::vector<uint64_t> vRoleIds;
+	const int COUNT = 100;
+	for (int i = 0; i < COUNT; i++) {
+		vRoleIds.push_back(i);
 	}
 
-	assert(m->size() == 10);
+	std::random_shuffle(vRoleIds.begin(), vRoleIds.end());
+
+	for (int i = 0; i < vRoleIds.size(); i++) {
+		const auto& role_id = vRoleIds[i];
+		m->insert(smd::make_pair(role_id, role_id * 10));
+	}
+
+	assert(m->size() == COUNT);
 	assert(m->find(3) != m->end());
 	assert(m->find(8) != m->end());
-	assert(m->find(10) == m->end());
+	assert(m->find(COUNT) == m->end());
 
 	for (auto it = m->begin(); it != m->end(); ++it) {
 		const auto& k = it->first;
 		const auto& v = it->second;
-		env->GetLog().DoLog(smd::Log::LogLevel::kDebug, "%llu, %llu", k, v);
+		env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "%llu, %llu", k, v);
 	}
 
 	for (auto it = m->begin(); it != m->end();) {
@@ -484,7 +504,7 @@ void TestMapPod(smd::Env* env) {
 
 	assert(m->find(0) == m->end());
 	assert(m->find(8) == m->end());
-	assert(m->find(10) == m->end());
+	assert(m->find(COUNT) == m->end());
 
 	assert(m->size() == 0);
 	m->clear();
@@ -493,7 +513,7 @@ void TestMapPod(smd::Env* env) {
 	assert(m == nullptr);
 	assert(mem_usage == alloc.GetUsed());
 
-	env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "MapPod test complete");
+	env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "TestMapPod complete");
 }
 
 int main() {
@@ -532,41 +552,41 @@ int main() {
 // 	TestShmVectorResize(env);
 // 	TestShmVectorPod(env);
 // 	TestHash(env);
-//  TestHashPod(env);
-//  TestMapString(env);
-//  TestMapPod(env);
+//	TestHashPod(env);
+	TestMapString(env);
+	TestMapPod(env);
 
-	std::string key("StartCounter");
-	smd::Slice value;
-	if (env->SGet(key, &value)) {
-		// 如果已经存在
-		int count = std::stoi(value.ToString());
-		count++;
-		env->SSet(key, std::to_string(count));
-
-		env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "%s is %d", key.data(), count);
-	} else {
-		// 如果不存在
-		env->GetLog().DoLog(
-			smd::Log::LogLevel::kInfo, "first time run");
-
-		int count = 1;
-		env->SSet(key, std::to_string(count));
-	}
-
-	for (int i = 0; i < 5; i++) {
-		auto key = Util::Text::Format("Role%09d", i * 25 + 761);
-		auto value = Util::Text::Format("%d", i);
-		env->SSet(key, value);
-	}
-
-	auto& all_strings = env->GetAllStrings();
-	for (auto it = all_strings.begin(); it != all_strings.end(); ++it) {
-		const auto& key = it->first;
-		const auto& value = it->second;
-
-		env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "Key:%s Value:%s", key.data(), value.data());
-	}
+// 	std::string key("StartCounter");
+// 	smd::Slice value;
+// 	if (env->SGet(key, &value)) {
+// 		// 如果已经存在
+// 		int count = std::stoi(value.ToString());
+// 		count++;
+// 		env->SSet(key, std::to_string(count));
+// 
+// 		env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "%s is %d", key.data(), count);
+// 	} else {
+// 		// 如果不存在
+// 		env->GetLog().DoLog(
+// 			smd::Log::LogLevel::kInfo, "first time run");
+// 
+// 		int count = 1;
+// 		env->SSet(key, std::to_string(count));
+// 	}
+// 
+// 	auto& all_strings = env->GetAllStrings();
+// 	for (int i = 0; i < 5; i++) {
+// 		auto key = Util::Text::Format("Role%09d", i * 25 + 761);
+// 		auto value = Util::Text::Format("%d", i);
+// 		all_strings.insert(make_pair(smd::ShmString(key), smd::ShmString(value)));
+// 	}
+// 
+// 	for (auto it = all_strings.begin(); it != all_strings.end(); ++it) {
+// 		const auto& key = it->first;
+// 		const auto& value = it->second;
+// 
+// 		env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "Key:%s Value:%s", key.data(), value.data());
+// 	}
 
 	int n = 0;
 	std::cin >> n;
