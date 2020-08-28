@@ -31,6 +31,10 @@ class ShmMap;
 template <class T>
 class ShmHash;
 
+template <typename T>
+class ShmPointer;
+
+
 #pragma pack(push, 1)
 struct ShmHead {
 	ShmHead() {
@@ -47,12 +51,10 @@ struct ShmHead {
 	uint32_t visit_num;
 	uint32_t magic_num;
 
-	int64_t testStrings;
-
-// 	ShmMap<ShmString, ShmString>* allStrings;
-// 	ShmMap<ShmString, ShmList<ShmString>>* allLists;
-// 	ShmMap<ShmString, ShmMap<ShmString, ShmString>>* allMaps;
-// 	ShmMap<ShmString, ShmHash<ShmString>>* allHashes;
+	ShmPointer<ShmMap<ShmString, ShmString>> allStrings;
+	ShmPointer<ShmMap<ShmString, ShmList<ShmString>>> allLists;
+	ShmPointer<ShmMap<ShmString, ShmMap<ShmString, ShmString>>> allMaps;
+	ShmPointer<ShmMap<ShmString, ShmHash<ShmString>>> allHashes;
 
 	char reserve[256];
 };

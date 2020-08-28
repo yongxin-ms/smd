@@ -524,15 +524,6 @@ int main() {
 	//auto env = mgr->CreateEnv(GUID, 20, smd::create);
 	assert(env != nullptr);
 
-	int size = env->GetTestString().size();
-	env->GetTestString().push_back(smd::ShmString(Util::Text::Format("TestText%02d", size)));
-
-	for (auto it = env->GetTestString().begin(); it != env->GetTestString().end(); ++it) {
-		const auto& str = (*it).ToString();
-		env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "%s", str.data());
-	}
-
-
  	TestPointer(env);
 	TestShmString(env);
  	TestShmList(env);

@@ -25,36 +25,35 @@ public:
 		: m_log(log)
 		, m_alloc(log, ptr, sizeof(ShmHead), level, create_new)
 		, m_head(*((ShmHead*)ptr))
-		, m_testStrings(m_head.testStrings)
-	// 		, m_allStrings(m_head.allStrings)
-// 		, m_allLists(m_head.allLists)
-// 		, m_allMaps(m_head.allMaps)
-// 		, m_allHashes(m_head.allHashes)
+		, m_allStrings(m_head.allStrings)
+		, m_allLists(m_head.allLists)
+		, m_allMaps(m_head.allMaps)
+		, m_allHashes(m_head.allHashes)
 	{
 		m_head.visit_num++;
 		g_alloc = &m_alloc;
 
 		if (create_new) {
-// 			if (m_testStrings != shm_nullptr) {
-// 				m_alloc.Delete(m_testStrings);
-// 			}
+			if (m_allStrings != shm_nullptr) {
+				m_alloc.Delete(m_allStrings);
+			}
 
-			m_testStrings = m_alloc.New<ShmList<ShmString>>();
-			m_head.testStrings = m_testStrings();
+			if (m_allLists != shm_nullptr) {
+				m_alloc.Delete(m_allLists);
+			}
 
-// 			auto empty_str = ShmString(m_alloc);
-// 			auto empty_list = ShmList<ShmString>(m_alloc, empty_str);
-// 			auto empty_map = ShmMap<ShmString, ShmString>(m_alloc, make_pair(empty_str, empty_str));
-// 			auto empty_hash = ShmHash<ShmString>(m_alloc, empty_str);
-// 
-// 			m_allStrings =
-// 				m_alloc.New<ShmMap<ShmString, ShmString>>(m_alloc, make_pair(empty_str, empty_str));
-// 			m_allLists = m_alloc.New<ShmMap<ShmString, ShmList<ShmString>>>(
-// 				m_alloc, make_pair(empty_str, empty_list));
-// 			m_allMaps = m_alloc.New<ShmMap<ShmString, ShmMap<ShmString, ShmString>>>(
-// 				m_alloc, make_pair(empty_str, empty_map));
-// 			m_allHashes = m_alloc.New<ShmMap<ShmString, ShmHash<ShmString>>>(
-// 				m_alloc, make_pair(empty_str, empty_hash));
+			if (m_allMaps != shm_nullptr) {
+				m_alloc.Delete(m_allMaps);
+			}
+
+			if (m_allHashes != shm_nullptr) {
+				m_alloc.Delete(m_allHashes);
+			}
+
+			m_allStrings = m_alloc.New<ShmMap<ShmString, ShmString>>();
+			m_allLists = m_alloc.New<ShmMap<ShmString, ShmList<ShmString>>>();
+			m_allMaps = m_alloc.New<ShmMap<ShmString, ShmMap<ShmString, ShmString>>>();
+			m_allHashes = m_alloc.New<ShmMap<ShmString, ShmHash<ShmString>>>();
 		}
 	}
 
@@ -62,61 +61,59 @@ public:
 
 	size_t GetUsed() { return m_alloc.GetUsed(); }
 
-// 	//字符串
-// 	void SSet(const Slice& key, const Slice& value) {
-// 		ShmString strKey(m_alloc, key.ToString());
-// 		auto it = m_allStrings->find(strKey);
-// 		if (it == m_allStrings->end()) {
-// 			ShmString strValue(m_alloc, value.ToString());
-// 			m_allStrings->insert(make_pair(strKey, strValue));
-// 		} else {
-// 			it->second = value.ToString();
-// 		}
-// 	}
-// 
-// 	bool SGet(const Slice& key, Slice* value) {
-// 		ShmString strKey(m_alloc, key.ToString());
-// 		auto it = m_allStrings->find(strKey);
-// 		if (it == m_allStrings->end()) {
-// 			return false;
-// 		} else {
-// 			if (value != nullptr) {
-// 				const auto& strValue = it->second;
-// 				*value = Slice(strValue.data(), strValue.size());
-// 			}
-// 
-// 			return true;
-// 		}
-// 	}
-// 
-// 	bool SDel(const Slice& key) {
-// 		ShmString strKey(m_alloc, key.ToString());
-// 		auto it = m_allStrings->find(strKey);
-// 		if (it == m_allStrings->end()) {
-// 			return false;
-// 		}
-// 
-// 		ShmString& strValue = it->second;
-// 		it = m_allStrings->erase(it);
-// 		return true;
-// 	}
+	//字符串
+	void SSet(const Slice& key, const Slice& value) {
+		ShmString strKey(key.ToString());
+		auto it = m_allStrings->find(strKey);
+		if (it == m_allStrings->end()) {
+			ShmString strValue(value.ToString());
+			m_allStrings->insert(make_pair(strKey, strValue));
+		} else {
+			it->second = value.ToString();
+		}
+	}
+
+	bool SGet(const Slice& key, Slice* value) {
+		ShmString strKey(key.ToString());
+		auto it = m_allStrings->find(strKey);
+		if (it == m_allStrings->end()) {
+			return false;
+		} else {
+			if (value != nullptr) {
+				const auto& strValue = it->second;
+				*value = Slice(strValue.data(), strValue.size());
+			}
+
+			return true;
+		}
+	}
+
+	bool SDel(const Slice& key) {
+		ShmString strKey(key.ToString());
+		auto it = m_allStrings->find(strKey);
+		if (it == m_allStrings->end()) {
+			return false;
+		}
+
+		ShmString& strValue = it->second;
+		it = m_allStrings->erase(it);
+		return true;
+	}
 
 	// 还需要一个遍历接口
 
 	Log& GetLog() { return m_log; }
 	Alloc& GetMalloc() { return m_alloc; }
-	ShmList<ShmString>& GetTestString() { return *m_testStrings; }
 
 private:
 	Log& m_log;
 	Alloc m_alloc;
 	ShmHead& m_head;
 
-	ShmPointer<ShmList<ShmString>> m_testStrings;
-// 	ShmMap<ShmString, ShmString>*& m_allStrings;
-// 	ShmMap<ShmString, ShmList<ShmString>>*& m_allLists;
-// 	ShmMap<ShmString, ShmMap<ShmString, ShmString>>*& m_allMaps;
-// 	ShmMap<ShmString, ShmHash<ShmString>>*& m_allHashes;
+	ShmPointer<ShmMap<ShmString, ShmString>>& m_allStrings;
+	ShmPointer<ShmMap<ShmString, ShmList<ShmString>>>& m_allLists;
+	ShmPointer<ShmMap<ShmString, ShmMap<ShmString, ShmString>>>& m_allMaps;
+	ShmPointer<ShmMap<ShmString, ShmHash<ShmString>>>& m_allHashes;
 };
 
 extern Alloc* g_alloc = nullptr;
