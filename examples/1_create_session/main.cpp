@@ -554,9 +554,10 @@ int main() {
 
 	std::string key("StartCounter");
 	smd::Slice value;
+	int count = 0; 
 	if (env->SGet(key, &value)) {
 		// 如果已经存在
-		int count = std::stoi(value.ToString());
+		count = std::stoi(value.ToString());
 		count++;
 		env->SSet(key, std::to_string(count));
 
@@ -566,7 +567,7 @@ int main() {
 		env->GetLog().DoLog(
 			smd::Log::LogLevel::kInfo, "first time run");
 
-		int count = 1;
+		count = 1;
 		env->SSet(key, std::to_string(count));
 	}
 
@@ -580,7 +581,7 @@ int main() {
 // 	all_strings.insert(make_pair(smd::ShmString("will6"), smd::ShmString("6")));
 
 	for (int i = 0; i < 20; i++) {
-		std::string key1 = Util::Text::Format("hello%03d", i);
+		std::string key1 = Util::Text::Format("hello%03d%03d", count, i);
 		std::string value1 = Util::Text::Format("World%03d", i);
 		all_strings.insert(smd::make_pair(smd::ShmString(key1), smd::ShmString(value1)));
 	}
