@@ -538,15 +538,14 @@ public:
 		left(header) = header;
 		right(header) = header;
 		parent(header) = shm_nullptr;
+		node_count = 0;
 	}
 
-	iterator erase(iterator position) {
-		auto pos_erase = position++;
+	void erase(iterator position) {
 		auto to_be_delete =
-			rb_tree_rebalance_for_erase(pos_erase.p, root(), leftmost(), rightmost());
+			rb_tree_rebalance_for_erase(position.p, root(), leftmost(), rightmost());
 		deleteNode(to_be_delete);
 		--node_count;
-		return position;
 	}
 
 	iterator find(const key_type& k) {
@@ -584,7 +583,7 @@ public:
 	iterator begin() { return m_tree.begin(); }
 	iterator end() { return m_tree.end(); }
 	iterator find(const Key& k) { return m_tree.find(k); }
-	iterator erase(iterator it) { return m_tree.erase(it); }
+	void erase(iterator it) { m_tree.erase(it); }
 
 private:
 	rb_tree<Key, Value, Compare> m_tree;

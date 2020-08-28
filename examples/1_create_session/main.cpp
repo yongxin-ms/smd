@@ -453,9 +453,7 @@ void TestMapString(smd::Env* env) {
 		env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "%s, %s", k.data(), v.data());
 	}
 
-	for (auto it = m->begin(); it != m->end();) {
-		it = m->erase(it);
-	}
+	m->clear();
 
 	assert(m->find(smd::ShmString(Util::Text::Format("Key%02d", 3))) == m->end());
 	assert(m->find(smd::ShmString(Util::Text::Format("Key%02d", 8))) == m->end());
@@ -498,9 +496,7 @@ void TestMapPod(smd::Env* env) {
 		env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "%llu, %llu", k, v);
 	}
 
-	for (auto it = m->begin(); it != m->end();) {
-		it = m->erase(it);
-	}
+	m->clear();
 
 	assert(m->find(0) == m->end());
 	assert(m->find(8) == m->end());
@@ -553,40 +549,49 @@ int main() {
 // 	TestShmVectorPod(env);
 // 	TestHash(env);
 //	TestHashPod(env);
-	TestMapString(env);
-	TestMapPod(env);
+// 	TestMapString(env);
+// 	TestMapPod(env);
 
-// 	std::string key("StartCounter");
-// 	smd::Slice value;
-// 	if (env->SGet(key, &value)) {
-// 		// 如果已经存在
-// 		int count = std::stoi(value.ToString());
-// 		count++;
-// 		env->SSet(key, std::to_string(count));
-// 
-// 		env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "%s is %d", key.data(), count);
-// 	} else {
-// 		// 如果不存在
-// 		env->GetLog().DoLog(
-// 			smd::Log::LogLevel::kInfo, "first time run");
-// 
-// 		int count = 1;
-// 		env->SSet(key, std::to_string(count));
-// 	}
-// 
-// 	auto& all_strings = env->GetAllStrings();
-// 	for (int i = 0; i < 5; i++) {
-// 		auto key = Util::Text::Format("Role%09d", i * 25 + 761);
-// 		auto value = Util::Text::Format("%d", i);
-// 		all_strings.insert(make_pair(smd::ShmString(key), smd::ShmString(value)));
-// 	}
-// 
-// 	for (auto it = all_strings.begin(); it != all_strings.end(); ++it) {
-// 		const auto& key = it->first;
-// 		const auto& value = it->second;
-// 
-// 		env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "Key:%s Value:%s", key.data(), value.data());
-// 	}
+	std::string key("StartCounter");
+	smd::Slice value;
+	if (env->SGet(key, &value)) {
+		// 如果已经存在
+		int count = std::stoi(value.ToString());
+		count++;
+		env->SSet(key, std::to_string(count));
+
+		env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "%s is %d", key.data(), count);
+	} else {
+		// 如果不存在
+		env->GetLog().DoLog(
+			smd::Log::LogLevel::kInfo, "first time run");
+
+		int count = 1;
+		env->SSet(key, std::to_string(count));
+	}
+
+	auto& all_strings = env->GetAllStrings();
+
+// 	all_strings.insert(make_pair(smd::ShmString("will1"), smd::ShmString("1")));
+// 	all_strings.insert(make_pair(smd::ShmString("will2"), smd::ShmString("2")));
+// 	all_strings.insert(make_pair(smd::ShmString("will3"), smd::ShmString("3")));
+// 	all_strings.insert(make_pair(smd::ShmString("will4"), smd::ShmString("4")));
+// 	all_strings.insert(make_pair(smd::ShmString("will5"), smd::ShmString("5")));
+// 	all_strings.insert(make_pair(smd::ShmString("will6"), smd::ShmString("6")));
+
+	for (int i = 0; i < 20; i++) {
+		std::string key1 = Util::Text::Format("hello%03d", i);
+		std::string value1 = Util::Text::Format("World%03d", i);
+		all_strings.insert(smd::make_pair(smd::ShmString(key1), smd::ShmString(value1)));
+	}
+
+	for (auto it = all_strings.begin(); it != all_strings.end(); ++it) {
+		const auto& key = it->first;
+		const auto& value = it->second;
+
+		env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "Key:%s Value:%s", key.ToString().data(),
+			value.ToString().data());
+	}
 
 	int n = 0;
 	std::cin >> n;

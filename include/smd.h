@@ -99,7 +99,7 @@ public:
 		}
 
 		ShmString& strValue = it->second;
-		it = m_allStrings->erase(it);
+		m_allStrings->erase(it);
 		return true;
 	}
 
