@@ -498,7 +498,7 @@ void TestMapPod(smd::Env* env) {
 
 int main() {
 	auto mgr = new smd::EnvMgr;
-	mgr->SetLogLevel(smd::Log::LogLevel::kDebug);
+	mgr->SetLogLevel(smd::Log::LogLevel::kInfo);
 	mgr->SetLogHandler([](smd::Log::LogLevel lv, const char* s) {
 		std::string time_now = Util::Time::FormatDateTime(time(nullptr));
 		switch (lv) {
@@ -524,27 +524,25 @@ int main() {
 	//auto env = mgr->CreateEnv(GUID, 20, smd::create);
 	assert(env != nullptr);
 
-//  	TestPointer(env);
+//  TestPointer(env);
 // 	TestShmString(env);
-//  	TestShmList(env);
-//   	TestShmListPod(env);
+//  TestShmList(env);
+//  TestShmListPod(env);
 // 	TestShmVector(env);
 // 	TestShmVectorResize(env);
 // 	TestShmVectorPod(env);
 // 	TestHash(env);
-//  	TestHashPod(env);
-//  	TestMapString(env);
-//  	TestMapPod(env);
+//  TestHashPod(env);
+//  TestMapString(env);
+//  TestMapPod(env);
 
 	std::string key("StartCounter");
 	smd::Slice value;
 	if (env->SGet(key, &value)) {
 		// 如果已经存在
-		int count = 0;
-		memcpy(&count, value.data(), value.size());
+		int count = std::stoi(value.ToString());
 		count++;
-		value = smd::Slice((const char*)&count, sizeof(count));
-		env->SSet(key, value);
+		env->SSet(key, std::to_string(count));
 
 		env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "%s is %d", key.data(), count);
 	} else {
@@ -553,8 +551,21 @@ int main() {
 			smd::Log::LogLevel::kInfo, "first time run");
 
 		int count = 1;
-		value = smd::Slice((const char*)&count, sizeof(count));
+		env->SSet(key, std::to_string(count));
+	}
+
+	for (int i = 0; i < 5; i++) {
+		auto key = Util::Text::Format("Role%09d", i * 25 + 761);
+		auto value = Util::Text::Format("%d", i);
 		env->SSet(key, value);
+	}
+
+	auto& all_strings = env->GetAllStrings();
+	for (auto it = all_strings.begin(); it != all_strings.end(); ++it) {
+		const auto& key = it->first;
+		const auto& value = it->second;
+
+		env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "Key:%s Value:%s", key.data(), value.data());
 	}
 
 	int n = 0;
