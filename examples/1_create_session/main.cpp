@@ -542,8 +542,8 @@ int main() {
 	TestShmVectorPod(env);
 	TestHash(env);
  	TestHashPod(env);
-	// 	TestMapString(env);
-	// 	TestMapPod(env);
+ 	TestMapString(env);
+ 	TestMapPod(env);
 
 // 	std::string key("StartCounter");
 // 	smd::Slice value;

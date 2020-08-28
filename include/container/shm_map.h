@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include "pair.h"
-#include "shm_obj.h"
+#include "functional.h"
+#include "../mem_alloc/alloc.h"
 
 namespace smd {
 
@@ -9,28 +10,32 @@ enum rbtree_node_color : bool {
 	_black = false,
 };
 
-struct rbtree_node_base {
+template <typename Value>
+struct rbtree_node {
 	typedef rbtree_node_color color_type;
 
 	color_type color;
-	rbtree_node_base* parent;
-	rbtree_node_base* left;
-	rbtree_node_base* right;
+	ShmPointer<rbtree_node> parent;
+	ShmPointer<rbtree_node> left;
+	ShmPointer<rbtree_node> right;
 
-	rbtree_node_base()
+	Value value;
+	rbtree_node(const Value& val)
 		: color(_red)
-		, parent(nullptr)
-		, left(nullptr)
-		, right(nullptr) {}
+		, parent(shm_nullptr)
+		, left(shm_nullptr)
+		, right(shm_nullptr)
+		, value(val) {}
 };
 
-rbtree_node_base* RBTreeIncrement(rbtree_node_base* p) {
-	if (p->right != nullptr) {
+template <typename Value>
+ShmPointer<rbtree_node<Value>> RBTreeIncrement(ShmPointer<rbtree_node<Value>> p) {
+	if (p->right != shm_nullptr) {
 		p = p->right;
-		while (p->left != nullptr)
+		while (p->left != shm_nullptr)
 			p = p->left;
 	} else {
-		rbtree_node_base* y = p->parent;
+		auto y = p->parent;
 		while (p == y->right) {
 			p = y;
 			y = y->parent;
@@ -42,15 +47,16 @@ rbtree_node_base* RBTreeIncrement(rbtree_node_base* p) {
 	return p;
 }
 
-rbtree_node_base* RBTreeDecrement(rbtree_node_base* p) {
+template <typename Value>
+ShmPointer<rbtree_node<Value>> RBTreeDecrement(ShmPointer<rbtree_node<Value>> p) {
 	if (p->color == _red && p->parent->parent == p)
 		p = p->right;
-	else if (p->left != nullptr) {
+	else if (p->left != shm_nullptr) {
 		p = p->left;
-		while (p->right != nullptr)
+		while (p->right != shm_nullptr)
 			p = p->right;
 	} else {
-		rbtree_node_base* y = p->parent;
+		auto y = p->parent;
 		while (p == y->left) {
 			p = y;
 			y = y->parent;
@@ -60,25 +66,19 @@ rbtree_node_base* RBTreeDecrement(rbtree_node_base* p) {
 	return p;
 }
 
-rbtree_node_base* RBTreeMinimum(rbtree_node_base* p) {
-	while (p->left != nullptr)
+template <typename Value>
+ShmPointer<rbtree_node<Value>> RBTreeMinimum(ShmPointer<rbtree_node<Value>> p) {
+	while (p->left != shm_nullptr)
 		p = p->left;
 	return p;
 }
 
-rbtree_node_base* RBTreeMaximum(rbtree_node_base* p) {
-	while (p->right != nullptr)
+template <typename Value>
+ShmPointer<rbtree_node<Value>> RBTreeMaximum(ShmPointer<rbtree_node<Value>> p) {
+	while (p->right != shm_nullptr)
 		p = p->right;
 	return p;
 }
-
-template <typename Value>
-struct rbtree_node : public rbtree_node_base {
-	Value value;
-	rbtree_node(const Value& val)
-		: rbtree_node_base()
-		, value(val) {}
-};
 
 template <typename T, typename Pointer, typename Reference>
 struct rbtree_iterator {
@@ -88,16 +88,15 @@ struct rbtree_iterator {
 
 	typedef ptrdiff_t difference_type;
 	typedef T value_type;
-	typedef rbtree_node_base base_node_type;
 	typedef rbtree_node<T> node_type;
 	typedef Pointer pointer;
 	typedef Reference reference;
 
-	node_type* p;
+	ShmPointer<node_type> p;
 
 	rbtree_iterator()
-		: p(nullptr) {}
-	rbtree_iterator(node_type* pNode)
+		: p(shm_nullptr) {}
+	rbtree_iterator(ShmPointer<node_type> pNode)
 		: p(pNode) {}
 	rbtree_iterator(const this_type& x)
 		: p(x.p) {}
@@ -106,24 +105,24 @@ struct rbtree_iterator {
 	pointer operator->() const { return &(p->value); }
 
 	rbtree_iterator& operator++() {
-		p = static_cast<node_type*>(RBTreeIncrement(p));
+		p = RBTreeIncrement(p);
 		return *this;
 	}
 
 	rbtree_iterator operator++(int) {
 		this_type tmp(*this);
-		p = static_cast<node_type*>(RBTreeIncrement(p));
+		p = RBTreeIncrement(p);
 		return tmp;
 	}
 
 	rbtree_iterator& operator--() {
-		p = static_cast<node_type*>(RBTreeDecrement(p));
+		p = RBTreeDecrement(p);
 		return *this;
 	}
 
 	rbtree_iterator operator--(int) {
 		this_type tmp(*this);
-		p = static_cast<node_type*>(RBTreeDecrement(p));
+		p = RBTreeDecrement(p);
 		return tmp;
 	}
 
@@ -132,7 +131,7 @@ struct rbtree_iterator {
 };
 
 template <typename Key, typename Value, typename Compare>
-class rb_tree : public ShmObj {
+class rb_tree {
 public:
 	typedef rbtree_node_color color_type;
 	typedef ptrdiff_t difference_type;
@@ -145,7 +144,7 @@ public:
 	typedef const value_type& const_reference;
 
 	typedef rbtree_node<value_type> rbtreeNode;
-	typedef rbtreeNode* rbtree_node_ptr;
+	typedef ShmPointer<rbtreeNode> rbtree_node_ptr;
 
 public:
 	typedef rbtree_iterator<value_type, pointer, reference> iterator;
@@ -157,28 +156,26 @@ protected:
 	Compare key_compare;
 
 protected:
-	rbtree_node_ptr createNode(const value_type& val) { return m_alloc.New<rbtreeNode>(val); }
-	void deleteNode(rbtree_node_ptr p) { m_alloc.Delete(p); }
+	rbtree_node_ptr createNode(const value_type& val) { return g_alloc->New<rbtreeNode>(val); }
+	void deleteNode(rbtree_node_ptr p) { g_alloc->Delete(p); }
 
 public:
-	rb_tree(Alloc& alloc, const value_type& dummy)
-		: ShmObj(alloc)
-		, node_count(0) {
-		header = createNode(dummy);
+	rb_tree()
+		: node_count(0) {
+		header = createNode(value_type());
 		leftmost() = header;
 		rightmost() = header;
 		color(header) = _red;
-		root() = 0;
+		root() = shm_nullptr;
 	}
 
 	rb_tree(const rb_tree<Key, Value, Compare>& r)
-		: ShmObj(r.m_alloc)
-		, node_count(r.size()) {
+		: node_count(r.size()) {
 		header = createNode(r.header->value);
 		leftmost() = header;
 		rightmost() = header;
 		color(header) = _red;
-		root() = 0;
+		root() = shm_nullptr;
 
 		for (auto it = r.begin(); it != r.end(); ++it) {
 			insert_unique(make_pair(it->first, it->second));
@@ -243,8 +240,8 @@ protected:
 		}
 
 		parent(z) = y;
-		left(z) = 0;
-		right(z) = 0;
+		left(z) = shm_nullptr;
+		right(z) = shm_nullptr;
 
 		rb_tree_rebalance(z, parent(header));
 		++node_count;
@@ -256,7 +253,7 @@ protected:
 		while (z != root && z->parent->color == _red) {
 			if (z->parent == ((rbtree_node_ptr)(z->parent->parent->left))) {
 				rbtree_node_ptr s = (rbtree_node_ptr)z->parent->parent->right;
-				if (s != 0 && s->color == _red) {
+				if (s != shm_nullptr && s->color == _red) {
 					s->color = _black;
 					z->parent->color = _black;
 					z->parent->parent->color = _red;
@@ -274,7 +271,7 @@ protected:
 
 			} else {
 				rbtree_node_ptr s = (rbtree_node_ptr)z->parent->parent->left;
-				if (s != 0 && s->color == _red) {
+				if (s != shm_nullptr && s->color == _red) {
 					s->color = _black;
 					z->parent->color = _black;
 					z->parent->parent->color = _red;
@@ -296,7 +293,7 @@ protected:
 	void rb_tree_rotate_left(rbtree_node_ptr x, rbtree_node_ptr& root) {
 		auto y = right(x);
 		right(x) = left(y);
-		if (y->left != 0)
+		if (y->left != shm_nullptr)
 			parent(left(y)) = x;
 
 		parent(y) = parent(x);
@@ -315,7 +312,7 @@ protected:
 	void rb_tree_rotate_right(rbtree_node_ptr x, rbtree_node_ptr& root) {
 		auto y = left(x);
 		left(x) = right(y);
-		if (y->right != 0)
+		if (y->right != shm_nullptr)
 			parent(right(y)) = x;
 
 		parent(y) = parent(x);
@@ -332,7 +329,7 @@ protected:
 	}
 
 	void recurErase(rbtree_node_ptr x) {
-		if (x != 0) {
+		if (x != shm_nullptr) {
 			recurErase(left(x));
 			recurErase(right(x));
 			deleteNode(x);
@@ -342,17 +339,17 @@ protected:
 	rbtree_node_ptr rb_tree_rebalance_for_erase(rbtree_node_ptr z, rbtree_node_ptr& root,
 		rbtree_node_ptr& leftmost, rbtree_node_ptr& rightmost) {
 		rbtree_node_ptr y = z;	  //实际删除的节点
-		rbtree_node_ptr x = 0;	  //替代z(y)的节点
+		rbtree_node_ptr x = shm_nullptr; //替代z(y)的节点
 		rbtree_node_ptr x_parent; //删除之后 x 的父节点
 
-		if (left(y) == 0) //这里帮找实际需要删除的y节点  以及 y的子节点 x(上位y)
+		if (left(y) == shm_nullptr) //这里帮找实际需要删除的y节点  以及 y的子节点 x(上位y)
 		{
 			x = right(y);
-		} else if (right(y) == 0) {
+		} else if (right(y) == shm_nullptr) {
 			x = left(y);
 		} else {
 			y = right(y);
-			while (left(y) != 0)
+			while (left(y) != shm_nullptr)
 				y = left(y);
 			x = right(y);
 		}
@@ -367,18 +364,18 @@ protected:
 				right(parent(z)) = x;
 			}
 
-			if (x != 0)
+			if (x != shm_nullptr)
 				parent(x) = parent(z);
 
 			if (z == leftmost) {
-				if (right(z) == 0)
+				if (right(z) == shm_nullptr)
 					leftmost = parent(z);
 				else
 					leftmost = (rbtree_node_ptr)(RBTreeMinimum(x));
 			}
 
 			if (z == rightmost) {
-				if (z->left == 0)
+				if (z->left == shm_nullptr)
 					rightmost = parent(z);
 				else
 					rightmost = (rbtree_node_ptr)(RBTreeMaximum(x));
@@ -388,7 +385,7 @@ protected:
 			parent(left(z)) = y;
 			if (right(z) != y) {
 				x_parent = parent(y);
-				if (x != 0)
+				if (x != shm_nullptr)
 					parent(x) = parent(y);
 				left(parent(y)) = x;
 
@@ -413,7 +410,7 @@ protected:
 
 		// y： 待删节点   x： 替换y的节点(鸠占鹊巢),此时x也成为标记节点   x_parent: x的父节点
 		if (y->color != _red) {
-			while (x != root && (x == 0 || x->color == _black)) //为双黑色节点
+			while (x != root && (x == shm_nullptr || x->color == _black)) //为双黑色节点
 			{
 				if (x == left(x_parent)) {
 					rbtree_node_ptr w = right(x_parent);
@@ -423,14 +420,14 @@ protected:
 						rb_tree_rotate_left(x_parent, root);
 						w = right(x_parent);
 					}
-					if ((left(w) == 0 || color(left(w)) == _black) &&
-						(right(w) == 0 || color(right(w)) == _black)) {
+					if ((left(w) == shm_nullptr || color(left(w)) == _black) &&
+						(right(w) == shm_nullptr || color(right(w)) == _black)) {
 						w->color = _red;
 						x = x_parent;
 						x_parent = parent(x_parent);
 					} else {
-						if (right(w) == 0 || color(right(w)) == _black) {
-							if (left(w) != 0)
+						if (right(w) == shm_nullptr || color(right(w)) == _black) {
+							if (left(w) != shm_nullptr)
 								color(left(w)) = _black;
 							color(right(w)) = _red;
 							rb_tree_rotate_right(w, root);
@@ -438,7 +435,7 @@ protected:
 						}
 						w->color = x_parent->color;
 						x_parent->color = _black;
-						if (w->right != 0)
+						if (w->right != shm_nullptr)
 							color(right(w)) = _black;
 						rb_tree_rotate_left(x_parent, root);
 						break;
@@ -453,14 +450,14 @@ protected:
 						w = left(x_parent);
 					}
 
-					if ((left(w) == 0 || color(left(w)) == _black) &&
-						(right(w) == 0 || color(right(w)) == _black)) {
+					if ((left(w) == shm_nullptr || color(left(w)) == _black) &&
+						(right(w) == shm_nullptr || color(right(w)) == _black)) {
 						w->color = _red;
 						x = x_parent;
 						x_parent = parent(x_parent);
 					} else {
-						if (left(w) == 0 || color(left(w)) == _black) {
-							if (right(w) != 0)
+						if (left(w) == shm_nullptr || color(left(w)) == _black) {
+							if (right(w) != shm_nullptr)
 								color(right(w)) = _black;
 							w->color = _red;
 							rb_tree_rotate_left(w, root);
@@ -468,14 +465,14 @@ protected:
 						}
 						w->color = x_parent->color;
 						x_parent->color = _black;
-						if (w->left != 0)
+						if (w->left != shm_nullptr)
 							color(left(w)) = _black;
 						rb_tree_rotate_right(x_parent, root);
 						break;
 					}
 				}
 			}
-			if (x != 0)
+			if (x != shm_nullptr)
 				x->color = _black;
 		}
 
@@ -485,7 +482,7 @@ protected:
 	rbtree_node_ptr findRBTree(const key_type& k, bool& isFind) {
 		auto res = parent(header);
 		isFind = false;
-		while (res != 0) {
+		while (res != shm_nullptr) {
 			if (key_compare(k, key(res))) {
 				res = left(res);
 			} else {
@@ -505,7 +502,7 @@ public:
 		auto p = header;
 		auto x = root();
 		bool res = true;
-		while (x != 0) {
+		while (x != shm_nullptr) {
 			p = x;
 			res = key_compare(val.first, key(x));
 			if (res) {
@@ -540,7 +537,7 @@ public:
 		recurErase(root());
 		left(header) = header;
 		right(header) = header;
-		parent(header) = 0;
+		parent(header) = shm_nullptr;
 	}
 
 	iterator erase(iterator position) {
@@ -569,9 +566,7 @@ public:
 	typedef typename rb_tree<Key, Value, Compare>::value_type valueType;
 	typedef typename rb_tree<Key, Value, Compare>::iterator iterator;
 
-	explicit ShmMap(Alloc& alloc, const valueType& dummy)
-		: m_tree(alloc, dummy) {}
-
+	ShmMap() {}
 	ShmMap(const ShmMap<Key, Value, Compare>& r)
 		: m_tree(r.m_tree) {}
 
