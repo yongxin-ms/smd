@@ -1,11 +1,10 @@
 ﻿#pragma once
 #include <string>
-#include "shm_obj.h"
 #include "pair.h"
+#include "../mem_alloc/alloc.h"
 #include "../common/utility.h"
 
 namespace smd {
-extern Alloc* g_alloc;
 
 class ShmString {
 public:
