@@ -524,36 +524,38 @@ int main() {
 	//auto env = mgr->CreateEnv(GUID, 20, smd::create);
 	assert(env != nullptr);
 
- 	TestPointer(env);
-	TestShmString(env);
- 	TestShmList(env);
-  	TestShmListPod(env);
-	TestShmVector(env);
-	TestShmVectorResize(env);
-	TestShmVectorPod(env);
-	TestHash(env);
- 	TestHashPod(env);
- 	TestMapString(env);
- 	TestMapPod(env);
+//  	TestPointer(env);
+// 	TestShmString(env);
+//  	TestShmList(env);
+//   	TestShmListPod(env);
+// 	TestShmVector(env);
+// 	TestShmVectorResize(env);
+// 	TestShmVectorPod(env);
+// 	TestHash(env);
+//  	TestHashPod(env);
+//  	TestMapString(env);
+//  	TestMapPod(env);
 
-// 	std::string key("StartCounter");
-// 	smd::Slice value;
-// 	if (env->SGet(key, &value)) {
-// 		// 如果已经存在
-// 		int count = 0;
-// 		memcpy(&count, value.data(), value.size());
-// 		count++;
-// 
-// 		env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "%s is %d", key.data(), count);
-// 	} else {
-// 		// 如果不存在
-// 		env->GetLog().DoLog(
-// 			smd::Log::LogLevel::kInfo, "first time run");
-// 
-// 		int count = 1;
-// 		value = smd::Slice((const char*)&count, sizeof(count));
-// 		env->SSet(key, value);
-// 	}
+	std::string key("StartCounter");
+	smd::Slice value;
+	if (env->SGet(key, &value)) {
+		// 如果已经存在
+		int count = 0;
+		memcpy(&count, value.data(), value.size());
+		count++;
+		value = smd::Slice((const char*)&count, sizeof(count));
+		env->SSet(key, value);
+
+		env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "%s is %d", key.data(), count);
+	} else {
+		// 如果不存在
+		env->GetLog().DoLog(
+			smd::Log::LogLevel::kInfo, "first time run");
+
+		int count = 1;
+		value = smd::Slice((const char*)&count, sizeof(count));
+		env->SSet(key, value);
+	}
 
 	int n = 0;
 	std::cin >> n;

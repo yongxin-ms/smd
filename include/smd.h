@@ -34,19 +34,22 @@ public:
 		g_alloc = &m_alloc;
 
 		if (create_new) {
-			if (m_allStrings != shm_nullptr) {
+			// 这样能让以后分配的地址不会为0
+			g_alloc->Malloc<char>(1);
+
+			if (m_allStrings != shm_nullptr && m_allStrings != 0) {
 				m_alloc.Delete(m_allStrings);
 			}
 
-			if (m_allLists != shm_nullptr) {
+			if (m_allLists != shm_nullptr && m_allLists != 0) {
 				m_alloc.Delete(m_allLists);
 			}
 
-			if (m_allMaps != shm_nullptr) {
+			if (m_allMaps != shm_nullptr && m_allMaps != 0) {
 				m_alloc.Delete(m_allMaps);
 			}
 
-			if (m_allHashes != shm_nullptr) {
+			if (m_allHashes != shm_nullptr && m_allHashes != 0) {
 				m_alloc.Delete(m_allHashes);
 			}
 
