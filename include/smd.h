@@ -9,7 +9,7 @@
 #include "container/shm_list.h"
 #include "container/shm_vector.h"
 #include "container/shm_hash.h"
-// #include "container/shm_map.h"
+#include "container/shm_map.h"
 #include "mem_alloc/alloc.h"
 #include "common/slice.h"
 #include "common/log.h"

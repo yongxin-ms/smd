@@ -15,7 +15,7 @@ class Alloc;
 template <typename T>
 class ShmPointer {
 public:
-	ShmPointer(int64_t addr)
+	ShmPointer(int64_t addr = shm_nullptr)
 		: m_offSet(addr) {}
 	ShmPointer(const ShmPointer&) = default;
 	ShmPointer& operator=(const ShmPointer&) = default;
