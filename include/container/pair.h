@@ -2,14 +2,6 @@
 
 namespace smd {
 
-//************ [swap] ***************
-template <class T>
-void swap(T& a, T& b) {
-	T temp = a;
-	a = b;
-	b = temp;
-}
-
 //*********** [pair] ****************
 template <class T1, class T2>
 struct pair {

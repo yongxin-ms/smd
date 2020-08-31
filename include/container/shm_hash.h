@@ -1,8 +1,5 @@
 ﻿#pragma once
-#include "shm_list.h"
-#include "shm_vector.h"
 #include "pair.h"
-#include "functional.h"
 
 namespace smd {
 

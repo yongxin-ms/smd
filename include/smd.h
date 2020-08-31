@@ -10,9 +10,7 @@
 #include "container/shm_vector.h"
 #include "container/shm_hash.h"
 #include "container/shm_map.h"
-#include "mem_alloc/alloc.h"
 #include "common/slice.h"
-#include "common/log.h"
 #include "share_mem/shm_handle.h"
 
 namespace smd {
@@ -123,8 +121,6 @@ private:
 	ShmPointer<ShmMap<ShmString, ShmMap<ShmString, ShmString>>>& m_allMaps;
 	ShmPointer<ShmMap<ShmString, ShmHash<ShmString>>>& m_allHashes;
 };
-
-extern Alloc* g_alloc = nullptr;
 
 class EnvMgr {
 public:

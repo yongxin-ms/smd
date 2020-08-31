@@ -1,8 +1,9 @@
 ﻿#pragma once
 #include <string>
-#include "pair.h"
-#include "../mem_alloc/alloc.h"
+#include <assert.h>
 #include "../common/utility.h"
+#include "../container/functional.h"
+#include "../mem_alloc/alloc.h"
 
 namespace smd {
 

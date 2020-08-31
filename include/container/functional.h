@@ -1,6 +1,14 @@
 ﻿#pragma once
 
 namespace smd {
+//************ [swap] ***************
+template <class T>
+void swap(T& a, T& b) {
+	T temp = a;
+	a = b;
+	b = temp;
+}
+
 //********** [less] ****************
 template <class T>
 struct less {

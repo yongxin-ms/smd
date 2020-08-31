@@ -1,7 +1,5 @@
 ﻿#pragma once
 #include <cstddef>
-#include "../common/shm_defines.h"
-#include "../common/log.h"
 
 #ifdef _WIN32
 #include "shm_win.h"
