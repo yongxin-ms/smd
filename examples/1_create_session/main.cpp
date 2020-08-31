@@ -396,7 +396,7 @@ void TestHashPod(smd::Env* env) {
 		vRoleIds.push_back(i);
 	}
 
-	std::random_shuffle(vRoleIds.begin(), vRoleIds.end());
+	random_shuffle(vRoleIds.begin(), vRoleIds.end());
 
 	for (int i = 0; i < vRoleIds.size(); i++) {
 		const auto& role_id = vRoleIds[i];
