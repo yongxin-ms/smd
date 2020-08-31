@@ -10,7 +10,7 @@ private:
 	friend class ShmHash;
 
 public:
-	HashIterator(size_t index, ListIterator it, ShmHash<Key>* ptr)
+	HashIterator(size_t index, ListIterator it, ShmPointer<ShmHash<Key>> ptr)
 		: bucket_index_(index)
 		, iterator_(it)
 		, container_(ptr){};
@@ -54,7 +54,7 @@ public:
 private:
 	size_t bucket_index_;
 	ListIterator iterator_;
-	ShmHash<Key>* container_;
+	ShmPointer<ShmHash<Key>> container_;
 };
 
 template <class Key>
@@ -100,11 +100,12 @@ public:
 		}
 		if (index == m_buckets.size())
 			return end();
-		return iterator(index, m_buckets[index].begin(), this);
+		return iterator(index, m_buckets[index].begin(), g_alloc->ToShmPointer<ShmHash<Key>>(this));
 	}
 
 	iterator end() {
-		return iterator(m_buckets.size() - 1, m_buckets[m_buckets.size() - 1].end(), this);
+		return iterator(m_buckets.size() - 1, m_buckets[m_buckets.size() - 1].end(),
+			g_alloc->ToShmPointer<ShmHash<Key>>(this));
 	}
 
 	local_iterator begin(size_type i) { return m_buckets[i].begin(); }
@@ -114,7 +115,7 @@ public:
 		auto index = bucket_index(key);
 		for (auto it = begin(index); it != end(index); ++it) {
 			if (equal_to<key_type>()(key, *it))
-				return iterator(index, it, this);
+				return iterator(index, it, g_alloc->ToShmPointer<ShmHash<Key>>(this));
 		}
 		return end();
 	}
@@ -131,7 +132,8 @@ public:
 			auto index = bucket_index(val);
 			m_buckets[index].push_front(val);
 			++m_size;
-			return shm_pair<iterator, bool>(iterator(index, m_buckets[index].begin(), this), true);
+			return shm_pair<iterator, bool>(iterator(
+				index, m_buckets[index].begin(), g_alloc->ToShmPointer<ShmHash<Key>>(this)), true);
 		}
 		return shm_pair<iterator, bool>(end(), false);
 	}

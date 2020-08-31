@@ -16,7 +16,7 @@ public:
 
 	ShmVector(const ShmVector& r) {
 		reserve(r.size());
-		for (int i = 0; i < r.size(); i++) {
+		for (size_t i = 0; i < r.size(); i++) {
 			const auto& element = r[i];
 			push_back(element);
 		}
