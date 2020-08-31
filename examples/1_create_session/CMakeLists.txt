@@ -53,7 +53,7 @@ set(CONTAINER_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/../../include/container/shm_pointer.h
 	${CMAKE_CURRENT_SOURCE_DIR}/../../include/container/shm_map.h
 	${CMAKE_CURRENT_SOURCE_DIR}/../../include/container/shm_vector.h
-	${CMAKE_CURRENT_SOURCE_DIR}/../../include/container/pair.h
+	${CMAKE_CURRENT_SOURCE_DIR}/../../include/container/shm_pair.h
 	${CMAKE_CURRENT_SOURCE_DIR}/../../include/container/functional.h
 	)
 

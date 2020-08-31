@@ -134,7 +134,7 @@ public:
 	typedef ptrdiff_t difference_type;
 	typedef size_t size_type;
 	typedef Key key_type;
-	typedef pair<Key, Value> value_type;
+	typedef shm_pair<Key, Value> value_type;
 	typedef value_type* pointer;
 	typedef value_type& reference;
 	typedef const value_type* const_pointer;
@@ -495,7 +495,7 @@ protected:
 	}
 
 public:
-	pair<iterator, bool> insert_unique(const value_type& val) {
+	shm_pair<iterator, bool> insert_unique(const value_type& val) {
 		auto p = header;
 		auto x = root();
 		bool res = true;
@@ -511,23 +511,23 @@ public:
 
 		//尚未有一个节点，此时根本没有进入while循环
 		if (p == header) {
-			return pair<iterator, bool>(__insert(x, p, val), true);
+			return shm_pair<iterator, bool>(__insert(x, p, val), true);
 		}
 
 		auto j = iterator(p);
 		if (res) {
 			if (j == begin()) {
-				return pair<iterator, bool>(__insert(x, p, val), true);
+				return shm_pair<iterator, bool>(__insert(x, p, val), true);
 			} else {
 				--j;
 			}
 		}
 
 		if (key_compare(key(j.p), val.first)) {
-			return pair<iterator, bool>(__insert(x, p, val), true);
+			return shm_pair<iterator, bool>(__insert(x, p, val), true);
 		}
 
-		return pair<iterator, bool>(j, false);
+		return shm_pair<iterator, bool>(j, false);
 	}
 
 	void clear() {
@@ -573,7 +573,7 @@ public:
 		return *this;
 	}
 
-	pair<iterator, bool> insert(const valueType& v) { return m_tree.insert_unique(v); }
+	shm_pair<iterator, bool> insert(const valueType& v) { return m_tree.insert_unique(v); }
 	bool empty() const { return m_tree.empty(); }
 	size_t size() const { return m_tree.size(); }
 	void clear() { m_tree.clear(); }
