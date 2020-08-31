@@ -4,7 +4,7 @@
 namespace smd {
 
 class Alloc;
-extern Alloc* g_alloc;
+Alloc* g_alloc;
 
 enum : int64_t {
 	shm_nullptr = -1,
