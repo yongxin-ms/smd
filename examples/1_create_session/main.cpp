@@ -221,7 +221,7 @@ void TestShmListPod(smd::Env* env) {
 	assert(l->size() == 0);
 	l->push_back(StMyData(7131, 14));
 	assert(l->size() == 1);
-	auto& element = l->front();
+	//auto& element = l->front();
 
 	alloc.Delete(l);
 	assert(l == nullptr);
@@ -336,7 +336,7 @@ void TestShmVectorPod(smd::Env* env) {
 	assert(v->size() == 0);
 	v->push_back(StMyData(7131, 14));
 	assert(v->size() == 1);
-	auto& element = v->front();
+	//auto& element = v->front();
 
 	alloc.Delete(v);
 	assert(v == nullptr);

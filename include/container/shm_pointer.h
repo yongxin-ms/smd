@@ -1,9 +1,10 @@
 ﻿#pragma once
+#include "../mem_alloc/alloc.h"
 
 namespace smd {
 
 class Alloc;
-extern Alloc* g_alloc = nullptr;
+extern Alloc* g_alloc;
 
 enum : int64_t {
 	shm_nullptr = -1,
