@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include "shm_pointer.h"
 
 namespace smd {
 

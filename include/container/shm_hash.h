@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "shm_pair.h"
+#include "shm_pointer.h"
 
 namespace smd {
 
