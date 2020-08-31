@@ -1,5 +1,6 @@
 ﻿#include <stdio.h>
 #include <iostream>
+#include <algorithm>
 #include "smd.h"
 #include "util.h"
 
@@ -392,13 +393,13 @@ void TestHashPod(smd::Env* env) {
 	auto h = &alloc.New<smd::ShmHash<uint64_t>>();
 
 	std::vector<uint64_t> vRoleIds;
-	for (int i = 0; i < 1000; i++) {
+	for (size_t i = 0; i < 1000; i++) {
 		vRoleIds.push_back(i);
 	}
 
 	random_shuffle(vRoleIds.begin(), vRoleIds.end());
 
-	for (int i = 0; i < vRoleIds.size(); i++) {
+	for (size_t i = 0; i < vRoleIds.size(); i++) {
 		const auto& role_id = vRoleIds[i];
 		h->insert(role_id);
 	}
@@ -434,8 +435,8 @@ void TestMapString(smd::Env* env) {
 	auto mem_usage = alloc.GetUsed();
 	auto m = &alloc.New<smd::ShmMap<smd::ShmString, smd::ShmString>>();
 
-	const int COUNT = 100;
-	for (int i = 0; i < COUNT; ++i) {
+	const size_t COUNT = 100;
+	for (size_t i = 0; i < COUNT; ++i) {
 		Util::Text::Format("TestText%02d", i);
 		auto key = smd::ShmString(Util::Text::Format("Key%02d", i));
 		auto value = smd::ShmString(Util::Text::Format("Value%02d", i));
@@ -473,14 +474,14 @@ void TestMapPod(smd::Env* env) {
 	auto m = &alloc.New<smd::ShmMap<uint64_t, uint64_t>>();
 
 	std::vector<uint64_t> vRoleIds;
-	const int COUNT = 100;
-	for (int i = 0; i < COUNT; i++) {
+	const size_t COUNT = 100;
+	for (size_t i = 0; i < COUNT; i++) {
 		vRoleIds.push_back(i);
 	}
 
 	std::random_shuffle(vRoleIds.begin(), vRoleIds.end());
 
-	for (int i = 0; i < vRoleIds.size(); i++) {
+	for (size_t i = 0; i < vRoleIds.size(); i++) {
 		const auto& role_id = vRoleIds[i];
 		m->insert(smd::make_pair(role_id, role_id * 10));
 	}
