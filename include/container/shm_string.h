@@ -127,9 +127,9 @@ private:
 	}
 
 	void swap(ShmString& x) {
-		smd::swap(m_ptr, x.m_ptr);
-		smd::swap(m_capacity, x.m_capacity);
-		smd::swap(m_size, x.m_size);
+		std::swap(m_ptr, x.m_ptr);
+		std::swap(m_capacity, x.m_capacity);
+		std::swap(m_size, x.m_size);
 	}
 
 	void resize(size_t capacity) {

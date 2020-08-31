@@ -401,7 +401,7 @@ protected:
 			}
 			parent(y) = parent(z);
 
-			swap(y->color, z->color);
+			std::swap(y->color, z->color);
 			y = z;
 		}
 

@@ -89,7 +89,7 @@ public:
 		for (auto& val : *this) {
 			temp.insert(val);
 		}
-		smd::swap(*this, temp);
+		std::swap(*this, temp);
 	}
 
 	iterator begin() {

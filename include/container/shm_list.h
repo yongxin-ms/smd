@@ -210,8 +210,8 @@ private:
 	}
 
 	void swap(ShmList<T>& x) {
-		smd::swap(m_head, x.m_head);
-		smd::swap(m_tail, x.m_tail);
+		std::swap(m_head, x.m_head);
+		std::swap(m_tail, x.m_tail);
 	}
 
 private:

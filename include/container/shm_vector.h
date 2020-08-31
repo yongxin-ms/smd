@@ -129,9 +129,9 @@ public:
 
 private:
 	void swap(ShmVector& x) {
-		smd::swap(m_start, x.m_start);
-		smd::swap(m_finish, x.m_finish);
-		smd::swap(m_endOfStorage, x.m_endOfStorage);
+		std::swap(m_start, x.m_start);
+		std::swap(m_finish, x.m_finish);
+		std::swap(m_endOfStorage, x.m_endOfStorage);
 	}
 
 	size_t GetSuitableCapacity(size_t size) {
