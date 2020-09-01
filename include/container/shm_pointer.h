@@ -19,8 +19,8 @@ public:
 	ShmPointer& operator=(const ShmPointer&) = default;
 
 	T* Ptr() const { return (T*)(g_alloc->StorageBasePtr() + m_offSet); }
-	T& Ref() const { return *Ptr(); }
 	T* operator->() const { return Ptr(); }
+	T& operator*() const { return *Ptr(); }
 
 	int64_t Raw() const { return m_offSet; }
 	bool operator==(const ShmPointer& r) const { return m_offSet == r.m_offSet; }
@@ -36,13 +36,13 @@ public:
 	T& operator[](int n) {
 		ShmPointer tmp(*this);
 		tmp.m_offSet += n * sizeof(T);
-		return tmp.Ref();
+		return *tmp;
 	}
 
 	const T& operator[](int n) const {
 		ShmPointer tmp(*this);
 		tmp.m_offSet += n * sizeof(T);
-		return tmp.Ref();
+		return *tmp;
 	}
 
 	ShmPointer& operator++() {

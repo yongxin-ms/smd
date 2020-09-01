@@ -15,8 +15,8 @@ void TestPointer(smd::Env* env) {
 	env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "Raw pointer:%ll", shm_ptr.Raw());
 
 	// 访问
-	shm_ptr.Ref() = 10;
-	assert(shm_ptr.Ref() == 10);
+	*shm_ptr = 10;
+	assert(*shm_ptr == 10);
 
 	// 回收共享内存
 	int* tmp = shm_ptr.Ptr();
@@ -52,7 +52,7 @@ void TestArrayPointer(smd::Env* env) {
 	//和普通指针一样可以++
 	auto p = shm_ptr;
 	for (int i = 0; i < ARRAY_SIZE; i++, p++) {
-		env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "Array[%d] = %d", i, p.Ref());
+		env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "Array[%d] = %d", i, *p);
 	}
 
 	// 回收共享内存
@@ -108,8 +108,7 @@ void TestPointerToObject(smd::Env* env) {
 
 void TestShmString(smd::Env* env) {
 	auto mem_usage = smd::g_alloc->GetUsed();
-	auto temp = smd::g_alloc->New<smd::ShmString>(16);
-	auto s = temp.Ptr();
+	auto s = smd::g_alloc->New<smd::ShmString>(16);
 	assert(s->capacity() > 16);
 	assert(s->size() == 0);
 	assert(s->ToString() == "");
@@ -125,29 +124,29 @@ void TestShmString(smd::Env* env) {
 	s->assign("hello");
 
 	// 验证两个对象的创建互不影响
-	auto t = smd::g_alloc->New<smd::ShmString>(32).Ptr();
+	auto t = smd::g_alloc->New<smd::ShmString>(32);
 
 	t->assign("world");
 	assert(t->ToString() == "world");
 	assert(s->ToString() == "hello");
 	smd::g_alloc->Delete(t);
-	assert(t == nullptr);
+	assert(t == smd::shm_nullptr);
 	assert(s->ToString() == "hello");
 
 	// 验证拷贝构造函数
-	t = smd::g_alloc->New<smd::ShmString>(*s).Ptr();
+	t = smd::g_alloc->New<smd::ShmString>(*s);
 	assert(t->data() != s->data());
 	assert(t->ToString() == "hello");
 	smd::g_alloc->Delete(t);
-	assert(t == nullptr);
+	assert(t == smd::shm_nullptr);
 	assert(s->ToString() == "hello");
 
 	// 验证拷贝构造函数
-	t = smd::g_alloc->New<smd::ShmString>("hello").Ptr();
+	t = smd::g_alloc->New<smd::ShmString>("hello");
 	assert(t->data() != s->data());
 	assert(t->ToString() == "hello");
 	smd::g_alloc->Delete(t);
-	assert(t == nullptr);
+	assert(t == smd::shm_nullptr);
 	assert(s->ToString() == "hello");
 
 	do {
@@ -168,7 +167,7 @@ void TestShmString(smd::Env* env) {
 	assert(s->ToString() == "");
 	*s = "1234567812345678helloaaaafdsfdsddddddddddddddddddddddddddddddddddddddddddd";
 	smd::g_alloc->Delete(s);
-	assert(s == nullptr);
+	assert(s == smd::shm_nullptr);
 	assert(mem_usage == smd::g_alloc->GetUsed());
 
 	env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "TestShmString complete");
@@ -651,7 +650,7 @@ int main() {
 	}
 
 	//auto& all_strings = env->GetAllStrings();
-	auto& all_strings = smd::g_alloc->New<smd::ShmMap<smd::ShmString, smd::ShmString>>().Ref();
+	auto& all_strings = *smd::g_alloc->New<smd::ShmMap<smd::ShmString, smd::ShmString>>();
 
 // 	all_strings.insert(make_pair(smd::ShmString("will1"), smd::ShmString("1")));
 // 	all_strings.insert(make_pair(smd::ShmString("will2"), smd::ShmString("2")));

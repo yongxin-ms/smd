@@ -46,15 +46,15 @@ public:
 	size_t capacity() const { return m_endOfStorage - m_start; }
 
 	//访问元素相关
-	reference operator[](size_t i) { return m_start[i].Ref(); }
-	const reference operator[](size_t i) const { return m_start[i].Ref(); }
-	reference front() { return m_start.Ref().Ref(); }
-	reference back() { return (m_start[size() - 1]).Ref(); }
+	reference operator[](size_t i) { return *m_start[i]; }
+	const reference operator[](size_t i) const { return *m_start[i]; }
+	reference front() { return **m_start; }
+	reference back() { return *(m_start[size() - 1]); }
 
 	void push_back(const value_type& value) {
 		if (m_finish != m_endOfStorage) {
 			auto new_element = g_alloc->New<value_type>(value);
-			m_finish.Ref() = new_element;
+			*m_finish = new_element;
 			++m_finish;
 		} else {
 			reserve(capacity() + 2);
@@ -64,7 +64,7 @@ public:
 
 	void pop_back() {
 		--m_finish;
-		auto d = m_finish.Ref();
+		auto d = *m_finish;
 		g_alloc->Delete(d);
 	}
 
