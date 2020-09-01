@@ -303,7 +303,7 @@ void TestShmListPod(smd::Env* env) {
 	assert(l->size() == 0);
 	l->push_back(StMyData(7131, 14));
 	assert(l->size() == 1);
-	//auto& element = l->front();
+	// auto& element = l->front();
 
 	smd::g_alloc->Delete(l);
 	assert(l == smd::shm_nullptr);
@@ -410,12 +410,12 @@ void TestShmVectorPod(smd::Env* env) {
 
 	auto mem_usage = smd::g_alloc->GetUsed();
 	auto v = smd::g_alloc->New<smd::ShmVector<StMyData>>();
-	
+
 	// 验证在尾部添加元素
 	assert(v->size() == 0);
 	v->push_back(StMyData(7131, 14));
 	assert(v->size() == 1);
-	//auto& element = v->front();
+	// auto& element = v->front();
 
 	smd::g_alloc->Delete(v);
 	assert(v == smd::shm_nullptr);
@@ -468,10 +468,12 @@ void TestHash(smd::Env* env) {
 void TestHashPod(smd::Env* env) {
 	auto mem_usage = smd::g_alloc->GetUsed();
 	auto h = smd::g_alloc->New<smd::ShmHash<uint64_t>>();
+	auto h_ref = smd::g_alloc->New<smd::ShmHash<uint64_t>>();
 
 	std::vector<uint64_t> vRoleIds;
 	for (size_t i = 0; i < 1000; i++) {
 		vRoleIds.push_back(i);
+		h_ref->insert(i);
 	}
 
 	random_shuffle(vRoleIds.begin(), vRoleIds.end());
@@ -482,6 +484,7 @@ void TestHashPod(smd::Env* env) {
 	}
 
 	assert(h->size() == 1000);
+	assert(*h == *h_ref);
 	assert(h->find(1) != h->end());
 	assert(h->find(8) != h->end());
 	assert(h->find(1000) == h->end());
@@ -612,8 +615,8 @@ int main() {
 	});
 
 	const std::string GUID("0x1001187fb");
-	auto env = mgr->CreateEnv(GUID, 20, smd::kOpenExist);
-	// auto env = mgr->CreateEnv(GUID, 20, smd::create);
+	// auto env = mgr->CreateEnv(GUID, 20, smd::kOpenExist);
+	auto env = mgr->CreateEnv(GUID, 20, smd::kCreateAlways);
 	assert(env != nullptr);
 
 	TestPointer(env);
@@ -632,7 +635,7 @@ int main() {
 
 	std::string key("StartCounter");
 	smd::Slice value;
-	int count = 0; 
+	int count = 0;
 	if (env->SGet(key, &value)) {
 		// 如果已经存在
 		count = std::stoi(value.ToString());
@@ -642,22 +645,21 @@ int main() {
 		env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "%s is %d", key.data(), count);
 	} else {
 		// 如果不存在
-		env->GetLog().DoLog(
-			smd::Log::LogLevel::kInfo, "first time run");
+		env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "first time run");
 
 		count = 1;
 		env->SSet(key, std::to_string(count));
 	}
 
-	//auto& all_strings = env->GetAllStrings();
+	// auto& all_strings = env->GetAllStrings();
 	auto& all_strings = *smd::g_alloc->New<smd::ShmMap<smd::ShmString, smd::ShmString>>();
 
-// 	all_strings.insert(make_pair(smd::ShmString("will1"), smd::ShmString("1")));
-// 	all_strings.insert(make_pair(smd::ShmString("will2"), smd::ShmString("2")));
-// 	all_strings.insert(make_pair(smd::ShmString("will3"), smd::ShmString("3")));
-// 	all_strings.insert(make_pair(smd::ShmString("will4"), smd::ShmString("4")));
-// 	all_strings.insert(make_pair(smd::ShmString("will5"), smd::ShmString("5")));
-// 	all_strings.insert(make_pair(smd::ShmString("will6"), smd::ShmString("6")));
+	// 	all_strings.insert(make_pair(smd::ShmString("will1"), smd::ShmString("1")));
+	// 	all_strings.insert(make_pair(smd::ShmString("will2"), smd::ShmString("2")));
+	// 	all_strings.insert(make_pair(smd::ShmString("will3"), smd::ShmString("3")));
+	// 	all_strings.insert(make_pair(smd::ShmString("will4"), smd::ShmString("4")));
+	// 	all_strings.insert(make_pair(smd::ShmString("will5"), smd::ShmString("5")));
+	// 	all_strings.insert(make_pair(smd::ShmString("will6"), smd::ShmString("6")));
 
 	for (int i = 0; i < 20; i++) {
 		std::string key1 = Util::Text::Format("Hello%03d%03d", count, i);
