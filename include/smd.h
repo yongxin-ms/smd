@@ -106,10 +106,10 @@ public:
 
 	Log& GetLog() { return m_log; }
 
-	ShmMap<ShmString, ShmString>& GetAllStrings() { return *m_allStrings.Ptr(); }
-	ShmMap<ShmString, ShmList<ShmString>>& GetAllLists() { return *m_allLists.Ptr(); }
-	ShmMap<ShmString, ShmMap<ShmString, ShmString>>& GetAllMaps() { return *m_allMaps.Ptr(); }
-	ShmMap<ShmString, ShmHash<ShmString>>& GetAllHashes() { return *m_allHashes.Ptr(); }
+	ShmMap<ShmString, ShmString>& GetAllStrings() { return *m_allStrings; }
+	ShmMap<ShmString, ShmList<ShmString>>& GetAllLists() { return *m_allLists; }
+	ShmMap<ShmString, ShmMap<ShmString, ShmString>>& GetAllMaps() { return *m_allMaps; }
+	ShmMap<ShmString, ShmHash<ShmString>>& GetAllHashes() { return *m_allHashes; }
 
 private:
 	Log& m_log;

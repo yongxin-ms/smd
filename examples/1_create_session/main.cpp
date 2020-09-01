@@ -176,7 +176,7 @@ void TestShmString(smd::Env* env) {
 void TestShmList(smd::Env* env) {
 	auto mem_usage = smd::g_alloc->GetUsed();
 
-	auto l = smd::g_alloc->New<smd::ShmList<smd::ShmString>>().Ptr();
+	auto l = smd::g_alloc->New<smd::ShmList<smd::ShmString>>();
 
 	// 验证在尾部添加元素
 	assert(l->size() == 0);
@@ -280,7 +280,7 @@ void TestShmList(smd::Env* env) {
 	}
 
 	smd::g_alloc->Delete(l);
-	assert(l == nullptr);
+	assert(l == smd::shm_nullptr);
 
 	assert(mem_usage == smd::g_alloc->GetUsed());
 	env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "TestShmList complete");
@@ -297,7 +297,7 @@ void TestShmListPod(smd::Env* env) {
 	};
 
 	auto mem_usage = smd::g_alloc->GetUsed();
-	auto l = smd::g_alloc->New<smd::ShmList<StMyData>>().Ptr();
+	auto l = smd::g_alloc->New<smd::ShmList<StMyData>>();
 
 	// 验证在尾部添加元素
 	assert(l->size() == 0);
@@ -306,14 +306,14 @@ void TestShmListPod(smd::Env* env) {
 	//auto& element = l->front();
 
 	smd::g_alloc->Delete(l);
-	assert(l == nullptr);
+	assert(l == smd::shm_nullptr);
 	assert(mem_usage == smd::g_alloc->GetUsed());
 	env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "TestShmListPod complete");
 }
 
 void TestShmVector(smd::Env* env) {
 	auto mem_usage = smd::g_alloc->GetUsed();
-	auto v = smd::g_alloc->New<smd::ShmVector<smd::ShmString>>().Ptr();
+	auto v = smd::g_alloc->New<smd::ShmVector<smd::ShmString>>();
 
 	assert(v->size() == 0);
 	v->push_back(smd::ShmString("hello"));
@@ -380,7 +380,7 @@ void TestShmVector(smd::Env* env) {
 	assert(v->size() == 0);
 
 	smd::g_alloc->Delete(v);
-	assert(v == nullptr);
+	assert(v == smd::shm_nullptr);
 	assert(mem_usage == smd::g_alloc->GetUsed());
 
 	env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "TestShmVector complete");
@@ -388,11 +388,11 @@ void TestShmVector(smd::Env* env) {
 
 void TestShmVectorResize(smd::Env* env) {
 	auto mem_usage = smd::g_alloc->GetUsed();
-	auto v = smd::g_alloc->New<smd::ShmVector<smd::ShmString>>(64).Ptr();
+	auto v = smd::g_alloc->New<smd::ShmVector<smd::ShmString>>(64);
 	v->resize(v->capacity(), smd::ShmString(""));
 
 	smd::g_alloc->Delete(v);
-	assert(v == nullptr);
+	assert(v == smd::shm_nullptr);
 	assert(mem_usage == smd::g_alloc->GetUsed());
 
 	env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "TestShmVectorResize complete");
@@ -409,7 +409,7 @@ void TestShmVectorPod(smd::Env* env) {
 	};
 
 	auto mem_usage = smd::g_alloc->GetUsed();
-	auto v = smd::g_alloc->New<smd::ShmVector<StMyData>>().Ptr();
+	auto v = smd::g_alloc->New<smd::ShmVector<StMyData>>();
 	
 	// 验证在尾部添加元素
 	assert(v->size() == 0);
@@ -418,14 +418,14 @@ void TestShmVectorPod(smd::Env* env) {
 	//auto& element = v->front();
 
 	smd::g_alloc->Delete(v);
-	assert(v == nullptr);
+	assert(v == smd::shm_nullptr);
 	assert(mem_usage == smd::g_alloc->GetUsed());
 	env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "TestShmVectorPod complete");
 }
 
 void TestHash(smd::Env* env) {
 	auto mem_usage = smd::g_alloc->GetUsed();
-	auto h = smd::g_alloc->New<smd::ShmHash<smd::ShmString>>().Ptr();
+	auto h = smd::g_alloc->New<smd::ShmHash<smd::ShmString>>();
 
 	assert(h->size() == 0);
 	h->insert(smd::ShmString("hello"));
@@ -459,7 +459,7 @@ void TestHash(smd::Env* env) {
 
 	assert(h->size() == 0);
 	smd::g_alloc->Delete(h);
-	assert(h == nullptr);
+	assert(h == smd::shm_nullptr);
 	assert(mem_usage == smd::g_alloc->GetUsed());
 
 	env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "TestHash complete");
@@ -467,7 +467,7 @@ void TestHash(smd::Env* env) {
 
 void TestHashPod(smd::Env* env) {
 	auto mem_usage = smd::g_alloc->GetUsed();
-	auto h = smd::g_alloc->New<smd::ShmHash<uint64_t>>().Ptr();
+	auto h = smd::g_alloc->New<smd::ShmHash<uint64_t>>();
 
 	std::vector<uint64_t> vRoleIds;
 	for (size_t i = 0; i < 1000; i++) {
@@ -501,7 +501,7 @@ void TestHashPod(smd::Env* env) {
 
 	assert(h->size() == 0);
 	smd::g_alloc->Delete(h);
-	assert(h == nullptr);
+	assert(h == smd::shm_nullptr);
 	assert(mem_usage == smd::g_alloc->GetUsed());
 
 	env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "TestHashPod complete");
@@ -509,7 +509,7 @@ void TestHashPod(smd::Env* env) {
 
 void TestMapString(smd::Env* env) {
 	auto mem_usage = smd::g_alloc->GetUsed();
-	auto m = smd::g_alloc->New<smd::ShmMap<smd::ShmString, smd::ShmString>>().Ptr();
+	auto m = smd::g_alloc->New<smd::ShmMap<smd::ShmString, smd::ShmString>>();
 
 	const size_t COUNT = 100;
 	for (size_t i = 0; i < COUNT; ++i) {
@@ -538,7 +538,7 @@ void TestMapString(smd::Env* env) {
 
 	assert(m->size() == 0);
 	smd::g_alloc->Delete(m);
-	assert(m == nullptr);
+	assert(m == smd::shm_nullptr);
 	assert(mem_usage == smd::g_alloc->GetUsed());
 
 	env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "TestMapString complete");
@@ -546,7 +546,7 @@ void TestMapString(smd::Env* env) {
 
 void TestMapPod(smd::Env* env) {
 	auto mem_usage = smd::g_alloc->GetUsed();
-	auto m = smd::g_alloc->New<smd::ShmMap<uint64_t, uint64_t>>().Ptr();
+	auto m = smd::g_alloc->New<smd::ShmMap<uint64_t, uint64_t>>();
 
 	std::vector<uint64_t> vRoleIds;
 	const size_t COUNT = 100;
@@ -582,7 +582,7 @@ void TestMapPod(smd::Env* env) {
 	m->clear();
 
 	smd::g_alloc->Delete(m);
-	assert(m == nullptr);
+	assert(m == smd::shm_nullptr);
 	assert(mem_usage == smd::g_alloc->GetUsed());
 
 	env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "TestMapPod complete");
