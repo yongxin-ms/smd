@@ -105,7 +105,6 @@ public:
 	// 还需要一个遍历接口
 
 	Log& GetLog() { return m_log; }
-	Alloc& GetMalloc() { return m_alloc; }
 
 	ShmMap<ShmString, ShmString>& GetAllStrings() { return *m_allStrings.Ptr(); }
 	ShmMap<ShmString, ShmList<ShmString>>& GetAllLists() { return *m_allLists.Ptr(); }

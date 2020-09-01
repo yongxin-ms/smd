@@ -22,7 +22,7 @@ public:
 	T& Ref() const { return *Ptr(); }
 	T* operator->() const { return Ptr(); }
 
-	int64_t operator()() const { return m_offSet; }
+	int64_t Raw() const { return m_offSet; }
 	bool operator==(const ShmPointer& r) const { return m_offSet == r.m_offSet; }
 	bool operator!=(const ShmPointer& r) const { return m_offSet != r.m_offSet; }
 

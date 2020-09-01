@@ -30,7 +30,7 @@ public:
 	void Free(ShmPointer<T>& p, size_t n = 1) {
 		auto size = sizeof(T) * n;
 		// m_log.DoLog(Log::LogLevel::kDebug, "free: 0x%p:(%d)", p, size);
-		_Free(p(), size);
+		_Free(p.Raw(), size);
 		p = shm_nullptr;
 	}
 
@@ -45,6 +45,7 @@ public:
 	void Delete(ShmPointer<T>& p) {
 		(p.Ptr())->~T();
 		Free(p);
+		p = shm_nullptr;
 	}
 
 	template <class T>
