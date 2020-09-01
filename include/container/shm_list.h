@@ -63,8 +63,8 @@ public:
 		return res;
 	}
 
-	T& operator*() { return (*p).data; }
-	T* operator->() { return &(*p).data; }
+	T& operator*() { return p.Ref().data; }
+	T* operator->() { return &(p.Ref()).data; }
 
 	void swap(ListIterator<T>& x) { std:swap(p, x.p); }
 

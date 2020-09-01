@@ -46,20 +46,15 @@ public:
 	size_t capacity() const { return m_endOfStorage - m_start; }
 
 	//访问元素相关
-	reference operator[](size_t i) {
-		return *m_start[i];
-	}
-	const reference operator[](size_t i) const {
-		return *m_start[i];
-	}
-	reference front() { return **m_start; }
-	reference back() { return *(m_start[size() - 1]); }
-	pointer data() { return *m_start; }
+	reference operator[](size_t i) { return m_start[i].Ref(); }
+	const reference operator[](size_t i) const { return m_start[i].Ref(); }
+	reference front() { return m_start.Ref().Ref(); }
+	reference back() { return (m_start[size() - 1]).Ref(); }
 
 	void push_back(const value_type& value) {
 		if (m_finish != m_endOfStorage) {
 			auto new_element = g_alloc->New<value_type>(value);
-			*m_finish = new_element;
+			m_finish.Ref() = new_element;
 			++m_finish;
 		} else {
 			reserve(capacity() + 2);
@@ -69,7 +64,7 @@ public:
 
 	void pop_back() {
 		--m_finish;
-		auto d = *m_finish;
+		auto d = m_finish.Ref();
 		g_alloc->Delete(d);
 	}
 
@@ -79,9 +74,6 @@ public:
 		}
 	}
 
-	iterator begin() { return m_start.ObjPtr(); }
-	iterator end() { return m_finish.ObjPtr(); }
-
 	// 设置容量
 	void reserve(size_t new_capacity) {
 		auto old_size = size();
@@ -90,7 +82,7 @@ public:
 		//多分配一个，用来存放尾结点
 		auto new_list = g_alloc->Malloc<ShmPointer<value_type>>(new_capacity + 1);
 		if (old_size > 0) {
-			memcpy(&new_list, &m_start, sizeof(ShmPointer<value_type>) * old_size);
+			memcpy(new_list.Ptr(), m_start.Ptr(), sizeof(ShmPointer<value_type>) * old_size);
 			g_alloc->Free(m_start, capacity() + 1);
 		}
 

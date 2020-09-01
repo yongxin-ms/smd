@@ -8,11 +8,11 @@ void TestPointer(smd::Env* env) {
 	auto& alloc = env->GetMalloc();
 	auto mem_usage = alloc.GetUsed();
 	smd::ShmPointer<int> shm_ptr = alloc.New<int>();
-	int* tmp = &shm_ptr;
+	int* tmp = shm_ptr.Ptr();
 	assert(tmp != nullptr);
 	*tmp = 10;
 
-	int n = *shm_ptr;
+	int n = shm_ptr.Ref();
 	assert(n == 10);
 
 	alloc.Delete(tmp);
@@ -24,7 +24,7 @@ void TestShmString(smd::Env* env) {
 	auto& alloc = env->GetMalloc();
 	auto mem_usage = alloc.GetUsed();
 	auto temp = alloc.New<smd::ShmString>(16);
-	auto s = &temp;
+	auto s = temp.Ptr();
 	assert(s->capacity() > 16);
 	assert(s->size() == 0);
 	assert(s->ToString() == "");
@@ -40,7 +40,7 @@ void TestShmString(smd::Env* env) {
 	s->assign("hello");
 
 	// 验证两个对象的创建互不影响
-	auto t = &alloc.New<smd::ShmString>(32);
+	auto t = alloc.New<smd::ShmString>(32).Ptr();
 
 	t->assign("world");
 	assert(t->ToString() == "world");
@@ -50,7 +50,7 @@ void TestShmString(smd::Env* env) {
 	assert(s->ToString() == "hello");
 
 	// 验证拷贝构造函数
-	t = &alloc.New<smd::ShmString>(*s);
+	t = alloc.New<smd::ShmString>(*s).Ptr();
 	assert(t->data() != s->data());
 	assert(t->ToString() == "hello");
 	alloc.Delete(t);
@@ -58,7 +58,7 @@ void TestShmString(smd::Env* env) {
 	assert(s->ToString() == "hello");
 
 	// 验证拷贝构造函数
-	t = &alloc.New<smd::ShmString>("hello");
+	t = alloc.New<smd::ShmString>("hello").Ptr();
 	assert(t->data() != s->data());
 	assert(t->ToString() == "hello");
 	alloc.Delete(t);
@@ -93,7 +93,7 @@ void TestShmList(smd::Env* env) {
 	auto& alloc = env->GetMalloc();
 	auto mem_usage = alloc.GetUsed();
 
-	auto l = &alloc.New<smd::ShmList<smd::ShmString>>();
+	auto l = alloc.New<smd::ShmList<smd::ShmString>>().Ptr();
 
 	// 验证在尾部添加元素
 	assert(l->size() == 0);
@@ -215,7 +215,7 @@ void TestShmListPod(smd::Env* env) {
 
 	auto& alloc = env->GetMalloc();
 	auto mem_usage = alloc.GetUsed();
-	auto l = &alloc.New<smd::ShmList<StMyData>>();
+	auto l = alloc.New<smd::ShmList<StMyData>>().Ptr();
 
 	// 验证在尾部添加元素
 	assert(l->size() == 0);
@@ -232,7 +232,7 @@ void TestShmListPod(smd::Env* env) {
 void TestShmVector(smd::Env* env) {
 	auto& alloc = env->GetMalloc();
 	auto mem_usage = alloc.GetUsed();
-	auto v = &alloc.New<smd::ShmVector<smd::ShmString>>();
+	auto v = alloc.New<smd::ShmVector<smd::ShmString>>().Ptr();
 
 	assert(v->size() == 0);
 	v->push_back(smd::ShmString("hello"));
@@ -308,7 +308,7 @@ void TestShmVector(smd::Env* env) {
 void TestShmVectorResize(smd::Env* env) {
 	auto& alloc = env->GetMalloc();
 	auto mem_usage = alloc.GetUsed();
-	auto v = &alloc.New<smd::ShmVector<smd::ShmString>>(64);
+	auto v = alloc.New<smd::ShmVector<smd::ShmString>>(64).Ptr();
 	v->resize(v->capacity(), smd::ShmString(""));
 
 	alloc.Delete(v);
@@ -330,7 +330,7 @@ void TestShmVectorPod(smd::Env* env) {
 
 	auto& alloc = env->GetMalloc();
 	auto mem_usage = alloc.GetUsed();
-	auto v = &alloc.New<smd::ShmVector<StMyData>>();
+	auto v = alloc.New<smd::ShmVector<StMyData>>().Ptr();
 	
 	// 验证在尾部添加元素
 	assert(v->size() == 0);
@@ -347,7 +347,7 @@ void TestShmVectorPod(smd::Env* env) {
 void TestHash(smd::Env* env) {
 	auto& alloc = env->GetMalloc();
 	auto mem_usage = alloc.GetUsed();
-	auto h = &alloc.New<smd::ShmHash<smd::ShmString>>();
+	auto h = alloc.New<smd::ShmHash<smd::ShmString>>().Ptr();
 
 	assert(h->size() == 0);
 	h->insert(smd::ShmString("hello"));
@@ -390,7 +390,7 @@ void TestHash(smd::Env* env) {
 void TestHashPod(smd::Env* env) {
 	auto& alloc = env->GetMalloc();
 	auto mem_usage = alloc.GetUsed();
-	auto h = &alloc.New<smd::ShmHash<uint64_t>>();
+	auto h = alloc.New<smd::ShmHash<uint64_t>>().Ptr();
 
 	std::vector<uint64_t> vRoleIds;
 	for (size_t i = 0; i < 1000; i++) {
@@ -433,7 +433,7 @@ void TestHashPod(smd::Env* env) {
 void TestMapString(smd::Env* env) {
 	auto& alloc = env->GetMalloc();
 	auto mem_usage = alloc.GetUsed();
-	auto m = &alloc.New<smd::ShmMap<smd::ShmString, smd::ShmString>>();
+	auto m = alloc.New<smd::ShmMap<smd::ShmString, smd::ShmString>>().Ptr();
 
 	const size_t COUNT = 100;
 	for (size_t i = 0; i < COUNT; ++i) {
@@ -471,7 +471,7 @@ void TestMapString(smd::Env* env) {
 void TestMapPod(smd::Env* env) {
 	auto& alloc = env->GetMalloc();
 	auto mem_usage = alloc.GetUsed();
-	auto m = &alloc.New<smd::ShmMap<uint64_t, uint64_t>>();
+	auto m = alloc.New<smd::ShmMap<uint64_t, uint64_t>>().Ptr();
 
 	std::vector<uint64_t> vRoleIds;
 	const size_t COUNT = 100;
@@ -538,20 +538,20 @@ int main() {
 
 	const std::string GUID("0x1001187fb");
 	auto env = mgr->CreateEnv(GUID, 20, smd::kOpenExist);
-	//auto env = mgr->CreateEnv(GUID, 20, smd::create);
+	// auto env = mgr->CreateEnv(GUID, 20, smd::create);
 	assert(env != nullptr);
 
-//  TestPointer(env);
-// 	TestShmString(env);
-//  TestShmList(env);
-//  TestShmListPod(env);
-// 	TestShmVector(env);
-// 	TestShmVectorResize(env);
-// 	TestShmVectorPod(env);
-// 	TestHash(env);
-//	TestHashPod(env);
-// 	TestMapString(env);
-// 	TestMapPod(env);
+	TestPointer(env);
+	TestShmString(env);
+	TestShmList(env);
+	TestShmListPod(env);
+	TestShmVector(env);
+	TestShmVectorResize(env);
+	TestShmVectorPod(env);
+	TestHash(env);
+	TestHashPod(env);
+	TestMapString(env);
+	TestMapPod(env);
 
 	std::string key("StartCounter");
 	smd::Slice value;
@@ -582,7 +582,7 @@ int main() {
 // 	all_strings.insert(make_pair(smd::ShmString("will6"), smd::ShmString("6")));
 
 	for (int i = 0; i < 20; i++) {
-		std::string key1 = Util::Text::Format("hello%03d%03d", count, i);
+		std::string key1 = Util::Text::Format("Hello%03d%03d", count, i);
 		std::string value1 = Util::Text::Format("World%03d", i);
 		all_strings.insert(smd::make_pair(smd::ShmString(key1), smd::ShmString(value1)));
 	}

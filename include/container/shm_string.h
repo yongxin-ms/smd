@@ -41,8 +41,8 @@ public:
 		m_size = 0;
 	}
 
-	char* data() { return &m_ptr; }
-	const char* data() const { return &m_ptr; }
+	char* data() { return m_ptr.Ptr(); }
+	const char* data() const { return m_ptr.Ptr(); }
 	size_t size() const { return m_size; }
 	bool empty() { return m_size > 0; }
 	size_t capacity() const { return m_capacity; }
@@ -153,7 +153,7 @@ private:
 	void internal_append(const char* buf, size_t len) {
 		// 最后有一个0
 		assert(m_capacity > m_size + len);
-		char* ptr = &m_ptr;
+		char* ptr = m_ptr.Ptr();
 		memcpy(&ptr[m_size], buf, len);
 		ptr[len] = '\0';
 		m_size = len;

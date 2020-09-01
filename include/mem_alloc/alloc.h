@@ -37,13 +37,13 @@ public:
 	template <class T, typename... P>
 	ShmPointer<T> New(P&&... params) {
 		auto t = Malloc<T>();
-		::new (&t) T(std::forward<P>(params)...);
+		::new (t.Ptr()) T(std::forward<P>(params)...);
 		return t;
 	}
 
 	template <class T>
 	void Delete(ShmPointer<T>& p) {
-		(&p)->~T();
+		(p.Ptr())->~T();
 		Free(p);
 	}
 
