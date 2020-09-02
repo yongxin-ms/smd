@@ -28,6 +28,7 @@ public:
 
 	template <class T>
 	void Free(ShmPointer<T>& p, size_t n = 1) {
+		assert(p != shm_nullptr && p != 0);
 		auto size = sizeof(T) * n;
 		// m_log.DoLog(Log::LogLevel::kDebug, "free: 0x%p:(%d)", p, size);
 		_Free(p.Raw(), size);
