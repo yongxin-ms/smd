@@ -565,9 +565,9 @@ public:
 	void erase(iterator it) { m_tree.erase(it); }
 
 	//测试专用
-	bool MapEqual(const std::map<Key, Value>& stl_map) {
+	bool IsEqual(const std::map<Key, Value>& stl_map) {
 		if (size() != stl_map.size()) {
-			return false;
+			assert(false);
 		}
 
 		auto it = begin();
@@ -575,14 +575,21 @@ public:
 		int count = 0;
 		for (; it != end() && stl_it != stl_map.end(); ++it, ++stl_it) {
 			++count;
-			if (it->first != stl_it->first)
-				return false;
-			if (it->second != stl_it->second)
-				return false;
+			const Key& key1 = it->first;
+			const Key& key2 = stl_it->first;
+			if (key1 != key2) {
+				assert(false);
+			}
+
+			const Value& val1 = it->second;
+			const Value& val2 = stl_it->second;
+			if (val1 != val2) {
+				assert(false);
+			}
 		}
 
 		if (count != size()) {
-			return false;
+			assert(false);
 		}
 
 		return true;

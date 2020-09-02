@@ -116,7 +116,23 @@ public:
 	std::string ToString() const { return std::string(data(), size()); }
 
 	bool operator==(const ShmString& rhs) const {
-		return ((size() == rhs.size()) && (memcmp(data(), rhs.data(), size()) == 0));
+		auto p1 = data();
+		auto p2 = rhs.data();
+		return ((size() == rhs.size()) && (memcmp(p1, p2, size()) == 0));
+	}
+
+	//测试专用
+	bool IsEqual(const std::string& stl_str) {
+		if (size() != stl_str.size()) {
+			assert(false);
+		}
+
+		auto& str = ToString();
+		if (str != stl_str) {
+			assert(false);
+		}
+
+		return true;
 	}
 
 private:
