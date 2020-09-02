@@ -32,8 +32,11 @@ public:
 		g_alloc = &m_alloc;
 
 		if (create_new) {
-			// 这样能让以后分配的地址不会为0
-			g_alloc->Malloc<char>(1);
+
+			//
+			// 这样能让以后分配的地址不会为0，也不用回收
+			//
+			g_alloc->Malloc<char>();
 
 			if (m_allStrings != shm_nullptr && m_allStrings != 0) {
 				m_alloc.Delete(m_allStrings);
@@ -102,10 +105,11 @@ public:
 		return true;
 	}
 
-	// 还需要一个遍历接口
-
 	Log& GetLog() { return m_log; }
 
+	//
+	// 内置string, list, map, hash四种数据类型
+	//
 	ShmMap<ShmString, ShmString>& GetAllStrings() { return *m_allStrings; }
 	ShmMap<ShmString, ShmList<ShmString>>& GetAllLists() { return *m_allLists; }
 	ShmMap<ShmString, ShmMap<ShmString, ShmString>>& GetAllMaps() { return *m_allMaps; }

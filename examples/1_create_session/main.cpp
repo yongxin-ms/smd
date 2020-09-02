@@ -4,7 +4,7 @@
 #include "smd.h"
 #include "util.h"
 
-void TestPointer(smd::Env* env) {
+void TestPointer(smd::Log& log) {
 	auto mem_usage = smd::g_alloc->GetUsed();
 
 	// 开辟共享内存
@@ -12,7 +12,7 @@ void TestPointer(smd::Env* env) {
 	assert(shm_ptr != smd::shm_nullptr);
 
 	// 指针在共享内存中的相对位置
-	env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "Raw pointer:%ll", shm_ptr.Raw());
+	log.DoLog(smd::Log::LogLevel::kInfo, "Raw pointer:%lld", shm_ptr.Raw());
 
 	// 访问
 	*shm_ptr = 10;
@@ -25,10 +25,10 @@ void TestPointer(smd::Env* env) {
 
 	// 没有内存泄露
 	assert(mem_usage == smd::g_alloc->GetUsed());
-	env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "TestPointer complete");
+	log.DoLog(smd::Log::LogLevel::kInfo, "TestPointer complete");
 }
 
-void TestArrayPointer(smd::Env* env) {
+void TestArrayPointer(smd::Log& log) {
 	auto mem_usage = smd::g_alloc->GetUsed();
 	const size_t ARRAY_SIZE = 16;
 
@@ -37,7 +37,7 @@ void TestArrayPointer(smd::Env* env) {
 	assert(shm_ptr != smd::shm_nullptr);
 
 	// 指针在共享内存中的相对位置
-	env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "Raw pointer:%ll", shm_ptr.Raw());
+	log.DoLog(smd::Log::LogLevel::kInfo, "Raw pointer:%lld", shm_ptr.Raw());
 
 	// 随机访问
 	for (int i = 0; i < ARRAY_SIZE; i++) {
@@ -46,13 +46,13 @@ void TestArrayPointer(smd::Env* env) {
 
 	// 随机访问
 	for (int i = 0; i < ARRAY_SIZE; i++) {
-		env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "Array[%d] = %d", i, shm_ptr[i]);
+		log.DoLog(smd::Log::LogLevel::kInfo, "Array[%d] = %d", i, shm_ptr[i]);
 	}
 
 	//和普通指针一样可以++
 	auto p = shm_ptr;
 	for (int i = 0; i < ARRAY_SIZE; i++, p++) {
-		env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "Array[%d] = %d", i, *p);
+		log.DoLog(smd::Log::LogLevel::kInfo, "Array[%d] = %d", i, *p);
 	}
 
 	// 回收共享内存
@@ -61,10 +61,10 @@ void TestArrayPointer(smd::Env* env) {
 
 	// 没有内存泄露
 	assert(mem_usage == smd::g_alloc->GetUsed());
-	env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "TestPointer complete");
+	log.DoLog(smd::Log::LogLevel::kInfo, "TestPointer complete");
 }
 
-void TestPointerToObject(smd::Env* env) {
+void TestPointerToObject(smd::Log& log) {
 	auto mem_usage = smd::g_alloc->GetUsed();
 
 	struct StA {
@@ -86,7 +86,7 @@ void TestPointerToObject(smd::Env* env) {
 	assert(shm_ptr != smd::shm_nullptr);
 
 	// 指针在共享内存中的相对位置
-	env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "Raw pointer:%ll", shm_ptr.Raw());
+	log.DoLog(smd::Log::LogLevel::kInfo, "Raw pointer:%lld", shm_ptr.Raw());
 
 	// 访问
 	shm_ptr->m_b1 = 10;
@@ -103,10 +103,10 @@ void TestPointerToObject(smd::Env* env) {
 
 	// 没有内存泄露
 	assert(mem_usage == smd::g_alloc->GetUsed());
-	env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "TestPointer complete");
+	log.DoLog(smd::Log::LogLevel::kInfo, "TestPointer complete");
 }
 
-void TestShmString(smd::Env* env) {
+void TestShmString(smd::Log& log) {
 	auto mem_usage = smd::g_alloc->GetUsed();
 	auto s = smd::g_alloc->New<smd::ShmString>(16);
 	assert(s->capacity() > 16);
@@ -170,10 +170,10 @@ void TestShmString(smd::Env* env) {
 	assert(s == smd::shm_nullptr);
 	assert(mem_usage == smd::g_alloc->GetUsed());
 
-	env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "TestShmString complete");
+	log.DoLog(smd::Log::LogLevel::kInfo, "TestShmString complete");
 }
 
-void TestShmList(smd::Env* env) {
+void TestShmList(smd::Log& log) {
 	auto mem_usage = smd::g_alloc->GetUsed();
 
 	auto l = smd::g_alloc->New<smd::ShmList<smd::ShmString>>();
@@ -283,10 +283,10 @@ void TestShmList(smd::Env* env) {
 	assert(l == smd::shm_nullptr);
 
 	assert(mem_usage == smd::g_alloc->GetUsed());
-	env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "TestShmList complete");
+	log.DoLog(smd::Log::LogLevel::kInfo, "TestShmList complete");
 }
 
-void TestShmListPod(smd::Env* env) {
+void TestShmListPod(smd::Log& log) {
 	struct StMyData {
 		uint64_t role_id_;
 		int hp_;
@@ -308,10 +308,10 @@ void TestShmListPod(smd::Env* env) {
 	smd::g_alloc->Delete(l);
 	assert(l == smd::shm_nullptr);
 	assert(mem_usage == smd::g_alloc->GetUsed());
-	env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "TestShmListPod complete");
+	log.DoLog(smd::Log::LogLevel::kInfo, "TestShmListPod complete");
 }
 
-void TestShmVector(smd::Env* env) {
+void TestShmVector(smd::Log& log) {
 	auto mem_usage = smd::g_alloc->GetUsed();
 	auto v = smd::g_alloc->New<smd::ShmVector<smd::ShmString>>();
 
@@ -383,10 +383,10 @@ void TestShmVector(smd::Env* env) {
 	assert(v == smd::shm_nullptr);
 	assert(mem_usage == smd::g_alloc->GetUsed());
 
-	env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "TestShmVector complete");
+	log.DoLog(smd::Log::LogLevel::kInfo, "TestShmVector complete");
 }
 
-void TestShmVectorResize(smd::Env* env) {
+void TestShmVectorResize(smd::Log& log) {
 	auto mem_usage = smd::g_alloc->GetUsed();
 	auto v = smd::g_alloc->New<smd::ShmVector<smd::ShmString>>(64);
 	v->resize(v->capacity(), smd::ShmString(""));
@@ -395,10 +395,10 @@ void TestShmVectorResize(smd::Env* env) {
 	assert(v == smd::shm_nullptr);
 	assert(mem_usage == smd::g_alloc->GetUsed());
 
-	env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "TestShmVectorResize complete");
+	log.DoLog(smd::Log::LogLevel::kInfo, "TestShmVectorResize complete");
 }
 
-void TestShmVectorPod(smd::Env* env) {
+void TestShmVectorPod(smd::Log& log) {
 	struct StMyData {
 		uint64_t role_id_;
 		int hp_;
@@ -420,10 +420,10 @@ void TestShmVectorPod(smd::Env* env) {
 	smd::g_alloc->Delete(v);
 	assert(v == smd::shm_nullptr);
 	assert(mem_usage == smd::g_alloc->GetUsed());
-	env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "TestShmVectorPod complete");
+	log.DoLog(smd::Log::LogLevel::kInfo, "TestShmVectorPod complete");
 }
 
-void TestHash(smd::Env* env) {
+void TestHash(smd::Log& log) {
 	auto mem_usage = smd::g_alloc->GetUsed();
 	auto h = smd::g_alloc->New<smd::ShmHash<smd::ShmString>>();
 
@@ -446,7 +446,7 @@ void TestHash(smd::Env* env) {
 	assert(h->count(smd::ShmString("will")));
 
 	for (auto it = h->begin(); it != h->end(); ++it) {
-		env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "%s", it->ToString().data());
+		log.DoLog(smd::Log::LogLevel::kInfo, "%s", it->ToString().data());
 	}
 
 	for (auto it = h->begin(); it != h->end();) {
@@ -462,10 +462,10 @@ void TestHash(smd::Env* env) {
 	assert(h == smd::shm_nullptr);
 	assert(mem_usage == smd::g_alloc->GetUsed());
 
-	env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "TestHash complete");
+	log.DoLog(smd::Log::LogLevel::kInfo, "TestHash complete");
 }
 
-void TestHashPod(smd::Env* env) {
+void TestHashPod(smd::Log& log) {
 	auto mem_usage = smd::g_alloc->GetUsed();
 	auto h = smd::g_alloc->New<smd::ShmHash<uint64_t>>();
 	auto h_ref = smd::g_alloc->New<smd::ShmHash<uint64_t>>();
@@ -490,7 +490,7 @@ void TestHashPod(smd::Env* env) {
 	assert(h->find(1000) == h->end());
 
 	for (auto it = h->begin(); it != h->end(); ++it) {
-		env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "%llu", *it);
+		log.DoLog(smd::Log::LogLevel::kInfo, "%llu", *it);
 	}
 
 	for (auto it = h->begin(); it != h->end();) {
@@ -507,10 +507,10 @@ void TestHashPod(smd::Env* env) {
 	assert(h == smd::shm_nullptr);
 	assert(mem_usage == smd::g_alloc->GetUsed());
 
-	env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "TestHashPod complete");
+	log.DoLog(smd::Log::LogLevel::kInfo, "TestHashPod complete");
 }
 
-void TestMapString(smd::Env* env) {
+void TestMapString(smd::Log& log) {
 	auto mem_usage = smd::g_alloc->GetUsed();
 	auto m = smd::g_alloc->New<smd::ShmMap<smd::ShmString, smd::ShmString>>();
 
@@ -530,7 +530,7 @@ void TestMapString(smd::Env* env) {
 	for (auto it = m->begin(); it != m->end(); ++it) {
 		const auto& k = it->first;
 		const auto& v = it->second;
-		env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "%s, %s", k.data(), v.data());
+		log.DoLog(smd::Log::LogLevel::kInfo, "%s, %s", k.data(), v.data());
 	}
 
 	m->clear();
@@ -544,10 +544,10 @@ void TestMapString(smd::Env* env) {
 	assert(m == smd::shm_nullptr);
 	assert(mem_usage == smd::g_alloc->GetUsed());
 
-	env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "TestMapString complete");
+	log.DoLog(smd::Log::LogLevel::kInfo, "TestMapString complete");
 }
 
-void TestMapPod(smd::Env* env) {
+void TestMapPod(smd::Log& log) {
 	auto mem_usage = smd::g_alloc->GetUsed();
 	auto m = smd::g_alloc->New<smd::ShmMap<uint64_t, uint64_t>>();
 
@@ -572,7 +572,7 @@ void TestMapPod(smd::Env* env) {
 	for (auto it = m->begin(); it != m->end(); ++it) {
 		const auto& k = it->first;
 		const auto& v = it->second;
-		env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "%llu, %llu", k, v);
+		log.DoLog(smd::Log::LogLevel::kInfo, "%llu, %llu", k, v);
 	}
 
 	m->clear();
@@ -588,7 +588,7 @@ void TestMapPod(smd::Env* env) {
 	assert(m == smd::shm_nullptr);
 	assert(mem_usage == smd::g_alloc->GetUsed());
 
-	env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "TestMapPod complete");
+	log.DoLog(smd::Log::LogLevel::kInfo, "TestMapPod complete");
 }
 
 int main() {
@@ -618,20 +618,21 @@ int main() {
 	// auto env = mgr->CreateEnv(GUID, 20, smd::kOpenExist);
 	auto env = mgr->CreateEnv(GUID, 20, smd::kCreateAlways);
 	assert(env != nullptr);
+	auto& log = env->GetLog();
 
-	TestPointer(env);
-	TestArrayPointer(env);
-	TestPointerToObject(env);
-	TestShmString(env);
-	TestShmList(env);
-	TestShmListPod(env);
-	TestShmVector(env);
-	TestShmVectorResize(env);
-	TestShmVectorPod(env);
-	TestHash(env);
-	TestHashPod(env);
-	TestMapString(env);
-	TestMapPod(env);
+	TestPointer(log);
+	TestArrayPointer(log);
+	TestPointerToObject(log);
+	TestShmString(log);
+	TestShmList(log);
+	TestShmListPod(log);
+	TestShmVector(log);
+	TestShmVectorResize(log);
+	TestShmVectorPod(log);
+	TestHash(log);
+	TestHashPod(log);
+	TestMapString(log);
+	TestMapPod(log);
 
 	std::string key("StartCounter");
 	smd::Slice value;
@@ -642,10 +643,10 @@ int main() {
 		count++;
 		env->SSet(key, std::to_string(count));
 
-		env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "%s is %d", key.data(), count);
+		log.DoLog(smd::Log::LogLevel::kInfo, "%s is %d", key.data(), count);
 	} else {
 		// 如果不存在
-		env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "first time run");
+		log.DoLog(smd::Log::LogLevel::kInfo, "first time run");
 
 		count = 1;
 		env->SSet(key, std::to_string(count));
@@ -671,7 +672,7 @@ int main() {
 		const auto& key = it->first;
 		const auto& value = it->second;
 
-		env->GetLog().DoLog(smd::Log::LogLevel::kInfo, "Key:%s Value:%s", key.ToString().data(),
+		log.DoLog(smd::Log::LogLevel::kInfo, "Key:%s Value:%s", key.ToString().data(),
 			value.ToString().data());
 	}
 
