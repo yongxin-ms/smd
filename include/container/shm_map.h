@@ -81,26 +81,18 @@ ShmPointer<rbtree_node<Value>> RBTreeMaximum(ShmPointer<rbtree_node<Value>> p) {
 template <typename T, typename Pointer, typename Reference>
 struct rbtree_iterator {
 	typedef rbtree_iterator<T, Pointer, Reference> this_type;
-	typedef rbtree_iterator<T, T*, T&> iterator;
-	typedef rbtree_iterator<T, const T*, const T&> const_iterator;
 
-	typedef ptrdiff_t difference_type;
-	typedef T value_type;
-	typedef rbtree_node<T> node_type;
-	typedef Pointer pointer;
-	typedef Reference reference;
-
-	ShmPointer<node_type> p;
+	ShmPointer<rbtree_node<T>> p;
 
 	rbtree_iterator()
 		: p(shm_nullptr) {}
-	rbtree_iterator(ShmPointer<node_type> pNode)
+	rbtree_iterator(ShmPointer<rbtree_node<T>> pNode)
 		: p(pNode) {}
 	rbtree_iterator(const this_type& x)
 		: p(x.p) {}
 
-	reference operator*() const { return p->value; }
-	pointer operator->() const { return &(p->value); }
+	Reference operator*() const { return p->value; }
+	Pointer operator->() const { return &(p->value); }
 
 	rbtree_iterator& operator++() {
 		p = RBTreeIncrement(p);
@@ -131,30 +123,21 @@ struct rbtree_iterator {
 template <typename Key, typename Value, typename Compare>
 class rb_tree {
 public:
-	typedef rbtree_node_color color_type;
-	typedef ptrdiff_t difference_type;
-	typedef size_t size_type;
-	typedef Key key_type;
+	typedef rb_tree<Key, Value, Compare> this_type;
 	typedef shm_pair<Key, Value> value_type;
-	typedef value_type* pointer;
-	typedef value_type& reference;
-	typedef const value_type* const_pointer;
-	typedef const value_type& const_reference;
-
-	typedef rbtree_node<value_type> rbtreeNode;
-	typedef ShmPointer<rbtreeNode> rbtree_node_ptr;
-
-public:
-	typedef rbtree_iterator<value_type, pointer, reference> iterator;
-	typedef rbtree_iterator<value_type, const_pointer, const_reference> const_iterator;
+	typedef ShmPointer<rbtree_node<value_type>> rbtree_node_ptr;
+	typedef rbtree_iterator<value_type, value_type*, value_type&> iterator;
+	typedef rbtree_iterator<value_type, const value_type*, const value_type&> const_iterator;
 
 protected:
 	rbtree_node_ptr header;
-	size_type node_count;
+	size_t node_count;
 	Compare key_compare;
 
 protected:
-	rbtree_node_ptr createNode(const value_type& val) { return g_alloc->New<rbtreeNode>(val); }
+	rbtree_node_ptr createNode(const value_type& val) {
+		return g_alloc->New<rbtree_node<value_type>>(val);
+	}
 	void deleteNode(rbtree_node_ptr p) { g_alloc->Delete(p); }
 
 public:
@@ -167,7 +150,7 @@ public:
 		root() = shm_nullptr;
 	}
 
-	rb_tree(const rb_tree<Key, Value, Compare>& r)
+	rb_tree(const this_type& r)
 		: node_count(r.size()) {
 		header = createNode(r.header->value);
 		leftmost() = header;
@@ -180,7 +163,7 @@ public:
 		}
 	}
 
-	rb_tree& operator=(const rb_tree<Key, Value, Compare>& r) {
+	this_type& operator=(const this_type& r) {
 		if (this != &r) {
 			rb_tree(r).swap(*this);
 		}
@@ -200,9 +183,9 @@ protected:
 	static rbtree_node_ptr& left(rbtree_node_ptr x) { return x->left; }
 	static rbtree_node_ptr& right(rbtree_node_ptr x) { return x->right; }
 	static rbtree_node_ptr& parent(rbtree_node_ptr x) { return x->parent; }
-	static reference value(rbtree_node_ptr x) { return x->value; }
-	static const key_type& key(rbtree_node_ptr x) { return (value(x)).first; }
-	static color_type& color(rbtree_node_ptr x) { return x->color; }
+	static value_type& value(rbtree_node_ptr x) { return x->value; }
+	static const Key& key(rbtree_node_ptr x) { return (value(x)).first; }
+	static rbtree_node_color& color(rbtree_node_ptr x) { return x->color; }
 
 public:
 	iterator begin() { return iterator(leftmost()); }
@@ -211,8 +194,8 @@ public:
 	iterator end() { return iterator(header); }
 	const_iterator end() const { return const_iterator(header); }
 
-	size_type size() const { return node_count; }
-	size_type max_size() const { return size_type(-1); }
+	size_t size() const { return node_count; }
+	size_t max_size() const { return size_t(-1); }
 
 	bool empty() const { return node_count == 0; }
 
@@ -477,7 +460,7 @@ protected:
 		return y;
 	}
 
-	rbtree_node_ptr findRBTree(const key_type& k, bool& isFind) {
+	rbtree_node_ptr findRBTree(const Key& k, bool& isFind) {
 		auto res = parent(header);
 		isFind = false;
 		while (res != shm_nullptr) {
@@ -546,7 +529,7 @@ public:
 		--node_count;
 	}
 
-	iterator find(const key_type& k) {
+	iterator find(const Key& k) {
 		bool isFind = false;
 		auto res = findRBTree(k, isFind);
 		if (isFind) {
