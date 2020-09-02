@@ -505,6 +505,9 @@ void TestHashPod(smd::Log& log) {
 	assert(h->size() == 0);
 	smd::g_alloc->Delete(h);
 	assert(h == smd::shm_nullptr);
+
+	smd::g_alloc->Delete(h_ref);
+	assert(h_ref == smd::shm_nullptr);
 	assert(mem_usage == smd::g_alloc->GetUsed());
 
 	log.DoLog(smd::Log::LogLevel::kInfo, "TestHashPod complete");
@@ -652,7 +655,7 @@ int main() {
 		env->SSet(key, std::to_string(count));
 	}
 
-	// auto& all_strings = env->GetAllStrings();
+	//auto& all_strings = env->GetAllStrings();
 	auto& all_strings = *smd::g_alloc->New<smd::ShmMap<smd::ShmString, smd::ShmString>>();
 
 	// 	all_strings.insert(make_pair(smd::ShmString("will1"), smd::ShmString("1")));

@@ -141,7 +141,7 @@ protected:
 	void deleteNode(rbtree_node_ptr p) { g_alloc->Delete(p); }
 
 public:
-	rb_tree()
+	rb_tree(const Compare& comp)
 		: node_count(0) {
 		header = createNode(value_type());
 		leftmost() = header;
@@ -151,7 +151,8 @@ public:
 	}
 
 	rb_tree(const this_type& r)
-		: node_count(r.size()) {
+		: node_count(r.size())
+		, key_compare(r.key_compare) {
 		header = createNode(r.header->value);
 		leftmost() = header;
 		rightmost() = header;
@@ -190,13 +191,10 @@ protected:
 public:
 	iterator begin() { return iterator(leftmost()); }
 	const_iterator begin() const { return const_iterator(leftmost()); }
-
 	iterator end() { return iterator(header); }
 	const_iterator end() const { return const_iterator(header); }
-
 	size_t size() const { return node_count; }
 	size_t max_size() const { return size_t(-1); }
-
 	bool empty() const { return node_count == 0; }
 
 protected:
@@ -546,7 +544,8 @@ public:
 	typedef typename rb_tree<Key, Value, Compare>::value_type valueType;
 	typedef typename rb_tree<Key, Value, Compare>::iterator iterator;
 
-	ShmMap() {}
+	ShmMap()
+		: m_tree(Compare()) {}
 	ShmMap(const ShmMap<Key, Value, Compare>& r)
 		: m_tree(r.m_tree) {}
 
