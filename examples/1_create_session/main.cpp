@@ -515,20 +515,31 @@ void TestHashPod(smd::Log& log) {
 
 void TestMapString(smd::Log& log) {
 	auto mem_usage = smd::g_alloc->GetUsed();
-	auto m = smd::g_alloc->New<smd::ShmMap<smd::ShmString, smd::ShmString>>();
+	auto m = smd::g_alloc->New<smd::ShmMap<smd::ShmString, smd::ShmString>>().Ptr();
+	std::map<smd::ShmString, smd::ShmString> map_ref;
 
-	const size_t COUNT = 100;
-	for (size_t i = 0; i < COUNT; ++i) {
-		Util::Text::Format("TestText%02d", i);
-		auto key = smd::ShmString(Util::Text::Format("Key%02d", i));
-		auto value = smd::ShmString(Util::Text::Format("Value%02d", i));
+	std::vector<int> vRoleIds;
+	const size_t COUNT = 10000;
+	for (size_t i = 0; i < COUNT; i++) {
+		vRoleIds.push_back(i);
+	}
+
+	std::random_shuffle(vRoleIds.begin(), vRoleIds.end());
+
+	for (size_t i = 0; i < vRoleIds.size(); i++) {
+		auto key = smd::ShmString(Util::Text::Format("Key%05d", vRoleIds[i]));
+		auto value = smd::ShmString(Util::Text::Format("Value%05d", vRoleIds[i]));
+
 		m->insert(smd::make_pair(key, value));
+		map_ref.insert(std::make_pair(key, value));
+
+		assert(m->MapEqual(map_ref));
 	}
 
 	assert(m->size() == COUNT);
-	assert(m->find(smd::ShmString(Util::Text::Format("Key%02d", 3))) != m->end());
-	assert(m->find(smd::ShmString(Util::Text::Format("Key%02d", 8))) != m->end());
-	assert(m->find(smd::ShmString(Util::Text::Format("Key%02d", COUNT))) == m->end());
+	assert(m->find(smd::ShmString(Util::Text::Format("Key%05d", 3))) != m->end());
+	assert(m->find(smd::ShmString(Util::Text::Format("Key%05d", 8))) != m->end());
+	assert(m->find(smd::ShmString(Util::Text::Format("Key%05d", COUNT))) == m->end());
 
 	for (auto it = m->begin(); it != m->end(); ++it) {
 		const auto& k = it->first;
@@ -538,13 +549,15 @@ void TestMapString(smd::Log& log) {
 
 	m->clear();
 
-	assert(m->find(smd::ShmString(Util::Text::Format("Key%02d", 3))) == m->end());
-	assert(m->find(smd::ShmString(Util::Text::Format("Key%02d", 8))) == m->end());
-	assert(m->find(smd::ShmString(Util::Text::Format("Key%02d", COUNT))) == m->end());
+	assert(m->find(smd::ShmString(Util::Text::Format("Key%05d", 3))) == m->end());
+	assert(m->find(smd::ShmString(Util::Text::Format("Key%05d", 8))) == m->end());
+	assert(m->find(smd::ShmString(Util::Text::Format("Key%05d", COUNT))) == m->end());
 
 	assert(m->size() == 0);
 	smd::g_alloc->Delete(m);
-	assert(m == smd::shm_nullptr);
+	assert(m == nullptr);
+	map_ref.clear();
+
 	assert(mem_usage == smd::g_alloc->GetUsed());
 
 	log.DoLog(smd::Log::LogLevel::kInfo, "TestMapString complete");
@@ -553,9 +566,10 @@ void TestMapString(smd::Log& log) {
 void TestMapPod(smd::Log& log) {
 	auto mem_usage = smd::g_alloc->GetUsed();
 	auto m = smd::g_alloc->New<smd::ShmMap<uint64_t, uint64_t>>();
+	std::map<uint64_t, uint64_t> map_ref;
 
 	std::vector<uint64_t> vRoleIds;
-	const size_t COUNT = 100;
+	const size_t COUNT = 10000;
 	for (size_t i = 0; i < COUNT; i++) {
 		vRoleIds.push_back(i);
 	}
@@ -564,7 +578,12 @@ void TestMapPod(smd::Log& log) {
 
 	for (size_t i = 0; i < vRoleIds.size(); i++) {
 		const auto& role_id = vRoleIds[i];
-		m->insert(smd::make_pair(role_id, role_id * 10));
+		auto value = role_id * 10;
+
+		m->insert(smd::make_pair(role_id, value));
+		map_ref.insert(std::make_pair(role_id, value));
+
+		assert(m->MapEqual(map_ref));
 	}
 
 	assert(m->size() == COUNT);
@@ -618,24 +637,24 @@ int main() {
 	});
 
 	const std::string GUID("0x1001187fb");
-	// auto env = mgr->CreateEnv(GUID, 20, smd::kOpenExist);
-	auto env = mgr->CreateEnv(GUID, 20, smd::kCreateAlways);
+	// auto env = mgr->CreateEnv(GUID, 28, smd::kOpenExist);
+	auto env = mgr->CreateEnv(GUID, 28, smd::kCreateAlways);
 	assert(env != nullptr);
 	auto& log = env->GetLog();
 
-	TestPointer(log);
-	TestArrayPointer(log);
-	TestPointerToObject(log);
-	TestShmString(log);
-	TestShmList(log);
-	TestShmListPod(log);
-	TestShmVector(log);
-	TestShmVectorResize(log);
-	TestShmVectorPod(log);
-	TestHash(log);
-	TestHashPod(log);
+// 	TestPointer(log);
+// 	TestArrayPointer(log);
+// 	TestPointerToObject(log);
+// 	TestShmString(log);
+// 	TestShmList(log);
+// 	TestShmListPod(log);
+// 	TestShmVector(log);
+// 	TestShmVectorResize(log);
+// 	TestShmVectorPod(log);
+// 	TestHash(log);
+// 	TestHashPod(log);
 	TestMapString(log);
-	TestMapPod(log);
+// 	TestMapPod(log);
 
 	std::string key("StartCounter");
 	smd::Slice value;

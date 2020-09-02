@@ -88,8 +88,7 @@ struct rbtree_iterator {
 		: p(shm_nullptr) {}
 	rbtree_iterator(ShmPointer<rbtree_node<T>> pNode)
 		: p(pNode) {}
-	rbtree_iterator(const this_type& x)
-		: p(x.p) {}
+	rbtree_iterator(const this_type& x) = default;
 
 	Reference operator*() const { return p->value; }
 	Pointer operator->() const { return &(p->value); }
@@ -564,6 +563,31 @@ public:
 	iterator end() { return m_tree.end(); }
 	iterator find(const Key& k) { return m_tree.find(k); }
 	void erase(iterator it) { m_tree.erase(it); }
+
+	//测试专用
+	bool MapEqual(const std::map<Key, Value>& stl_map) {
+		if (size() != stl_map.size()) {
+			return false;
+		}
+
+		auto it = begin();
+		auto stl_it = stl_map.begin();
+		int count = 0;
+		for (; it != end() && stl_it != stl_map.end(); ++it, ++stl_it) {
+			++count;
+			if (it->first != stl_it->first)
+				return false;
+			if (it->second != stl_it->second)
+				return false;
+		}
+
+		if (count != size()) {
+			return false;
+		}
+
+		return true;
+	}
+
 
 private:
 	rb_tree<Key, Value, Compare> m_tree;
