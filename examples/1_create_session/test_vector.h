@@ -121,4 +121,22 @@ private:
 		assert(mem_usage == smd::g_alloc->GetUsed());
 		log.DoLog(smd::Log::LogLevel::kInfo, "TestShmVectorPod complete");
 	}
+
+private:
+	//测试专用
+	bool IsEqual(smd::ShmVector<smd::ShmString>& l, const std::vector<std::string>& r) {
+		if (l.size() != r.size()) {
+			assert(false);
+		}
+
+		for (int i = 0; i < l.size(); i++) {
+			const auto& key1 = l.operator[](i);
+			const auto& key2 = r[i];
+			if (key1 != key2) {
+				assert(false);
+			}
+		}
+
+		return true;
+	}
 };

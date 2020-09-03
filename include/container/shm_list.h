@@ -198,31 +198,6 @@ public:
 		return res;
 	}
 
-	//测试专用
-	bool IsEqual(const std::list<T>& stl_list) {
-		if (size() != stl_list.size()) {
-			assert(false);
-		}
-
-		auto it = begin();
-		auto stl_it = stl_list.begin();
-		int count = 0;
-		for (; it != end() && stl_it != stl_list.end(); ++it, ++stl_it) {
-			++count;
-			const T& key1 = *it;
-			const T& key2 = *stl_it;
-			if (key1 != key2) {
-				assert(false);
-			}
-		}
-
-		if (count != size()) {
-			assert(false);
-		}
-
-		return true;
-	}
-
 private:
 	nodePtr NewNode(const T& val) {
 		auto p = g_alloc->New<ListNode<T>>(

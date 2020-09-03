@@ -1,5 +1,4 @@
 ﻿#pragma once
-#include <vector>
 #include "shm_pointer.h"
 
 namespace smd {
@@ -119,23 +118,6 @@ public:
 				pop_back();
 			}
 		}
-	}
-
-	//测试专用
-	bool IsEqual(const std::vector<T>& stl_list) {
-		if (size() != stl_list.size()) {
-			assert(false);
-		}
-
-		for (int i = 0; i < size(); i++) {
-			const T& key1 = operator[](i);
-			const T& key2 = stl_list[i];
-			if (key1 != key2) {
-				assert(false);
-			}
-		}
-
-		return true;
 	}
 
 private:

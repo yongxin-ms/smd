@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include <list>
 #include "smd.h"
 
 class TestList {
@@ -126,7 +127,7 @@ private:
 	void TestListEqual(smd::Log& log) {
 		auto mem_usage = smd::g_alloc->GetUsed();
 		auto l = smd::g_alloc->New<smd::ShmList<smd::ShmString>>().Ptr();
-		std::list<smd::ShmString> list_ref;
+		std::list<std::string> list_ref;
 
 		std::vector<int> vRoleIds;
 		const size_t COUNT = 1000;
@@ -137,11 +138,11 @@ private:
 		std::random_shuffle(vRoleIds.begin(), vRoleIds.end());
 
 		for (size_t i = 0; i < vRoleIds.size(); i++) {
-			auto key = smd::ShmString(Util::Text::Format("Key%05d", vRoleIds[i]));
+			auto key = Util::Text::Format("Key%05d", vRoleIds[i]);
 
 			l->push_back(key);
 			list_ref.push_back(key);
-			assert(l->IsEqual(list_ref));
+			assert(IsEqual(*l, list_ref));
 		}
 
 		smd::g_alloc->Delete(l);
@@ -175,5 +176,31 @@ private:
 		assert(l == smd::shm_nullptr);
 		assert(mem_usage == smd::g_alloc->GetUsed());
 		log.DoLog(smd::Log::LogLevel::kInfo, "TestShmListPod complete");
+	}
+
+private:
+	//测试专用
+	bool IsEqual(smd::ShmList<smd::ShmString>& l, const std::list<std::string>& r) {
+		if (l.size() != r.size()) {
+			assert(false);
+		}
+
+		auto it = l.begin();
+		auto stl_it = r.begin();
+		int count = 0;
+		for (; it != l.end() && stl_it != r.end(); ++it, ++stl_it) {
+			++count;
+			const auto& key1 = *it;
+			const auto& key2 = *stl_it;
+			if (key1 != key2) {
+				assert(false);
+			}
+		}
+
+		if (count != l.size()) {
+			assert(false);
+		}
+
+		return true;
 	}
 };
