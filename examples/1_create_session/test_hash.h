@@ -4,98 +4,179 @@
 class TestHash {
 public:
 	TestHash(smd::Log& log) {
-		TestHashBasic(log);
 		TestHashPod(log);
+		TestHashString(log);
 	}
 
 private:
-	void TestHashBasic(smd::Log& log) {
+	void TestHashString(smd::Log& log) {
 		auto mem_usage = smd::g_alloc->GetUsed();
-		auto h = smd::g_alloc->New<smd::ShmHash<smd::ShmString>>();
+		auto obj = smd::g_alloc->New<smd::ShmHash<smd::ShmString>>().Ptr();
+		std::unordered_set<std::string> ref;
 
-		assert(h->size() == 0);
-		h->insert(smd::ShmString("hello"));
-		assert(h->size() == 1);
-		assert((*h->begin()).ToString() == "hello");
-		assert(h->count(smd::ShmString("hello")));
-		h->clear();
+		std::vector<int> vRoleIds;
+		const size_t COUNT = 1000;
+		for (size_t i = 0; i < COUNT; i++) {
+			vRoleIds.push_back(i);
+		}
+		std::random_shuffle(vRoleIds.begin(), vRoleIds.end());
 
-		h->insert(smd::ShmString("hello"));
-		h->insert(smd::ShmString("world"));
-		assert(h->size() == 2);
-		assert((*h->begin()).ToString() == "hello");
-		assert(h->count(smd::ShmString("world")));
+		for (size_t i = 0; i < vRoleIds.size(); i++) {
+			auto key = GetKey(vRoleIds[i]);
 
-		h->insert(smd::ShmString("will"));
-		assert(h->size() == 3);
-		assert((*h->begin()).ToString() == "hello");
-		assert(h->count(smd::ShmString("will")));
+			obj->insert(smd::ShmString(key));
+			ref.insert(key);
 
-		for (auto it = h->begin(); it != h->end(); ++it) {
-			log.DoLog(smd::Log::LogLevel::kInfo, "%s", it->ToString().data());
+			// 插入相同的数据，这两个map应该完全相同
+			assert(IsEqual(*obj, ref));
 		}
 
-		for (auto it = h->begin(); it != h->end();) {
-			it = h->erase(it);
+		assert(obj->size() == COUNT);
+		assert(obj->find(GetKey(3)) != obj->end());
+		assert(obj->find(GetKey(8)) != obj->end());
+		assert(obj->find(GetKey(COUNT)) == obj->end());
+
+		for (auto it = obj->begin(); it != obj->end(); ++it) {
+			const auto& k = *it;
+			log.DoLog(smd::Log::LogLevel::kInfo, "%s", k.data());
 		}
 
-		assert(h->find(smd::ShmString("hello")) == h->end());
-		assert(h->find(smd::ShmString("world")) == h->end());
-		assert(h->find(smd::ShmString("will")) == h->end());
+		for (size_t i = 0; i < vRoleIds.size(); i++) {
+			auto key = GetKey(vRoleIds[i]);
 
-		assert(h->size() == 0);
-		smd::g_alloc->Delete(h);
-		assert(h == smd::shm_nullptr);
+			auto itm = obj->find(key);
+			assert(itm != obj->end());
+			obj->erase(itm);
+
+			auto it_ref = ref.find(key);
+			assert(it_ref != ref.end());
+			ref.erase(it_ref);
+
+			// 删除相同的数据，这两个map应该完全相同
+			assert(IsEqual(*obj, ref));
+		}
+
+		assert(obj->find(GetKey(3)) == obj->end());
+		assert(obj->find(GetKey(8)) == obj->end());
+		assert(obj->find(GetKey(COUNT)) == obj->end());
+
+		assert(obj->size() == 0);
+		smd::g_alloc->Delete(obj);
+		assert(obj == nullptr);
+		ref.clear();
+
 		assert(mem_usage == smd::g_alloc->GetUsed());
-
-		log.DoLog(smd::Log::LogLevel::kInfo, "TestHash complete");
+		log.DoLog(smd::Log::LogLevel::kInfo, "TestHashString complete");
 	}
 
 	void TestHashPod(smd::Log& log) {
 		auto mem_usage = smd::g_alloc->GetUsed();
-		auto h = smd::g_alloc->New<smd::ShmHash<uint64_t>>();
-		auto h_ref = smd::g_alloc->New<smd::ShmHash<uint64_t>>();
+		auto obj = smd::g_alloc->New<smd::ShmHash<uint64_t>>();
+		std::unordered_set<uint64_t> ref;
 
 		std::vector<uint64_t> vRoleIds;
-		for (size_t i = 0; i < 1000; i++) {
+		const size_t COUNT = 1000;
+		for (size_t i = 0; i < COUNT; i++) {
 			vRoleIds.push_back(i);
-			h_ref->insert(i);
 		}
 
-		random_shuffle(vRoleIds.begin(), vRoleIds.end());
+		std::random_shuffle(vRoleIds.begin(), vRoleIds.end());
 
 		for (size_t i = 0; i < vRoleIds.size(); i++) {
 			const auto& role_id = vRoleIds[i];
-			h->insert(role_id);
+
+			obj->insert(role_id);
+			ref.insert(role_id);
+
+			// 插入相同的数据，这两个map应该完全相同
+			assert(IsEqual(*obj, ref));
 		}
 
-		assert(h->size() == 1000);
-		assert(*h == *h_ref);
-		assert(h->find(1) != h->end());
-		assert(h->find(8) != h->end());
-		assert(h->find(1000) == h->end());
+		assert(obj->size() == COUNT);
+		assert(obj->find(3) != obj->end());
+		assert(obj->find(8) != obj->end());
+		assert(obj->find(COUNT) == obj->end());
 
-		for (auto it = h->begin(); it != h->end(); ++it) {
-			log.DoLog(smd::Log::LogLevel::kInfo, "%llu", *it);
+		for (auto it = obj->begin(); it != obj->end(); ++it) {
+			const auto& k = *it;
+			log.DoLog(smd::Log::LogLevel::kInfo, "%llu", k);
 		}
 
-		for (auto it = h->begin(); it != h->end();) {
-			it = h->erase(it);
+		for (size_t i = 0; i < vRoleIds.size(); i++) {
+			const auto& key = vRoleIds[i];
+
+			auto itm = obj->find(key);
+			assert(itm != obj->end());
+			obj->erase(itm);
+
+			auto it_ref = ref.find(key);
+			assert(it_ref != ref.end());
+			ref.erase(it_ref);
+
+			// 删除相同的数据，这两个map应该完全相同
+			assert(IsEqual(*obj, ref));
 		}
 
-		assert(h->size() == 0);
-		assert(h->find(1) == h->end());
-		assert(h->find(8) == h->end());
-		assert(h->find(1000) == h->end());
+		assert(obj->find(0) == obj->end());
+		assert(obj->find(8) == obj->end());
+		assert(obj->find(COUNT) == obj->end());
 
-		assert(h->size() == 0);
-		smd::g_alloc->Delete(h);
-		assert(h == smd::shm_nullptr);
+		assert(obj->size() == 0);
 
-		smd::g_alloc->Delete(h_ref);
-		assert(h_ref == smd::shm_nullptr);
+		smd::g_alloc->Delete(obj);
+		assert(obj == smd::shm_nullptr);
 		assert(mem_usage == smd::g_alloc->GetUsed());
 
-		log.DoLog(smd::Log::LogLevel::kInfo, "TestHashPod complete");
+		log.DoLog(smd::Log::LogLevel::kInfo, "TestMapPod complete");
+	}
+
+private:
+
+	static std::string GetKey(int key) {
+		return Util::Text::Format("Key%05d", key);
+	}
+
+	// 这段代码可以优化下，这里主要用于测试
+	bool IsEqual(smd::ShmHash<smd::ShmString>& l, const std::unordered_set<std::string>& r) {
+		if (l.size() != r.size())
+			return false;
+
+		for (auto it = l.begin(); it != l.end(); ++it) {
+			auto& key = *it;
+			if (r.find(key.ToString()) == r.end()) {
+				return false;
+			}
+		}
+
+		for (auto it = r.begin(); it != r.end(); ++it) {
+			const auto& key = *it;
+			if (l.find(smd::ShmString(key)) == l.end()) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	// 这段代码可以优化下，这里主要用于测试
+	bool IsEqual(smd::ShmHash<uint64_t>& l, const std::unordered_set<uint64_t>& r) {
+		if (l.size() != r.size())
+			return false;
+
+		for (auto it = l.begin(); it != l.end(); ++it) {
+			auto& key = *it;
+			if (r.find(key) == r.end()) {
+				return false;
+			}
+		}
+
+		for (auto it = r.begin(); it != r.end(); ++it) {
+			const auto& key = *it;
+			if (l.find(key) == l.end()) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 };

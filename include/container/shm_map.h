@@ -564,38 +564,6 @@ public:
 	iterator find(const Key& k) { return m_tree.find(k); }
 	void erase(iterator it) { m_tree.erase(it); }
 
-	//测试专用
-	bool IsEqual(const std::map<Key, Value>& stl_map) {
-		if (size() != stl_map.size()) {
-			assert(false);
-		}
-
-		auto it = begin();
-		auto stl_it = stl_map.begin();
-		int count = 0;
-		for (; it != end() && stl_it != stl_map.end(); ++it, ++stl_it) {
-			++count;
-			const Key& key1 = it->first;
-			const Key& key2 = stl_it->first;
-			if (key1 != key2) {
-				assert(false);
-			}
-
-			const Value& val1 = it->second;
-			const Value& val2 = stl_it->second;
-			if (val1 != val2) {
-				assert(false);
-			}
-		}
-
-		if (count != size()) {
-			assert(false);
-		}
-
-		return true;
-	}
-
-
 private:
 	rb_tree<Key, Value, Compare> m_tree;
 };

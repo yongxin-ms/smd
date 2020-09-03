@@ -4,55 +4,68 @@
 class TestMap {
 public:
 	TestMap(smd::Log& log) {
-		TestMapString(log);
 		TestMapPod(log);
+		TestMapString(log);
 	}
 
 private:
 	void TestMapString(smd::Log& log) {
 		auto mem_usage = smd::g_alloc->GetUsed();
-		auto m = smd::g_alloc->New<smd::ShmMap<smd::ShmString, smd::ShmString>>().Ptr();
-		std::map<smd::ShmString, smd::ShmString> map_ref;
+		auto obj = smd::g_alloc->New<smd::ShmMap<smd::ShmString, smd::ShmString>>().Ptr();
+		std::map<std::string, std::string> ref;
 
 		std::vector<int> vRoleIds;
 		const size_t COUNT = 1000;
 		for (size_t i = 0; i < COUNT; i++) {
 			vRoleIds.push_back(i);
 		}
-
 		std::random_shuffle(vRoleIds.begin(), vRoleIds.end());
 
 		for (size_t i = 0; i < vRoleIds.size(); i++) {
-			auto key = smd::ShmString(Util::Text::Format("Key%05d", vRoleIds[i]));
-			auto value = smd::ShmString(Util::Text::Format("Value%05d", vRoleIds[i]));
+			auto key = GetKey(vRoleIds[i]);
+			auto value = GetValue(vRoleIds[i]);
 
-			m->insert(smd::make_pair(key, value));
-			map_ref.insert(std::make_pair(key, value));
+			obj->insert(smd::make_pair(key, value));
+			ref.insert(std::make_pair(key, value));
 
-			assert(m->IsEqual(map_ref));
+			// 插入相同的数据，这两个map应该完全相同
+			assert(IsEqual(*obj, ref));
 		}
 
-		assert(m->size() == COUNT);
-		assert(m->find(smd::ShmString(Util::Text::Format("Key%05d", 3))) != m->end());
-		assert(m->find(smd::ShmString(Util::Text::Format("Key%05d", 8))) != m->end());
-		assert(m->find(smd::ShmString(Util::Text::Format("Key%05d", COUNT))) == m->end());
+		assert(obj->size() == COUNT);
+		assert(obj->find(GetKey(3)) != obj->end());
+		assert(obj->find(GetKey(8)) != obj->end());
+		assert(obj->find(GetKey(COUNT)) == obj->end());
 
-		for (auto it = m->begin(); it != m->end(); ++it) {
+		for (auto it = obj->begin(); it != obj->end(); ++it) {
 			const auto& k = it->first;
 			const auto& v = it->second;
 			log.DoLog(smd::Log::LogLevel::kInfo, "%s, %s", k.data(), v.data());
 		}
 
-		m->clear();
+		for (size_t i = 0; i < vRoleIds.size(); i++) {
+			auto key = GetKey(vRoleIds[i]);
 
-		assert(m->find(smd::ShmString(Util::Text::Format("Key%05d", 3))) == m->end());
-		assert(m->find(smd::ShmString(Util::Text::Format("Key%05d", 8))) == m->end());
-		assert(m->find(smd::ShmString(Util::Text::Format("Key%05d", COUNT))) == m->end());
+			auto itm = obj->find(key);
+			assert(itm != obj->end());
+			obj->erase(itm);
 
-		assert(m->size() == 0);
-		smd::g_alloc->Delete(m);
-		assert(m == nullptr);
-		map_ref.clear();
+			auto it_ref = ref.find(key);
+			assert(it_ref != ref.end());
+			ref.erase(it_ref);
+
+			// 删除相同的数据，这两个map应该完全相同
+			assert(IsEqual(*obj, ref));
+		}
+
+		assert(obj->find(GetKey(3)) == obj->end());
+		assert(obj->find(GetKey(8)) == obj->end());
+		assert(obj->find(GetKey(COUNT)) == obj->end());
+
+		assert(obj->size() == 0);
+		smd::g_alloc->Delete(obj);
+		assert(obj == nullptr);
+		ref.clear();
 
 		assert(mem_usage == smd::g_alloc->GetUsed());
 		log.DoLog(smd::Log::LogLevel::kInfo, "TestMapString complete");
@@ -60,8 +73,8 @@ private:
 
 	void TestMapPod(smd::Log& log) {
 		auto mem_usage = smd::g_alloc->GetUsed();
-		auto m = smd::g_alloc->New<smd::ShmMap<uint64_t, uint64_t>>();
-		std::map<uint64_t, uint64_t> map_ref;
+		auto obj = smd::g_alloc->New<smd::ShmMap<uint64_t, uint64_t>>();
+		std::map<uint64_t, uint64_t> ref;
 
 		std::vector<uint64_t> vRoleIds;
 		const size_t COUNT = 1000;
@@ -75,36 +88,121 @@ private:
 			const auto& role_id = vRoleIds[i];
 			auto value = role_id * 10;
 
-			m->insert(smd::make_pair(role_id, value));
-			map_ref.insert(std::make_pair(role_id, value));
+			obj->insert(smd::make_pair(role_id, value));
+			ref.insert(std::make_pair(role_id, value));
 
-			assert(m->IsEqual(map_ref));
+			// 插入相同的数据，这两个map应该完全相同
+			assert(IsEqual(*obj, ref));
 		}
 
-		assert(m->size() == COUNT);
-		assert(m->find(3) != m->end());
-		assert(m->find(8) != m->end());
-		assert(m->find(COUNT) == m->end());
+		assert(obj->size() == COUNT);
+		assert(obj->find(3) != obj->end());
+		assert(obj->find(8) != obj->end());
+		assert(obj->find(COUNT) == obj->end());
 
-		for (auto it = m->begin(); it != m->end(); ++it) {
+		for (auto it = obj->begin(); it != obj->end(); ++it) {
 			const auto& k = it->first;
 			const auto& v = it->second;
 			log.DoLog(smd::Log::LogLevel::kInfo, "%llu, %llu", k, v);
 		}
 
-		m->clear();
+		for (size_t i = 0; i < vRoleIds.size(); i++) {
+			const auto& key = vRoleIds[i];
 
-		assert(m->find(0) == m->end());
-		assert(m->find(8) == m->end());
-		assert(m->find(COUNT) == m->end());
+			auto itm = obj->find(key);
+			assert(itm != obj->end());
+			obj->erase(itm);
 
-		assert(m->size() == 0);
-		m->clear();
+			auto it_ref = ref.find(key);
+			assert(it_ref != ref.end());
+			ref.erase(it_ref);
 
-		smd::g_alloc->Delete(m);
-		assert(m == smd::shm_nullptr);
+			// 删除相同的数据，这两个map应该完全相同
+			assert(IsEqual(*obj, ref));
+		}
+
+		assert(obj->find(0) == obj->end());
+		assert(obj->find(8) == obj->end());
+		assert(obj->find(COUNT) == obj->end());
+
+		assert(obj->size() == 0);
+
+		smd::g_alloc->Delete(obj);
+		assert(obj == smd::shm_nullptr);
 		assert(mem_usage == smd::g_alloc->GetUsed());
 
 		log.DoLog(smd::Log::LogLevel::kInfo, "TestMapPod complete");
+	}
+
+private:
+	static std::string GetKey(int key) {
+		return Util::Text::Format("Key%05d", key);
+	}
+
+	static std::string GetValue(int val) {
+		return Util::Text::Format("Value%05d", val);
+	}
+
+	//测试专用
+	static bool IsEqual(smd::ShmMap<smd::ShmString, smd::ShmString>& l,
+		const std::map<std::string, std::string>& r) {
+		if (l.size() != r.size()) {
+			assert(false);
+		}
+
+		auto it = l.begin();
+		auto stl_it = r.begin();
+		int count = 0;
+		for (; it != l.end() && stl_it != r.end(); ++it, ++stl_it) {
+			++count;
+			const auto& key1 = it->first;
+			const auto& key2 = stl_it->first;
+			if (key1.ToString() != key2) {
+				assert(false);
+			}
+
+			const auto& val1 = it->second;
+			const auto& val2 = stl_it->second;
+			if (val1.ToString() != val2) {
+				assert(false);
+			}
+		}
+
+		if (count != l.size()) {
+			assert(false);
+		}
+
+		return true;
+	}
+
+	//测试专用
+	static bool IsEqual(smd::ShmMap<uint64_t, uint64_t>& l, const std::map<uint64_t, uint64_t>& r) {
+		if (l.size() != r.size()) {
+			assert(false);
+		}
+
+		auto it = l.begin();
+		auto stl_it = r.begin();
+		int count = 0;
+		for (; it != l.end() && stl_it != r.end(); ++it, ++stl_it) {
+			++count;
+			const auto& key1 = it->first;
+			const auto& key2 = stl_it->first;
+			if (key1 != key2) {
+				assert(false);
+			}
+
+			const auto& val1 = it->second;
+			const auto& val2 = stl_it->second;
+			if (val1 != val2) {
+				assert(false);
+			}
+		}
+
+		if (count != l.size()) {
+			assert(false);
+		}
+
+		return true;
 	}
 };

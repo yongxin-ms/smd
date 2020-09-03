@@ -42,11 +42,11 @@ int main() {
 	auto& log = env->GetLog();
 
 	for (int i = 0; i < 10; i++) {
-		TestPointer test_pointer(log);
-		TestString test_string(log);
-		TestList test_list(log);
-		TestVector test_vector(log);
-		TestHash test_hash(log);
+// 		TestPointer test_pointer(log);
+// 		TestString test_string(log);
+// 		TestList test_list(log);
+// 		TestVector test_vector(log);
+// 		TestHash test_hash(log);
 		TestMap test_map(log);
 	}
 

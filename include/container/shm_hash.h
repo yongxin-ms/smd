@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include <unordered_set>
 #include "shm_pair.h"
 #include "shm_pointer.h"
 
@@ -162,30 +163,6 @@ public:
 		for (auto it = begin(); it != it_end;) {
 			it = erase(it);
 		}
-	}
-
-	// 这段代码可以优化下，这里主要用于测试
-	bool operator==(const ShmHash<Key>& rhs) const {
-		ShmHash<Key>& l = *(ShmHash<Key>*)this;
-		ShmHash<Key>& r = *(ShmHash<Key>*)&rhs;
-		if (l.size() != r.size())
-			return false;
-
-		for (auto it = l.begin(); it != l.end(); ++it) {
-			Key& key = *it;
-			if (r.find(key) == r.end()) {
-				return false;
-			}
-		}
-
-		for (auto it = r.begin(); it != r.end(); ++it) {
-			Key& key = *it;
-			if (l.find(key) == l.end()) {
-				return false;
-			}
-		}
-
-		return true;
 	}
 
 	void swap(ShmHash<Key>& x) {
