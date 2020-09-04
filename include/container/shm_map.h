@@ -16,14 +16,16 @@ struct rbtree_node {
 	ShmPointer<rbtree_node> parent;
 	ShmPointer<rbtree_node> left;
 	ShmPointer<rbtree_node> right;
-
 	Value value;
+
 	rbtree_node(const Value& val)
 		: color(_red)
 		, parent(shm_nullptr)
 		, left(shm_nullptr)
 		, right(shm_nullptr)
 		, value(val) {}
+	rbtree_node(const rbtree_node&) = delete;
+	rbtree_node& operator=(const rbtree_node&) = delete;
 };
 
 template <typename Value>
