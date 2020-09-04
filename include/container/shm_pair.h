@@ -22,9 +22,6 @@ public:
 	shm_pair(const first_type& a, const second_type& b);
 	shm_pair& operator=(const shm_pair& pr);
 	void swap(shm_pair& pr);
-
-public:
-	friend void swap(shm_pair<T1, T2>& x, shm_pair<T1, T2>& y);
 };
 
 template <class T1, class T2>
