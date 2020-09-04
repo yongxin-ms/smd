@@ -24,12 +24,6 @@ public:
 	void swap(shm_pair& pr);
 
 public:
-	friend bool operator==(const shm_pair<T1, T2>& lhs, const shm_pair<T1, T2>& rhs);
-	friend bool operator!=(const shm_pair<T1, T2>& lhs, const shm_pair<T1, T2>& rhs);
-	friend bool operator<(const shm_pair<T1, T2>& lhs, const shm_pair<T1, T2>& rhs);
-	friend bool operator<=(const shm_pair<T1, T2>& lhs, const shm_pair<T1, T2>& rhs);
-	friend bool operator>(const shm_pair<T1, T2>& lhs, const shm_pair<T1, T2>& rhs);
-	friend bool operator>=(const shm_pair<T1, T2>& lhs, const shm_pair<T1, T2>& rhs);
 	friend void swap(shm_pair<T1, T2>& x, shm_pair<T1, T2>& y);
 };
 
