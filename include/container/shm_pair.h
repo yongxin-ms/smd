@@ -15,26 +15,21 @@ public:
 
 public:
 	shm_pair() {}
+
 	template <class U, class V>
 	shm_pair(const shm_pair<U, V>& pr);
+
 	shm_pair(const first_type& a, const second_type& b);
 	shm_pair& operator=(const shm_pair& pr);
 	void swap(shm_pair& pr);
 
 public:
-	template <class T1, class T2>
 	friend bool operator==(const shm_pair<T1, T2>& lhs, const shm_pair<T1, T2>& rhs);
-	template <class T1, class T2>
 	friend bool operator!=(const shm_pair<T1, T2>& lhs, const shm_pair<T1, T2>& rhs);
-	template <class T1, class T2>
 	friend bool operator<(const shm_pair<T1, T2>& lhs, const shm_pair<T1, T2>& rhs);
-	template <class T1, class T2>
 	friend bool operator<=(const shm_pair<T1, T2>& lhs, const shm_pair<T1, T2>& rhs);
-	template <class T1, class T2>
 	friend bool operator>(const shm_pair<T1, T2>& lhs, const shm_pair<T1, T2>& rhs);
-	template <class T1, class T2>
 	friend bool operator>=(const shm_pair<T1, T2>& lhs, const shm_pair<T1, T2>& rhs);
-	template <class T1, class T2>
 	friend void swap(shm_pair<T1, T2>& x, shm_pair<T1, T2>& y);
 };
 
