@@ -122,12 +122,12 @@ public:
 	}
 
 	//测试专用
-	bool IsEqual(const std::string& stl_str) {
+	bool IsEqual(const std::string& stl_str) const{
 		if (size() != stl_str.size()) {
 			assert(false);
 		}
 
-		auto& str = ToString();
+		const auto& str = ToString();
 		if (str != stl_str) {
 			assert(false);
 		}
