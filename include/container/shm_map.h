@@ -84,41 +84,41 @@ template <typename T, typename Pointer, typename Reference>
 struct rbtree_iterator {
 	typedef rbtree_iterator<T, Pointer, Reference> this_type;
 
-	ShmPointer<rbtree_node<T>> p;
+	ShmPointer<rbtree_node<T>> _ptr;
 
 	rbtree_iterator()
-		: p(shm_nullptr) {}
+		: _ptr(shm_nullptr) {}
 	rbtree_iterator(ShmPointer<rbtree_node<T>> pNode)
-		: p(pNode) {}
+		: _ptr(pNode) {}
 	rbtree_iterator(const this_type& x) = default;
 
-	Reference operator*() const { return p->value; }
-	Pointer operator->() const { return &(p->value); }
+	Reference operator*() const { return _ptr->value; }
+	Pointer operator->() const { return &(_ptr->value); }
 
 	rbtree_iterator& operator++() {
-		p = RBTreeIncrement(p);
+		_ptr = RBTreeIncrement(_ptr);
 		return *this;
 	}
 
 	rbtree_iterator operator++(int) {
 		this_type tmp(*this);
-		p = RBTreeIncrement(p);
+		_ptr = RBTreeIncrement(_ptr);
 		return tmp;
 	}
 
 	rbtree_iterator& operator--() {
-		p = RBTreeDecrement(p);
+		_ptr = RBTreeDecrement(_ptr);
 		return *this;
 	}
 
 	rbtree_iterator operator--(int) {
 		this_type tmp(*this);
-		p = RBTreeDecrement(p);
+		_ptr = RBTreeDecrement(_ptr);
 		return tmp;
 	}
 
-	bool operator==(const this_type& x) { return p == x.p; }
-	bool operator!=(const this_type& x) { return p != x.p; }
+	bool operator==(const this_type& x) { return _ptr == x._ptr; }
+	bool operator!=(const this_type& x) { return _ptr != x._ptr; }
 };
 
 template <typename Key, typename Value, typename Compare>
@@ -143,7 +143,8 @@ protected:
 
 public:
 	rb_tree(const Compare& comp)
-		: node_count(0) {
+		: node_count(0)
+		, key_compare(comp) {
 		header = createNode(value_type());
 		leftmost() = header;
 		rightmost() = header;
@@ -506,7 +507,7 @@ public:
 			}
 		}
 
-		if (key_compare(key(j.p), val.first)) {
+		if (key_compare(key(j._ptr), val.first)) {
 			return shm_pair<iterator, bool>(__insert(x, p, val), true);
 		}
 
@@ -523,7 +524,7 @@ public:
 
 	void erase(iterator position) {
 		auto to_be_delete =
-			rb_tree_rebalance_for_erase(position.p, root(), leftmost(), rightmost());
+			rb_tree_rebalance_for_erase(position._ptr, root(), leftmost(), rightmost());
 		deleteNode(to_be_delete);
 		--node_count;
 	}
