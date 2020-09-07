@@ -179,6 +179,13 @@ public:
 	}
 
 protected:
+	// 				 root
+	// 				  |
+	// 				 head
+	// 				 /  \
+	// 				/    \
+	// 		  leftmost  rightmost
+
 	rbtree_node_ptr& root() const { return header->parent; }
 	rbtree_node_ptr& leftmost() const { return header->left; }
 	rbtree_node_ptr& rightmost() const { return header->right; }
@@ -200,7 +207,7 @@ public:
 	bool empty() const { return node_count == 0; }
 
 protected:
-	iterator __insert(rbtree_node_ptr x, rbtree_node_ptr y, const value_type& val) {
+	iterator __insert(rbtree_node_ptr y, const value_type& val) {
 		rbtree_node_ptr z;
 		if (y == header || key_compare(val.first, key(y))) {
 			z = createNode(val);
@@ -224,14 +231,14 @@ protected:
 		left(z) = shm_nullptr;
 		right(z) = shm_nullptr;
 
-		rb_tree_rebalance(z, parent(header));
+		rb_tree_rebalance(z);
 		++node_count;
 		return iterator(z);
 	}
 
-	void rb_tree_rebalance(rbtree_node_ptr z, rbtree_node_ptr& root) {
+	void rb_tree_rebalance(rbtree_node_ptr z) {
 		z->color = _red;
-		while (z != root && z->parent->color == _red) {
+		while (z != root() && z->parent->color == _red) {
 			if (z->parent == z->parent->parent->left) {
 				rbtree_node_ptr s = z->parent->parent->right;
 				if (s != shm_nullptr && s->color == _red) {
@@ -268,7 +275,7 @@ protected:
 				}
 			}
 		}
-		root->color = _black;
+		root()->color = _black;
 	}
 
 	void rb_tree_rotate_left(rbtree_node_ptr x) {
@@ -319,7 +326,7 @@ protected:
 
 	rbtree_node_ptr rb_tree_rebalance_for_erase(rbtree_node_ptr z) {
 		rbtree_node_ptr y = z;			 //实际删除的节点
-		rbtree_node_ptr x = shm_nullptr; //替代z(y)的节点，就是y的下一个
+		rbtree_node_ptr x = shm_nullptr; //替代z(y)的节点
 		rbtree_node_ptr x_parent;		 //删除之后 x 的父节点
 
 		//这里帮找实际需要删除的y节点  以及y的子节点x(上为y)
@@ -479,7 +486,7 @@ protected:
 
 public:
 	shm_pair<iterator, bool> insert_unique(const value_type& val) {
-		auto p = header;
+		auto p = header;	//新节点的父节点
 		auto x = root();
 		bool res = true;
 		while (x != shm_nullptr) {
@@ -492,25 +499,28 @@ public:
 			}
 		}
 
+		//新节点会在p的左边或者右边
 		//尚未有一个节点，此时根本没有进入while循环
 		if (p == header) {
-			return shm_pair<iterator, bool>(__insert(x, p, val), true);
+			return shm_pair<iterator, bool>(__insert(p, val), true);
 		}
 
 		auto j = iterator(p);
+
+		//小于，放左边
 		if (res) {
 			if (j == begin()) {
-				return shm_pair<iterator, bool>(__insert(x, p, val), true);
+				return shm_pair<iterator, bool>(__insert(p, val), true);
 			} else {
 				--j;
 			}
 		}
 
 		if (key_compare(key(j._ptr), val.first)) {
-			return shm_pair<iterator, bool>(__insert(x, p, val), true);
+			return shm_pair<iterator, bool>(__insert(p, val), true);
+		} else {
+			return shm_pair<iterator, bool>(j, false);
 		}
-
-		return shm_pair<iterator, bool>(j, false);
 	}
 
 	void clear() {
