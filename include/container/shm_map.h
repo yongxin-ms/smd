@@ -467,7 +467,7 @@ protected:
 	}
 
 	rbtree_node_ptr findRBTree(const Key& k, bool& isFind) {
-		auto res = parent(header);
+		auto res = root();
 		isFind = false;
 		while (res != shm_nullptr) {
 			if (key_compare(k, key(res))) {
@@ -525,9 +525,9 @@ public:
 
 	void clear() {
 		recurErase(root());
-		left(header) = header;
-		right(header) = header;
-		parent(header) = shm_nullptr;
+		leftmost() = header;
+		rightmost() = header;
+		root() = shm_nullptr;
 		node_count = 0;
 	}
 
