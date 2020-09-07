@@ -318,12 +318,12 @@ protected:
 	}
 
 	rbtree_node_ptr rb_tree_rebalance_for_erase(rbtree_node_ptr z) {
-		rbtree_node_ptr y = z;	  //实际删除的节点
-		rbtree_node_ptr x = shm_nullptr; //替代z(y)的节点
-		rbtree_node_ptr x_parent; //删除之后 x 的父节点
+		rbtree_node_ptr y = z;			 //实际删除的节点
+		rbtree_node_ptr x = shm_nullptr; //替代z(y)的节点，就是y的下一个
+		rbtree_node_ptr x_parent;		 //删除之后 x 的父节点
 
-		if (left(y) == shm_nullptr) //这里帮找实际需要删除的y节点  以及 y的子节点 x(上位y)
-		{
+		//这里帮找实际需要删除的y节点  以及y的子节点x(上为y)
+		if (left(y) == shm_nullptr) {
 			x = right(y);
 		} else if (right(y) == shm_nullptr) {
 			x = left(y);
