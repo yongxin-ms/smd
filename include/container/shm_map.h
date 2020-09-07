@@ -243,11 +243,11 @@ protected:
 				} else {
 					if (z == z->parent->right) {
 						z = z->parent;
-						rb_tree_rotate_left(z, root);
+						rb_tree_rotate_left(z);
 					}
 					z->parent->parent->color = _red;
 					z->parent->color = _black;
-					rb_tree_rotate_right(z->parent->parent, root);
+					rb_tree_rotate_right(z->parent->parent);
 				}
 
 			} else {
@@ -260,26 +260,26 @@ protected:
 				} else {
 					if (z == z->parent->left) {
 						z = z->parent;
-						rb_tree_rotate_right(z, root);
+						rb_tree_rotate_right(z);
 					}
 					z->parent->parent->color = _red;
 					z->parent->color = _black;
-					rb_tree_rotate_left(z->parent->parent, root);
+					rb_tree_rotate_left(z->parent->parent);
 				}
 			}
 		}
 		root->color = _black;
 	}
 
-	void rb_tree_rotate_left(rbtree_node_ptr x, rbtree_node_ptr& root) {
+	void rb_tree_rotate_left(rbtree_node_ptr x) {
 		auto y = right(x);
 		right(x) = left(y);
 		if (y->left != shm_nullptr)
 			parent(left(y)) = x;
 
 		parent(y) = parent(x);
-		if (x == root)
-			root = y;
+		if (x == root())
+			root() = y;
 		else if (left(parent(x)) == x) {
 			left(parent(x)) = y;
 		} else {
@@ -290,15 +290,15 @@ protected:
 		left(y) = x;
 	}
 
-	void rb_tree_rotate_right(rbtree_node_ptr x, rbtree_node_ptr& root) {
+	void rb_tree_rotate_right(rbtree_node_ptr x) {
 		auto y = left(x);
 		left(x) = right(y);
 		if (y->right != shm_nullptr)
 			parent(right(y)) = x;
 
 		parent(y) = parent(x);
-		if (x == root)
-			y = root;
+		if (x == root())
+			y = root();
 		else if (left(parent(x)) == x) {
 			left(parent(x)) = y;
 		} else {
@@ -317,8 +317,7 @@ protected:
 		}
 	}
 
-	rbtree_node_ptr rb_tree_rebalance_for_erase(rbtree_node_ptr z, rbtree_node_ptr& root,
-		rbtree_node_ptr& leftmost, rbtree_node_ptr& rightmost) {
+	rbtree_node_ptr rb_tree_rebalance_for_erase(rbtree_node_ptr z) {
 		rbtree_node_ptr y = z;	  //实际删除的节点
 		rbtree_node_ptr x = shm_nullptr; //替代z(y)的节点
 		rbtree_node_ptr x_parent; //删除之后 x 的父节点
@@ -337,8 +336,8 @@ protected:
 
 		if (y == z) {
 			x_parent = parent(y);
-			if (z == root) {
-				root = x;
+			if (z == root()) {
+				root() = x;
 			} else if (z == left(parent(z))) {
 				left(parent(z)) = x;
 			} else {
@@ -348,18 +347,18 @@ protected:
 			if (x != shm_nullptr)
 				parent(x) = parent(z);
 
-			if (z == leftmost) {
+			if (z == leftmost()) {
 				if (right(z) == shm_nullptr)
-					leftmost = parent(z);
+					leftmost() = parent(z);
 				else
-					leftmost = RBTreeMinimum(x);
+					leftmost() = RBTreeMinimum(x);
 			}
 
-			if (z == rightmost) {
+			if (z == rightmost()) {
 				if (z->left == shm_nullptr)
-					rightmost = parent(z);
+					rightmost() = parent(z);
 				else
-					rightmost = RBTreeMaximum(x);
+					rightmost() = RBTreeMaximum(x);
 			}
 		} else {
 			left(y) = left(z);
@@ -376,8 +375,8 @@ protected:
 				x_parent = y;
 			}
 
-			if (z == root) {
-				root = y;
+			if (z == root()) {
+				root() = y;
 			} else if (z == left(parent(z))) {
 				left(parent(z)) = y;
 			} else {
@@ -391,14 +390,14 @@ protected:
 
 		// y： 待删节点   x： 替换y的节点(鸠占鹊巢),此时x也成为标记节点   x_parent: x的父节点
 		if (y->color != _red) {
-			while (x != root && (x == shm_nullptr || x->color == _black)) //为双黑色节点
+			while (x != root() && (x == shm_nullptr || x->color == _black)) //为双黑色节点
 			{
 				if (x == left(x_parent)) {
 					rbtree_node_ptr w = right(x_parent);
 					if (w->color == _red) {
 						w->color = _black;
 						x_parent->color = _red;
-						rb_tree_rotate_left(x_parent, root);
+						rb_tree_rotate_left(x_parent);
 						w = right(x_parent);
 					}
 					if ((left(w) == shm_nullptr || color(left(w)) == _black) &&
@@ -411,14 +410,14 @@ protected:
 							if (left(w) != shm_nullptr)
 								color(left(w)) = _black;
 							color(right(w)) = _red;
-							rb_tree_rotate_right(w, root);
+							rb_tree_rotate_right(w);
 							w = right(x_parent);
 						}
 						w->color = x_parent->color;
 						x_parent->color = _black;
 						if (w->right != shm_nullptr)
 							color(right(w)) = _black;
-						rb_tree_rotate_left(x_parent, root);
+						rb_tree_rotate_left(x_parent);
 						break;
 					}
 
@@ -427,7 +426,7 @@ protected:
 					if (w->color == _red) {
 						w->color = _black;
 						x_parent->color = _red;
-						rb_tree_rotate_right(x_parent, root);
+						rb_tree_rotate_right(x_parent);
 						w = left(x_parent);
 					}
 
@@ -441,14 +440,14 @@ protected:
 							if (right(w) != shm_nullptr)
 								color(right(w)) = _black;
 							w->color = _red;
-							rb_tree_rotate_left(w, root);
+							rb_tree_rotate_left(w);
 							w = left(x_parent);
 						}
 						w->color = x_parent->color;
 						x_parent->color = _black;
 						if (w->left != shm_nullptr)
 							color(left(w)) = _black;
-						rb_tree_rotate_right(x_parent, root);
+						rb_tree_rotate_right(x_parent);
 						break;
 					}
 				}
@@ -523,8 +522,7 @@ public:
 	}
 
 	void erase(iterator position) {
-		auto to_be_delete =
-			rb_tree_rebalance_for_erase(position._ptr, root(), leftmost(), rightmost());
+		auto to_be_delete = rb_tree_rebalance_for_erase(position._ptr);
 		deleteNode(to_be_delete);
 		--node_count;
 	}
