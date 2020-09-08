@@ -297,6 +297,12 @@ protected:
 		left(y) = x;
 	}
 
+// 			 x                       y
+// 			/ \			右旋		/ \
+// 		   y   T2	   ----->      T3  x
+// 		  / \						  / \
+// 		 T3  T1						 T1 T2
+
 	void rb_tree_rotate_right(rbtree_node_ptr x) {
 		auto y = left(x);
 		left(x) = right(y);
@@ -304,9 +310,10 @@ protected:
 			parent(right(y)) = x;
 
 		parent(y) = parent(x);
-		if (x == root())
-			y = root();
-		else if (left(parent(x)) == x) {
+		if (root() == x) {
+			// y = root();	//这里写错了？bug
+			root() = y;
+		} else if (left(parent(x)) == x) {
 			left(parent(x)) = y;
 		} else {
 			right(parent(x)) = y;
@@ -573,7 +580,10 @@ public:
 	iterator begin() { return m_tree.begin(); }
 	iterator end() { return m_tree.end(); }
 	iterator find(const Key& k) { return m_tree.find(k); }
-	void erase(iterator it) { m_tree.erase(it); }
+	iterator erase(iterator it) {
+		m_tree.erase(it++);
+		return it;
+	}
 
 private:
 	rb_tree<Key, Value, Compare> m_tree;
