@@ -3,92 +3,83 @@
 
 namespace smd {
 
-enum rbtree_node_color : bool {
-	_red = true,
-	_black = false,
+enum RBTreeNodeColor : bool {
+	RBTREE_NODE_RED = false,
+	RBTREE_NODE_BLACK = true,
 };
 
 template <typename Value>
-struct rbtree_node {
-	typedef rbtree_node_color color_type;
-
-	color_type color;
-	ShmPointer<rbtree_node> parent;
-	ShmPointer<rbtree_node> left;
-	ShmPointer<rbtree_node> right;
+struct RBTreeNode {
+	RBTreeNodeColor color;
+	ShmPointer<RBTreeNode> parent;
+	ShmPointer<RBTreeNode> left_child;
+	ShmPointer<RBTreeNode> right_child;
 	Value value;
 
-	rbtree_node(const Value& val)
+	RBTreeNode(const Value& val)
 		: color(_red)
-		, parent(shm_nullptr)
-		, left(shm_nullptr)
-		, right(shm_nullptr)
 		, value(val) {}
-	rbtree_node(const rbtree_node&) = delete;
-	rbtree_node& operator=(const rbtree_node&) = delete;
+	RBTreeNode(const RBTreeNode&) = delete;
+	RBTreeNode& operator=(const RBTreeNode&) = delete;
 };
 
-template <typename Value>
-ShmPointer<rbtree_node<Value>> RBTreeIncrement(ShmPointer<rbtree_node<Value>> p) {
-	if (p->right != shm_nullptr) {
-		p = p->right;
-		while (p->left != shm_nullptr)
-			p = p->left;
-	} else {
-		auto y = p->parent;
-		while (p == y->right) {
-			p = y;
-			y = y->parent;
+template <typename value_type>
+static ShmPointer<RBTreeNode<value_type>> rbtree_prev(ShmPointer<RBTreeNode<value_type>> node) {
+	if (node == shm_nullptr) {
+		return shm_nullptr;
+	}
+
+	if (node->left_child != shm_nullptr) {
+		node = node->left_child;
+
+		while (node->right_child != shm_nullptr) {
+			node = node->right_child;
 		}
 
-		if (p->right != y)
-			p = y;
+		return node;
 	}
-	return p;
+
+	ShmPointer<RBTreeNode<value_type>> n;
+	while ((n = node->parent) != shm_nullptr && node == n->left_child) {
+		node = n;
+	}
+
+	return n;
 }
 
-template <typename Value>
-ShmPointer<rbtree_node<Value>> RBTreeDecrement(ShmPointer<rbtree_node<Value>> p) {
-	if (p->color == _red && p->parent->parent == p)
-		p = p->right;
-	else if (p->left != shm_nullptr) {
-		p = p->left;
-		while (p->right != shm_nullptr)
-			p = p->right;
-	} else {
-		auto y = p->parent;
-		while (p == y->left) {
-			p = y;
-			y = y->parent;
+template <typename value_type>
+static ShmPointer<RBTreeNode<value_type>> rbtree_next(ShmPointer<RBTreeNode<value_type>> node) {
+	if (node == shm_nullptr) {
+		return shm_nullptr;
+	}
+
+	if (node->right_child != shm_nullptr) {
+		node = node->right_child;
+
+		while (node->left_child != shm_nullptr) {
+			node = node->left_child;
 		}
-		p = y;
+
+		return node;
 	}
-	return p;
-}
 
-template <typename Value>
-ShmPointer<rbtree_node<Value>> RBTreeMinimum(ShmPointer<rbtree_node<Value>> p) {
-	while (p->left != shm_nullptr)
-		p = p->left;
-	return p;
-}
+	ShmPointer<RBTreeNode<value_type>> n;
+	while ((n = node->parent) != shm_nullptr && node == n->right_child) {
+		node = n;
+	}
 
-template <typename Value>
-ShmPointer<rbtree_node<Value>> RBTreeMaximum(ShmPointer<rbtree_node<Value>> p) {
-	while (p->right != shm_nullptr)
-		p = p->right;
-	return p;
+	return n;
 }
 
 template <typename T, typename Pointer, typename Reference>
 struct rbtree_iterator {
 	typedef rbtree_iterator<T, Pointer, Reference> this_type;
 
-	ShmPointer<rbtree_node<T>> _ptr;
+	ShmPointer<RBTreeNode<T>> _ptr;
 
 	rbtree_iterator()
 		: _ptr(shm_nullptr) {}
-	rbtree_iterator(ShmPointer<rbtree_node<T>> pNode)
+	rbtree_iterator(ShmPointer<RBTreeNode<T>> pNode)
 		: _ptr(pNode) {}
 	rbtree_iterator(const this_type& x) = default;
 
@@ -96,24 +87,24 @@ struct rbtree_iterator {
 	Pointer operator->() const { return &(_ptr->value); }
 
 	rbtree_iterator& operator++() {
-		_ptr = RBTreeIncrement(_ptr);
+		_ptr = rbtree_next<T>(_ptr);
 		return *this;
 	}
 
 	rbtree_iterator operator++(int) {
 		this_type tmp(*this);
-		_ptr = RBTreeIncrement(_ptr);
+		_ptr = rbtree_next<T>(_ptr);
 		return tmp;
 	}
 
 	rbtree_iterator& operator--() {
-		_ptr = RBTreeDecrement(_ptr);
+		_ptr = rbtree_prev<T>(_ptr);
 		return *this;
 	}
 
 	rbtree_iterator operator--(int) {
 		this_type tmp(*this);
-		_ptr = RBTreeDecrement(_ptr);
+		_ptr = rbtree_prev<T>(_ptr);
 		return tmp;
 	}
 
@@ -121,482 +112,502 @@ struct rbtree_iterator {
 	bool operator!=(const this_type& x) { return _ptr != x._ptr; }
 };
 
-template <typename Key, typename Value, typename Compare>
-class rb_tree {
+template <typename Key, typename Value>
+class RBTree {
 public:
-	typedef rb_tree<Key, Value, Compare> this_type;
+	typedef RBTree<Key, Value> this_type;
 	typedef shm_pair<Key, Value> value_type;
-	typedef ShmPointer<rbtree_node<value_type>> rbtree_node_ptr;
+	typedef ShmPointer<RBTreeNode<value_type>> rbtree_node_ptr;
 	typedef rbtree_iterator<value_type, value_type*, value_type&> iterator;
 	typedef rbtree_iterator<value_type, const value_type*, const value_type&> const_iterator;
 
-protected:
-	rbtree_node_ptr header;
-	size_t node_count;
-	Compare key_compare;
+	RBTree()
+		: root(shm_nullptr)
+		, size(0) {}
+
+	RBTree(const this_type& r) = delete;
+
+	this_type& operator=(const this_type& r) = delete;
+
+	~RBTree() { rbtree_remove_all(); }
+
+	size_t rbtree_size() const { return size; }
+	bool rbtree_empty() { return size == 0; }
+
+	void rbtree_insert(const Key& key, rbtree_node_ptr node) {
+		rbtree_node_ptr n = root;
+		if (n != shm_nullptr) {
+			for (;;) {
+				int cmp = compare(key, n);
+
+				if (cmp < 0) {
+					if (n->left_child != shm_nullptr) {
+						n = n->left_child;
+					} else {
+						n->left_child = node;
+
+						break;
+					}
+				} else if (cmp > 0) {
+					if (n->right_child != shm_nullptr) {
+						n = n->right_child;
+					} else {
+						n->right_child = node;
+
+						break;
+					}
+				} else {
+					replace(n, node);
+
+					if (collide) {
+						collide(n, node, auxiliary_data);
+					}
+
+					return;
+				}
+			}
+		}
+
+		node->parent = n;
+		node->left_child = shm_nullptr;
+		node->right_child = shm_nullptr;
+		node->color = RBTREE_NODE_RED;
+
+		if (n == shm_nullptr) {
+			root = node;
+		}
+
+		repair_after_insert(node);
+
+		++size;
+	}
+
+	rbtree_node_ptr rbtree_lookup_key(const Key& key) {
+		rbtree_node_ptr n;
+		for (n = root; n != shm_nullptr;) {
+			int cmp = compare(key, n);
+
+			if (cmp < 0) {
+				n = n->left_child;
+			} else if (cmp > 0) {
+				n = n->right_child;
+			} else {
+				break;
+			}
+		}
+
+		return n;
+	}
+
+	void rbtree_remove(rbtree_node_ptr node) {
+		if (node == shm_nullptr) {
+			return;
+		}
+
+		if (node->left_child != shm_nullptr && node->right_child != shm_nullptr) {
+			rbtree_node_ptr k = node->left_child;
+
+			while (k->right_child != shm_nullptr) {
+				k = k->right_child;
+			}
+
+			swap_places(node, k);
+		}
+
+		rbtree_node_ptr n = node->right_child != shm_nullptr ? node->right_child : node->left_child;
+
+		if (color(node) == RBTREE_NODE_BLACK) {
+			node->color = color(n);
+
+			repair_after_remove(node);
+		}
+
+		transplant(node, n);
+
+		if (node->parent != shm_nullptr && n != shm_nullptr) {
+			n->color = RBTREE_NODE_BLACK;
+		}
+
+		node->parent = RBTREE_POISON_PARENT;
+		node->left_child = RBTREE_POISON_LEFT_CHILD;
+		node->right_child = RBTREE_POISON_RIGHT_CHILD;
+
+		--size;
+	}
 
 protected:
+	rbtree_node_ptr root;
+	size_t size;
+	static int compare(const Key& key, rbtree_node_ptr node) { return 1; }
+	void collide(rbtree_node_ptr old_node, rbtree_node_ptr new_node, void* auxiliary_data) {}
+	void* auxiliary_data;
+
+protected:
+	static RBTreeNodeColor color(rbtree_node_ptr node) {
+		return node != shm_nullptr ? node->color : RBTREE_NODE_BLACK;
+	}
+
+	static rbtree_node_ptr sibling(rbtree_node_ptr node) {
+		assert(node != shm_nullptr && node->parent != shm_nullptr);
+
+		if (node == node->parent->left_child) {
+			return node->parent->right_child;
+		} else {
+			return node->parent->left_child;
+		}
+	}
+
+	static rbtree_node_ptr grandparent(rbtree_node_ptr node) {
+		assert(node != shm_nullptr && node->parent != shm_nullptr &&
+			   node->parent->parent != shm_nullptr);
+
+		return node->parent->parent;
+	}
+
+	static rbtree_node_ptr uncle(rbtree_node_ptr node) {
+		assert(node != shm_nullptr && node->parent != shm_nullptr &&
+			   node->parent->parent != shm_nullptr);
+
+		return sibling(node->parent);
+	}
+
+	void replace(rbtree_node_ptr old_node, rbtree_node_ptr new_node) {
+		assert(old_node != shm_nullptr && new_node != shm_nullptr);
+
+		if (root == old_node) {
+			root = new_node;
+		} else if (old_node == old_node->parent->left_child) {
+			old_node->parent->left_child = new_node;
+		} else {
+			old_node->parent->right_child = new_node;
+		}
+
+		if (old_node->left_child) {
+			old_node->left_child->parent = new_node;
+		}
+
+		if (old_node->right_child) {
+			old_node->right_child->parent = new_node;
+		}
+
+		*new_node = *old_node;
+
+		old_node->parent = RBTREE_POISON_PARENT;
+		old_node->left_child = RBTREE_POISON_LEFT_CHILD;
+		old_node->right_child = RBTREE_POISON_RIGHT_CHILD;
+	}
+
+	void transplant(rbtree_node_ptr old_node, rbtree_node_ptr new_node) {
+		assert(old_node != shm_nullptr);
+
+		if (old_node->parent == shm_nullptr) {
+			root = new_node;
+		} else if (old_node == old_node->parent->left_child) {
+			old_node->parent->left_child = new_node;
+		} else {
+			old_node->parent->right_child = new_node;
+		}
+
+		if (new_node != shm_nullptr) {
+			new_node->parent = old_node->parent;
+		}
+	}
+
+	void swap_places(rbtree_node_ptr high_node, rbtree_node_ptr low_node) {
+		assert(high_node != shm_nullptr && low_node != shm_nullptr);
+
+		if (high_node->parent == shm_nullptr) {
+			rbtree->root = low_node;
+		} else if (high_node->parent->left_child == high_node) {
+			high_node->parent->left_child = low_node;
+		} else {
+			high_node->parent->right_child = low_node;
+		}
+
+		if (low_node->left_child != shm_nullptr) {
+			low_node->left_child->parent = high_node;
+		}
+
+		if (low_node->right_child != shm_nullptr) {
+			low_node->right_child->parent = high_node;
+		}
+
+		if (high_node->left_child == low_node) {
+			if (high_node->right_child != shm_nullptr) {
+				high_node->right_child->parent = low_node;
+			}
+
+			high_node->left_child = high_node;
+			low_node->parent = low_node;
+		} else if (high_node->right_child == low_node) {
+			if (high_node->left_child != shm_nullptr) {
+				high_node->left_child->parent = low_node;
+			}
+
+			high_node->right_child = high_node;
+			low_node->parent = low_node;
+		} else {
+			if (high_node->left_child != shm_nullptr) {
+				high_node->left_child->parent = low_node;
+			}
+
+			if (high_node->right_child != shm_nullptr) {
+				high_node->right_child->parent = low_node;
+			}
+
+			if (low_node->parent->left_child == low_node) {
+				low_node->parent->left_child = high_node;
+			} else {
+				low_node->parent->right_child = high_node;
+			}
+		}
+
+		swap(*high_node, *low_node);
+	}
+
+	void rotate_left(rbtree_node_ptr node) {
+		assert(node != shm_nullptr);
+
+		rbtree_node_ptr n = node->right_child;
+
+		transplant(node, n);
+
+		node->right_child = n->left_child;
+
+		if (n->left_child != shm_nullptr) {
+			n->left_child->parent = node;
+		}
+
+		n->left_child = node;
+		node->parent = n;
+	}
+
+	void rotate_right(rbtree_node_ptr node) {
+		assert(node);
+
+		rbtree_node_ptr n = node->left_child;
+
+		transplant(node, n);
+
+		node->left_child = n->right_child;
+
+		if (n->right_child != shm_nullptr) {
+			n->right_child->parent = node;
+		}
+
+		n->right_child = node;
+		node->parent = n;
+	}
+
+	rbtree_node_ptr rbtree_first() {
+		rbtree_node_ptr n = root;
+		if (n == shm_nullptr) {
+			return shm_nullptr;
+		}
+
+		while (n->left_child) {
+			n = n->left_child;
+		}
+
+		return n;
+	}
+
+	rbtree_node_ptr rbtree_last() {
+		rbtree_node_ptr n = root;
+		if (n == shm_nullptr) {
+			return shm_nullptr;
+		}
+
+		while (n->right_child) {
+			n = n->right_child;
+		}
+
+		return n;
+	}
+
+	void repair_after_insert(rbtree_node_ptr node) {
+		assert(node);
+
+		for (;;) {
+			if (node->parent == shm_nullptr) {
+				node->color = RBTREE_NODE_BLACK;
+
+				break;
+			}
+
+			if (color(node->parent) == RBTREE_NODE_BLACK) {
+				break;
+			}
+
+			if (color(uncle(node)) == RBTREE_NODE_RED) {
+				node->parent->color = RBTREE_NODE_BLACK;
+				uncle(node)->color = RBTREE_NODE_BLACK;
+				grandparent(node)->color = RBTREE_NODE_RED;
+				node = grandparent(node);
+
+				continue;
+			}
+
+			if (node == node->parent->right_child &&
+				node->parent == grandparent(node)->left_child) {
+				rotate_left(node->parent);
+
+				node = node->left_child;
+			} else if (node == node->parent->left_child &&
+					   node->parent == grandparent(node)->right_child) {
+				rotate_right(node->parent);
+
+				node = node->right_child;
+			}
+
+			node->parent->color = RBTREE_NODE_BLACK;
+			grandparent(node)->color = RBTREE_NODE_RED;
+
+			if (node == node->parent->left_child && node->parent == grandparent(node)->left_child) {
+				rotate_right(grandparent(node));
+			} else {
+				rotate_left(grandparent(node));
+			}
+
+			break;
+		}
+	}
+
+	void repair_after_remove(rbtree_node_ptr node) {
+		assert(node != shm_nullptr);
+
+		for (;;) {
+			if (node->parent == shm_nullptr) {
+				break;
+			}
+
+			if (color(sibling(node)) == RBTREE_NODE_RED) {
+				node->parent->color = RBTREE_NODE_RED;
+				sibling(node)->color = RBTREE_NODE_BLACK;
+
+				if (node == node->parent->left_child) {
+					rotate_left(node->parent);
+				} else {
+					rotate_right(node->parent);
+				}
+			}
+
+			if (color(node->parent) == RBTREE_NODE_BLACK &&
+				color(sibling(node)) == RBTREE_NODE_BLACK &&
+				color(sibling(node)->left_child) == RBTREE_NODE_BLACK &&
+				color(sibling(node)->right_child) == RBTREE_NODE_BLACK) {
+				sibling(node)->color = RBTREE_NODE_RED;
+				node = node->parent;
+
+				continue;
+			}
+
+			if (color(node->parent) == RBTREE_NODE_RED &&
+				color(sibling(node)) == RBTREE_NODE_BLACK &&
+				color(sibling(node)->left_child) == RBTREE_NODE_BLACK &&
+				color(sibling(node)->right_child) == RBTREE_NODE_BLACK) {
+				sibling(node)->color = RBTREE_NODE_RED;
+				node->parent->color = RBTREE_NODE_BLACK;
+
+				break;
+			}
+
+			if (node == node->parent->left_child && color(sibling(node)) == RBTREE_NODE_BLACK &&
+				color(sibling(node)->left_child) == RBTREE_NODE_RED &&
+				color(sibling(node)->right_child) == RBTREE_NODE_BLACK) {
+				sibling(node)->color = RBTREE_NODE_RED;
+				sibling(node)->left_child->color = RBTREE_NODE_BLACK;
+
+				rotate_right(sibling(node));
+			} else if (node == node->parent->right_child &&
+					   color(sibling(node)) == RBTREE_NODE_BLACK &&
+					   color(sibling(node)->left_child) == RBTREE_NODE_BLACK &&
+					   color(sibling(node)->right_child) == RBTREE_NODE_RED) {
+				sibling(node)->color = RBTREE_NODE_RED;
+				sibling(node)->right_child->color = RBTREE_NODE_BLACK;
+
+				rotate_left(sibling(node));
+			}
+
+			sibling(node)->color = color(node->parent);
+			node->parent->color = RBTREE_NODE_BLACK;
+
+			if (node == node->parent->left_child) {
+				sibling(node)->right_child->color = RBTREE_NODE_BLACK;
+
+				rotate_left(node->parent);
+			} else {
+				sibling(node)->left_child->color = RBTREE_NODE_BLACK;
+
+				rotate_right(node->parent);
+			}
+
+			break;
+		}
+	}
+
+	void rbtree_remove_key(const Key& key) {
+		rbtree_remove(rbtree_lookup_key(key));
+	}
+
+	void rbtree_remove_first() {
+		rbtree_remove(rbtree_first());
+	}
+
+	void rbtree_remove_last() {
+		rbtree_remove(rbtree_last());
+	}
+
+	void rbtree_remove_all() {
+		if (root != shm_nullptr) {
+			root->parent = shm_nullptr;
+			root->left_child = shm_nullptr;
+			root->right_child = shm_nullptr;
+		}
+
+		root = shm_nullptr;
+		size = 0;
+	}
+
 	rbtree_node_ptr createNode(const value_type& val) {
 		return g_alloc->New<rbtree_node<value_type>>(val);
 	}
 	void deleteNode(rbtree_node_ptr p) { g_alloc->Delete(p); }
 
-public:
-	rb_tree(const Compare& comp)
-		: node_count(0)
-		, key_compare(comp) {
-		header = createNode(value_type());
-		leftmost() = header;
-		rightmost() = header;
-		color(header) = _red;
-		root() = shm_nullptr;
-	}
-
-	rb_tree(const this_type& r)
-		: node_count(r.size())
-		, key_compare(r.key_compare) {
-		header = createNode(r.header->value);
-		leftmost() = header;
-		rightmost() = header;
-		color(header) = _red;
-		root() = shm_nullptr;
-
-		for (auto it = r.begin(); it != r.end(); ++it) {
-			insert_unique(make_pair(it->first, it->second));
-		}
-	}
-
-	this_type& operator=(const this_type& r) {
-		if (this != &r) {
-			rb_tree(r).swap(*this);
-		}
-		return *this;
-	}
-
-	~rb_tree() {
-		clear();
-		deleteNode(header);
-	}
-
 protected:
-	// 				 root
-	// 				  |
-	// 				 head
-	// 				 /  \
-	// 				/    \
-	// 		  leftmost  rightmost
-
-	rbtree_node_ptr& root() const { return header->parent; }
-	rbtree_node_ptr& leftmost() const { return header->left; }
-	rbtree_node_ptr& rightmost() const { return header->right; }
-
-	static rbtree_node_ptr& left(rbtree_node_ptr x) { return x->left; }
-	static rbtree_node_ptr& right(rbtree_node_ptr x) { return x->right; }
-	static rbtree_node_ptr& parent(rbtree_node_ptr x) { return x->parent; }
 	static value_type& value(rbtree_node_ptr x) { return x->value; }
 	static const Key& key(rbtree_node_ptr x) { return (value(x)).first; }
-	static rbtree_node_color& color(rbtree_node_ptr x) { return x->color; }
-
-public:
-	iterator begin() { return iterator(leftmost()); }
-	const_iterator begin() const { return const_iterator(leftmost()); }
-	iterator end() { return iterator(header); }
-	const_iterator end() const { return const_iterator(header); }
-	size_t size() const { return node_count; }
-	size_t max_size() const { return size_t(-1); }
-	bool empty() const { return node_count == 0; }
-
-protected:
-	iterator __insert(rbtree_node_ptr y, const value_type& val) {
-		rbtree_node_ptr z = createNode(val);
-		if (y == header || key_compare(val.first, key(y))) {
-			left(y) = z;
-			if (y == header) {
-				root() = z;
-				rightmost() = z;
-			} else if (y == leftmost()) {
-				leftmost() = z;
-			}
-		} else {
-			right(y) = z;
-			if (rightmost() == y) {
-				rightmost() = z;
-			}
-		}
-
-		parent(z) = y;
-		left(z) = shm_nullptr;
-		right(z) = shm_nullptr;
-
-		rb_tree_rebalance(z);
-		++node_count;
-		return iterator(z);
-	}
-
-	void rb_tree_rebalance(rbtree_node_ptr z) {
-		z->color = _red;
-		while (z != root() && z->parent->color == _red) {
-			if (z->parent == z->parent->parent->left) {
-				// z的父亲是z的祖父的左儿子
-
-				rbtree_node_ptr s = z->parent->parent->right;
-				if (s != shm_nullptr && s->color == _red) {
-					// z的叔父为红色
-
-					s->color = _black;
-					z->parent->color = _black;
-					z->parent->parent->color = _red;
-					z = z->parent->parent;
-				} else {
-					if (z == z->parent->right) {
-						// 情形2，转换为情形3
-						// z的叔父不是红色,且z为右孩子
-
-						z = z->parent;
-						rb_tree_rotate_left(z);
-					}
-					z->parent->parent->color = _red;
-					z->parent->color = _black;
-					rb_tree_rotate_right(z->parent->parent);
-				}
-			} else {
-				rbtree_node_ptr s = z->parent->parent->left;
-				if (s != shm_nullptr && s->color == _red) {
-					s->color = _black;
-					z->parent->color = _black;
-					z->parent->parent->color = _red;
-					z = z->parent->parent;
-				} else {
-					if (z == z->parent->left) {
-						z = z->parent;
-						rb_tree_rotate_right(z);
-					}
-					z->parent->parent->color = _red;
-					z->parent->color = _black;
-					rb_tree_rotate_left(z->parent->parent);
-				}
-			}
-		}
-		root()->color = _black;
-	}
-
-// 			 T1                       T1
-// 			/		左旋			 / 
-// 		   x	   ----->			y
-// 		    \					   / 
-// 		     y					  x
-
-	// 完全符合算法导论的左旋Page177
-	void rb_tree_rotate_left(rbtree_node_ptr x) {
-		auto y = right(x);
-		right(x) = left(y);
-		if (y->left != shm_nullptr)
-			parent(left(y)) = x;
-
-		parent(y) = parent(x);
-		if (root() == x) {
-			root() = y;
-		} else if (left(parent(x)) == x) {
-			left(parent(x)) = y;
-		} else {
-			right(parent(x)) = y;
-		}
-
-		left(y) = x;
-		parent(x) = y;
-	}
-
-// 			 x                       y
-// 			/ \			右旋		/ \
-// 		   y   T2	   ----->      T3  x
-// 		  / \						  / \
-// 		 T3  T1						 T1 T2
-
-	void rb_tree_rotate_right(rbtree_node_ptr x) {
-		auto y = left(x);
-		left(x) = right(y);
-		if (y->right != shm_nullptr)
-			parent(right(y)) = x;
-
-		parent(y) = parent(x);
-		if (root() == x) {
-			root() = y;
-		} else if (left(parent(x)) == x) {
-			left(parent(x)) = y;
-		} else {
-			right(parent(x)) = y;
-		}
-
-		parent(x) = y;
-		right(y) = x;
-	}
-
-	void recurErase(rbtree_node_ptr x) {
-		if (x != shm_nullptr) {
-			recurErase(left(x));
-			recurErase(right(x));
-			deleteNode(x);
-		}
-	}
-
-	rbtree_node_ptr rb_tree_rebalance_for_erase(rbtree_node_ptr z) {
-		rbtree_node_ptr y = z;			 //实际删除的节点
-		rbtree_node_ptr x = shm_nullptr; //替代z(y)的节点
-		rbtree_node_ptr x_parent;		 //删除之后 x 的父节点
-
-		//这里帮找实际需要删除的y节点  以及y的子节点x(上为y)
-		if (left(y) == shm_nullptr) {
-			x = right(y);
-		} else if (right(y) == shm_nullptr) {
-			x = left(y);
-		} else {
-			y = right(y);
-			while (left(y) != shm_nullptr) {
-				y = left(y);
-			}
-			x = right(y);
-		}
-
-		if (y == z) {
-			x_parent = parent(y);
-			if (z == root()) {
-				root() = x;
-			} else if (z == left(parent(z))) {
-				left(parent(z)) = x;
-			} else {
-				right(parent(z)) = x;
-			}
-
-			if (x != shm_nullptr) {
-				parent(x) = parent(z);
-			}
-
-			if (z == leftmost()) {
-				if (right(z) == shm_nullptr)
-					leftmost() = parent(z);
-				else
-					leftmost() = RBTreeMinimum(x);
-			}
-
-			if (z == rightmost()) {
-				if (z->left == shm_nullptr)
-					rightmost() = parent(z);
-				else
-					rightmost() = RBTreeMaximum(x);
-			}
-		} else {
-			left(y) = left(z);
-			parent(left(z)) = y;
-			if (right(z) != y) {
-				x_parent = parent(y);
-				if (x != shm_nullptr)
-					parent(x) = parent(y);
-				left(parent(y)) = x;
-
-				right(y) = right(z);
-				parent(right(z)) = y;
-			} else {
-				x_parent = y;
-			}
-
-			if (z == root()) {
-				root() = y;
-			} else if (z == left(parent(z))) {
-				left(parent(z)) = y;
-			} else {
-				right(parent(z)) = y;
-			}
-			parent(y) = parent(z);
-
-			std::swap(y->color, z->color);
-			y = z;
-		}
-
-		// y： 待删节点   x： 替换y的节点(鸠占鹊巢),此时x也成为标记节点   x_parent: x的父节点
-		if (y->color != _red) {
-			while (x != root() && (x == shm_nullptr || x->color == _black)) //为双黑色节点
-			{
-				if (x == left(x_parent)) {
-					rbtree_node_ptr w = right(x_parent);
-					if (w->color == _red) {
-						w->color = _black;
-						x_parent->color = _red;
-						rb_tree_rotate_left(x_parent);
-						w = right(x_parent);
-					}
-					if ((left(w) == shm_nullptr || color(left(w)) == _black) &&
-						(right(w) == shm_nullptr || color(right(w)) == _black)) {
-						w->color = _red;
-						x = x_parent;
-						x_parent = parent(x_parent);
-					} else {
-						if (right(w) == shm_nullptr || color(right(w)) == _black) {
-							if (left(w) != shm_nullptr)
-								color(left(w)) = _black;
-							color(right(w)) = _red;
-							rb_tree_rotate_right(w);
-							w = right(x_parent);
-						}
-						w->color = x_parent->color;
-						x_parent->color = _black;
-						if (w->right != shm_nullptr)
-							color(right(w)) = _black;
-						rb_tree_rotate_left(x_parent);
-						break;
-					}
-
-				} else {
-					rbtree_node_ptr w = left(x_parent);
-					if (w->color == _red) {
-						w->color = _black;
-						x_parent->color = _red;
-						rb_tree_rotate_right(x_parent);
-						w = left(x_parent);
-					}
-
-					if ((left(w) == shm_nullptr || color(left(w)) == _black) &&
-						(right(w) == shm_nullptr || color(right(w)) == _black)) {
-						w->color = _red;
-						x = x_parent;
-						x_parent = parent(x_parent);
-					} else {
-						if (left(w) == shm_nullptr || color(left(w)) == _black) {
-							if (right(w) != shm_nullptr)
-								color(right(w)) = _black;
-							w->color = _red;
-							rb_tree_rotate_left(w);
-							w = left(x_parent);
-						}
-						w->color = x_parent->color;
-						x_parent->color = _black;
-						if (w->left != shm_nullptr)
-							color(left(w)) = _black;
-						rb_tree_rotate_right(x_parent);
-						break;
-					}
-				}
-			}
-			if (x != shm_nullptr)
-				x->color = _black;
-		}
-
-		return y;
-	}
-
-	rbtree_node_ptr findRBTree(const Key& k, bool& isFind) {
-		auto res = root();
-		isFind = false;
-		while (res != shm_nullptr) {
-			if (key_compare(k, key(res))) {
-				res = left(res);
-			} else {
-				if (key_compare(key(res), k)) {
-					res = right(res);
-				} else {
-					isFind = true;
-					break;
-				}
-			}
-		}
-		return res;
-	}
-
-public:
-	shm_pair<iterator, bool> insert_unique(const value_type& val) {
-		auto p = header;	//新节点的父节点
-		auto x = root();
-		bool res = true;
-		while (x != shm_nullptr) {
-			p = x;
-			res = key_compare(val.first, key(x));
-			if (res) {
-				x = left(x);
-			} else {
-				x = right(x);
-			}
-		}
-
-		//新节点会在p的左边或者右边
-		//尚未有一个节点，此时根本没有进入while循环
-		if (p == header) {
-			return shm_pair<iterator, bool>(__insert(p, val), true);
-		}
-
-		auto j = iterator(p);
-
-		//小于，放左边
-		if (res) {
-			if (j == begin()) {
-				return shm_pair<iterator, bool>(__insert(p, val), true);
-			} else {
-				--j;
-			}
-		}
-
-		if (key_compare(key(j._ptr), val.first)) {
-			return shm_pair<iterator, bool>(__insert(p, val), true);
-		} else {
-			return shm_pair<iterator, bool>(j, false);
-		}
-	}
-
-	void clear() {
-		recurErase(root());
-		leftmost() = header;
-		rightmost() = header;
-		root() = shm_nullptr;
-		node_count = 0;
-	}
-
-	void erase(iterator position) {
-		auto to_be_delete = rb_tree_rebalance_for_erase(position._ptr);
-		deleteNode(to_be_delete);
-		--node_count;
-	}
-
-	iterator find(const Key& k) {
-		bool isFind = false;
-		auto res = findRBTree(k, isFind);
-		if (isFind) {
-			return iterator(res);
-		} else {
-			return end();
-		}
-	}
 };
 
-template <typename Key, typename Value, typename Compare = less<Key>>
+template <typename Key, typename Value>
 class ShmMap {
 public:
-	typedef typename rb_tree<Key, Value, Compare>::value_type valueType;
-	typedef typename rb_tree<Key, Value, Compare>::iterator iterator;
+	typedef typename RBTree<Key, Value>::value_type valueType;
+	typedef typename RBTree<Key, Value>::iterator iterator;
 
-	ShmMap()
-		: m_tree(Compare()) {}
-	ShmMap(const ShmMap<Key, Value, Compare>& r)
-		: m_tree(r.m_tree) {}
+	ShmMap() {}
+	ShmMap(const ShmMap<Key, Value>& r) {}
 
-	ShmMap& operator=(const ShmMap<Key, Value, Compare>& r) {
+	ShmMap& operator=(const ShmMap<Key, Value>& r) {
 		if (this != &r) {
 			ShmMap(r).swap(*this);
 		}
 		return *this;
 	}
 
-	shm_pair<iterator, bool> insert(const valueType& v) { return m_tree.insert_unique(v); }
-	bool empty() const { return m_tree.empty(); }
-	size_t size() const { return m_tree.size(); }
-	void clear() { m_tree.clear(); }
-	iterator begin() { return m_tree.begin(); }
-	iterator end() { return m_tree.end(); }
-	iterator find(const Key& k) { return m_tree.find(k); }
+	shm_pair<iterator, bool> insert(const valueType& v) { return make_pair(iterator(shm_nullptr), true); }
+	bool empty() const { return m_tree.rbtree_size() == 0; }
+	size_t size() const { return m_tree.rbtree_size(); }
+	void clear() { m_tree.rbtree_remove_all(); }
+	iterator begin() { return iterator(shm_nullptr); }
+	iterator end() { return iterator(shm_nullptr); }
+	iterator find(const Key& k) { return iterator(shm_nullptr); }
 	iterator erase(iterator it) {
-		m_tree.erase(it++);
 		return it;
 	}
 
 private:
-	rb_tree<Key, Value, Compare> m_tree;
+	RBTree<Key, Value> m_tree;
 };
 
 } // namespace smd
