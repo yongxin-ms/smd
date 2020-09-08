@@ -208,9 +208,8 @@ public:
 
 protected:
 	iterator __insert(rbtree_node_ptr y, const value_type& val) {
-		rbtree_node_ptr z;
+		rbtree_node_ptr z = createNode(val);
 		if (y == header || key_compare(val.first, key(y))) {
-			z = createNode(val);
 			left(y) = z;
 			if (y == header) {
 				root() = z;
@@ -218,9 +217,7 @@ protected:
 			} else if (y == leftmost()) {
 				leftmost() = z;
 			}
-
 		} else {
-			z = createNode(val);
 			right(y) = z;
 			if (rightmost() == y) {
 				rightmost() = z;
@@ -240,15 +237,21 @@ protected:
 		z->color = _red;
 		while (z != root() && z->parent->color == _red) {
 			if (z->parent == z->parent->parent->left) {
+				// z的父亲是z的祖父的左儿子
+
 				rbtree_node_ptr s = z->parent->parent->right;
 				if (s != shm_nullptr && s->color == _red) {
+					// z的叔父为红色
+
 					s->color = _black;
 					z->parent->color = _black;
 					z->parent->parent->color = _red;
 					z = z->parent->parent;
-
 				} else {
 					if (z == z->parent->right) {
+						// 情形2，转换为情形3
+						// z的叔父不是红色,且z为右孩子
+
 						z = z->parent;
 						rb_tree_rotate_left(z);
 					}
@@ -256,7 +259,6 @@ protected:
 					z->parent->color = _black;
 					rb_tree_rotate_right(z->parent->parent);
 				}
-
 			} else {
 				rbtree_node_ptr s = z->parent->parent->left;
 				if (s != shm_nullptr && s->color == _red) {
@@ -278,6 +280,13 @@ protected:
 		root()->color = _black;
 	}
 
+// 			 T1                       T1
+// 			/		左旋			 / 
+// 		   x	   ----->			y
+// 		    \					   / 
+// 		     y					  x
+
+	// 完全符合算法导论的左旋Page177
 	void rb_tree_rotate_left(rbtree_node_ptr x) {
 		auto y = right(x);
 		right(x) = left(y);
@@ -285,16 +294,16 @@ protected:
 			parent(left(y)) = x;
 
 		parent(y) = parent(x);
-		if (x == root())
+		if (root() == x) {
 			root() = y;
-		else if (left(parent(x)) == x) {
+		} else if (left(parent(x)) == x) {
 			left(parent(x)) = y;
 		} else {
 			right(parent(x)) = y;
 		}
 
-		parent(x) = y;
 		left(y) = x;
+		parent(x) = y;
 	}
 
 // 			 x                       y
@@ -311,7 +320,6 @@ protected:
 
 		parent(y) = parent(x);
 		if (root() == x) {
-			// y = root();	//这里写错了？bug
 			root() = y;
 		} else if (left(parent(x)) == x) {
 			left(parent(x)) = y;
@@ -343,8 +351,9 @@ protected:
 			x = left(y);
 		} else {
 			y = right(y);
-			while (left(y) != shm_nullptr)
+			while (left(y) != shm_nullptr) {
 				y = left(y);
+			}
 			x = right(y);
 		}
 
@@ -358,8 +367,9 @@ protected:
 				right(parent(z)) = x;
 			}
 
-			if (x != shm_nullptr)
+			if (x != shm_nullptr) {
 				parent(x) = parent(z);
+			}
 
 			if (z == leftmost()) {
 				if (right(z) == shm_nullptr)
