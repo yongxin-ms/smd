@@ -17,10 +17,15 @@ struct RBTreeNode {
 	Value value;
 
 	RBTreeNode(const Value& val)
-		: color(_red)
+		: color(RBTREE_NODE_RED)
 		, value(val) {}
-	RBTreeNode(const RBTreeNode&) = delete;
-	RBTreeNode& operator=(const RBTreeNode&) = delete;
+	void swap(RBTreeNode<Value>& x) {
+		std::swap(color, x.color);
+		std::swap(parent, x.parent);
+		std::swap(left_child, x.left_child);
+		std::swap(right_child, x.right_child);
+		std::swap(value, x.value);
+	}
 };
 
 template <typename value_type>
@@ -328,11 +333,11 @@ protected:
 			old_node->parent->right_child = new_node;
 		}
 
-		if (old_node->left_child) {
+		if (old_node->left_child != shm_nullptr) {
 			old_node->left_child->parent = new_node;
 		}
 
-		if (old_node->right_child) {
+		if (old_node->right_child != shm_nullptr) {
 			old_node->right_child->parent = new_node;
 		}
 
@@ -408,7 +413,7 @@ protected:
 			}
 		}
 
-		swap(*high_node, *low_node);
+		std::swap(*high_node, *low_node);
 	}
 
 	void rotate_left(rbtree_node_ptr node) {
@@ -429,7 +434,7 @@ protected:
 	}
 
 	void rotate_right(rbtree_node_ptr node) {
-		assert(node);
+		assert(node != shm_nullptr);
 
 		rbtree_node_ptr n = node->left_child;
 
