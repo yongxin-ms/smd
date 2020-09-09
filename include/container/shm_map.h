@@ -124,12 +124,17 @@ public:
 	RBTree()
 		: root(shm_nullptr)
 		, size(0) {}
-
 	RBTree(const this_type& r) = delete;
-
 	this_type& operator=(const this_type& r) = delete;
-
 	~RBTree() { rbtree_remove_all(); }
+
+	rbtree_node_ptr createNode(const value_type& val) {
+		return g_alloc->New<RBTreeNode<value_type>>(val);
+	}
+	void deleteNode(rbtree_node_ptr p) { g_alloc->Delete(p); }
+
+	static value_type& value(rbtree_node_ptr x) { return x->value; }
+	static const Key& key(rbtree_node_ptr x) { return value(x).first; }
 
 	size_t rbtree_size() const { return size; }
 	bool rbtree_empty() { return size == 0; }
@@ -159,9 +164,9 @@ public:
 				} else {
 					replace(n, node);
 
-					if (collide) {
-						collide(n, node, auxiliary_data);
-					}
+					//if (collide) {
+					//	collide(n, node, auxiliary_data);
+					//}
 
 					return;
 				}
@@ -228,11 +233,51 @@ public:
 			n->color = RBTREE_NODE_BLACK;
 		}
 
-		node->parent = RBTREE_POISON_PARENT;
-		node->left_child = RBTREE_POISON_LEFT_CHILD;
-		node->right_child = RBTREE_POISON_RIGHT_CHILD;
+		node->parent = shm_nullptr;
+		node->left_child = shm_nullptr;
+		node->right_child = shm_nullptr;
 
 		--size;
+	}
+
+	rbtree_node_ptr rbtree_first() {
+		rbtree_node_ptr n = root;
+		if (n == shm_nullptr) {
+			return shm_nullptr;
+		}
+
+		while (n->left_child != shm_nullptr) {
+			n = n->left_child;
+		}
+
+		return n;
+	}
+
+	rbtree_node_ptr rbtree_last() {
+		rbtree_node_ptr n = root;
+		if (n == shm_nullptr) {
+			return shm_nullptr;
+		}
+
+		while (n->right_child != shm_nullptr) {
+			n = n->right_child;
+		}
+
+		return n;
+	}
+
+	void rbtree_remove_key(const Key& key) { rbtree_remove(rbtree_lookup_key(key)); }
+	void rbtree_remove_first() { rbtree_remove(rbtree_first()); }
+	void rbtree_remove_last() { rbtree_remove(rbtree_last()); }
+	void rbtree_remove_all() {
+		if (root != shm_nullptr) {
+			root->parent = shm_nullptr;
+			root->left_child = shm_nullptr;
+			root->right_child = shm_nullptr;
+		}
+
+		root = shm_nullptr;
+		size = 0;
 	}
 
 protected:
@@ -243,6 +288,7 @@ protected:
 	void* auxiliary_data;
 
 protected:
+
 	static RBTreeNodeColor color(rbtree_node_ptr node) {
 		return node != shm_nullptr ? node->color : RBTREE_NODE_BLACK;
 	}
@@ -292,9 +338,9 @@ protected:
 
 		*new_node = *old_node;
 
-		old_node->parent = RBTREE_POISON_PARENT;
-		old_node->left_child = RBTREE_POISON_LEFT_CHILD;
-		old_node->right_child = RBTREE_POISON_RIGHT_CHILD;
+		old_node->parent = shm_nullptr;
+		old_node->left_child = shm_nullptr;
+		old_node->right_child = shm_nullptr;
 	}
 
 	void transplant(rbtree_node_ptr old_node, rbtree_node_ptr new_node) {
@@ -317,7 +363,7 @@ protected:
 		assert(high_node != shm_nullptr && low_node != shm_nullptr);
 
 		if (high_node->parent == shm_nullptr) {
-			rbtree->root = low_node;
+			root = low_node;
 		} else if (high_node->parent->left_child == high_node) {
 			high_node->parent->left_child = low_node;
 		} else {
@@ -399,34 +445,8 @@ protected:
 		node->parent = n;
 	}
 
-	rbtree_node_ptr rbtree_first() {
-		rbtree_node_ptr n = root;
-		if (n == shm_nullptr) {
-			return shm_nullptr;
-		}
-
-		while (n->left_child) {
-			n = n->left_child;
-		}
-
-		return n;
-	}
-
-	rbtree_node_ptr rbtree_last() {
-		rbtree_node_ptr n = root;
-		if (n == shm_nullptr) {
-			return shm_nullptr;
-		}
-
-		while (n->right_child) {
-			n = n->right_child;
-		}
-
-		return n;
-	}
-
 	void repair_after_insert(rbtree_node_ptr node) {
-		assert(node);
+		assert(node != shm_nullptr);
 
 		for (;;) {
 			if (node->parent == shm_nullptr) {
@@ -545,38 +565,6 @@ protected:
 			break;
 		}
 	}
-
-	void rbtree_remove_key(const Key& key) {
-		rbtree_remove(rbtree_lookup_key(key));
-	}
-
-	void rbtree_remove_first() {
-		rbtree_remove(rbtree_first());
-	}
-
-	void rbtree_remove_last() {
-		rbtree_remove(rbtree_last());
-	}
-
-	void rbtree_remove_all() {
-		if (root != shm_nullptr) {
-			root->parent = shm_nullptr;
-			root->left_child = shm_nullptr;
-			root->right_child = shm_nullptr;
-		}
-
-		root = shm_nullptr;
-		size = 0;
-	}
-
-	rbtree_node_ptr createNode(const value_type& val) {
-		return g_alloc->New<rbtree_node<value_type>>(val);
-	}
-	void deleteNode(rbtree_node_ptr p) { g_alloc->Delete(p); }
-
-protected:
-	static value_type& value(rbtree_node_ptr x) { return x->value; }
-	static const Key& key(rbtree_node_ptr x) { return (value(x)).first; }
 };
 
 template <typename Key, typename Value>
@@ -595,14 +583,20 @@ public:
 		return *this;
 	}
 
-	shm_pair<iterator, bool> insert(const valueType& v) { return make_pair(iterator(shm_nullptr), true); }
+	iterator insert(const valueType& v) {
+		auto ptr = m_tree.createNode(v);
+		m_tree.rbtree_insert(m_tree.key(ptr), ptr);
+		return iterator(ptr);
+	}
 	bool empty() const { return m_tree.rbtree_size() == 0; }
 	size_t size() const { return m_tree.rbtree_size(); }
 	void clear() { m_tree.rbtree_remove_all(); }
-	iterator begin() { return iterator(shm_nullptr); }
+	iterator begin() { return iterator(m_tree.rbtree_first()); }
 	iterator end() { return iterator(shm_nullptr); }
-	iterator find(const Key& k) { return iterator(shm_nullptr); }
+	iterator find(const Key& k) { return iterator(m_tree.rbtree_lookup_key(k)); }
 	iterator erase(iterator it) {
+		auto it_remove = it++;
+		m_tree.rbtree_remove(it_remove._ptr);
 		return it;
 	}
 
