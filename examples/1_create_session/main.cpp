@@ -8,7 +8,6 @@
 #include "test_string.h"
 #include "test_vector.h"
 #include "test_list.h"
-#include "test_pair.h"
 #include "test_hash.h"
 #include "test_map.h"
 

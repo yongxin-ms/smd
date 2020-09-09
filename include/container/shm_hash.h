@@ -1,5 +1,4 @@
 ﻿#pragma once
-#include "shm_pair.h"
 #include "shm_pointer.h"
 
 namespace smd {
@@ -126,17 +125,17 @@ public:
 		return it == end() ? 0 : 1;
 	}
 
-	shm_pair<iterator, bool> insert(const key_type& val) {
+	std::pair<iterator, bool> insert(const key_type& val) {
 		if (!has_key(val)) {
 			if (load_factor() > max_load_factor())
 				rehash(next_prime(size()));
 			auto index = bucket_index(val);
 			m_buckets[index].push_front(val);
 			++m_size;
-			return shm_pair<iterator, bool>(iterator(
+			return std::pair<iterator, bool>(iterator(
 				index, m_buckets[index].begin(), g_alloc->ToShmPointer<ShmHash<Key>>(this)), true);
 		}
-		return shm_pair<iterator, bool>(end(), false);
+		return std::pair<iterator, bool>(end(), false);
 	}
 
 	iterator erase(iterator position) {

@@ -121,7 +121,7 @@ template <typename Key, typename Value>
 class RBTree {
 public:
 	typedef RBTree<Key, Value> this_type;
-	typedef shm_pair<Key, Value> value_type;
+	typedef std::pair<Key, Value> value_type;
 	typedef ShmPointer<RBTreeNode<value_type>> rbtree_node_ptr;
 	typedef rbtree_iterator<value_type, value_type*, value_type&> iterator;
 	typedef rbtree_iterator<value_type, const value_type*, const value_type&> const_iterator;

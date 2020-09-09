@@ -26,7 +26,7 @@ private:
 			auto key = GetKey(vRoleIds[i]);
 			auto value = GetValue(vRoleIds[i]);
 
-			obj->insert(smd::make_pair(key, value));
+			obj->insert(std::make_pair(key, value));
 			ref.insert(std::make_pair(key, value));
 
 			// 插入相同的数据，这两个map应该完全相同
@@ -89,7 +89,7 @@ private:
 			const auto& role_id = vRoleIds[i];
 			auto value = role_id * 10;
 
-			obj->insert(smd::make_pair(role_id, value));
+			obj->insert(std::make_pair(role_id, value));
 			ref.insert(std::make_pair(role_id, value));
 
 			// 插入相同的数据，这两个map应该完全相同

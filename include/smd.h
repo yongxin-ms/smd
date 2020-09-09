@@ -66,7 +66,7 @@ public:
 		auto it = m_allStrings->find(strKey);
 		if (it == m_allStrings->end()) {
 			ShmString strValue(value.ToString());
-			m_allStrings->insert(make_pair(strKey, strValue));
+			m_allStrings->insert(std::make_pair(strKey, strValue));
 		} else {
 			it->second = value.ToString();
 		}
