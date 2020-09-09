@@ -189,6 +189,11 @@ inline bool operator!=(const ShmString& x, const ShmString& y) { return !(x == y
 inline bool operator<(const ShmString& x, const ShmString& y) { return x.compare(y) < 0; }
 inline bool operator>(const ShmString& x, const ShmString& y) { return x.compare(y) > 0; }
 
+template <>
+int64_t compare(const ShmString& x, const ShmString& y) {
+	return x.compare(y);
+}
+
 } // namespace smd
 
 namespace std {

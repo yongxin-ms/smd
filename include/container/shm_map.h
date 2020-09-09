@@ -148,7 +148,7 @@ public:
 		rbtree_node_ptr n = root;
 		if (n != shm_nullptr) {
 			for (;;) {
-				int cmp = compare(key, n);
+				auto cmp = compare(key, n);
 
 				if (cmp < 0) {
 					if (n->left_child != shm_nullptr) {
@@ -168,11 +168,6 @@ public:
 					}
 				} else {
 					replace(n, node);
-
-					//if (collide) {
-					//	collide(n, node, auxiliary_data);
-					//}
-
 					return;
 				}
 			}
@@ -195,7 +190,7 @@ public:
 	rbtree_node_ptr rbtree_lookup_key(const Key& key) {
 		rbtree_node_ptr n;
 		for (n = root; n != shm_nullptr;) {
-			int cmp = compare(key, n);
+			auto cmp = compare(key, n);
 
 			if (cmp < 0) {
 				n = n->left_child;
@@ -288,9 +283,7 @@ public:
 protected:
 	rbtree_node_ptr root;
 	size_t size;
-	static int compare(const Key& key, rbtree_node_ptr node) { return 1; }
-	void collide(rbtree_node_ptr old_node, rbtree_node_ptr new_node, void* auxiliary_data) {}
-	void* auxiliary_data;
+	static int64_t compare(const Key& k, rbtree_node_ptr node) { return smd::compare(k, key(node)); }
 
 protected:
 

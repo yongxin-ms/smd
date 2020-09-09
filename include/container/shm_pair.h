@@ -80,11 +80,6 @@ bool operator>=(const shm_pair<T1, T2>& lhs, const shm_pair<T1, T2>& rhs) {
 	return !(lhs < rhs);
 }
 
-template <class T1, class T2>
-void swap(shm_pair<T1, T2>& x, shm_pair<T1, T2>& y) {
-	x.swap(y);
-}
-
 // ******* [make_pair] ************
 template <class U, class V>
 shm_pair<U, V> make_pair(const U& u, const V& v) {
