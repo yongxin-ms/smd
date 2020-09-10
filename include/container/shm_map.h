@@ -209,7 +209,7 @@ public:
 		auto next_node = rbtree_next(node);
 
 		if (node->left_child != shm_nullptr && node->right_child != shm_nullptr) {
-			rbtree_node_ptr k = node->left_child;
+			auto k = node->left_child;
 
 			while (k->right_child != shm_nullptr) {
 				k = k->right_child;
@@ -218,7 +218,7 @@ public:
 			swap_places(node, k);
 		}
 
-		rbtree_node_ptr n = node->right_child != shm_nullptr ? node->right_child : node->left_child;
+		auto n = node->right_child != shm_nullptr ? node->right_child : node->left_child;
 
 		if (color(node) == RBTREE_NODE_BLACK) {
 			node->color = color(n);
@@ -228,7 +228,7 @@ public:
 
 		transplant(node, n);
 
-		if (node->parent != shm_nullptr && n != shm_nullptr) {
+		if (node->parent == shm_nullptr && n != shm_nullptr) {
 			n->color = RBTREE_NODE_BLACK;
 		}
 
