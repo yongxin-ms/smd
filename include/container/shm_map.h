@@ -459,6 +459,10 @@ protected:
 			// k是node左子树中最大的那一个，仍然比node小
 			// node与k交换之后不会破坏二叉查找树的任何特性
 			// 交换完成之后，node位置变了
+
+			//
+			// 此处还可以优化一下性能，其实修改几个指针就可以了
+			//
 			std::swap(node->value, k->value);
 			std::swap(node, k);
 		}
