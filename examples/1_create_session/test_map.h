@@ -158,7 +158,7 @@ private:
 
 		auto it = l.begin();
 		auto stl_it = r.begin();
-		int count = 0;
+		size_t count = 0;
 		for (; it != l.end() && stl_it != r.end(); ++it, ++stl_it) {
 			++count;
 			const auto& key1 = it->first;
@@ -189,7 +189,7 @@ private:
 
 		auto it = l.begin();
 		auto stl_it = r.begin();
-		int count = 0;
+		size_t count = 0;
 		for (; it != l.end() && stl_it != r.end(); ++it, ++stl_it) {
 			++count;
 			const auto& key1 = it->first;

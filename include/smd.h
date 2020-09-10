@@ -94,8 +94,6 @@ public:
 			return false;
 		}
 
-		ShmString& strValue = it->second;
-		strValue;
 		m_allStrings->erase(it);
 		return true;
 	}
