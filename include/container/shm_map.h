@@ -402,7 +402,7 @@ protected:
 			}
 		}
 
-		std::swap(*high_node, *low_node);
+		high_node->swap(*low_node);
 	}
 
 	void rotate_left(rbtree_node_ptr node) {
@@ -592,11 +592,7 @@ public:
 	iterator begin() { return iterator(m_tree.rbtree_first()); }
 	iterator end() { return iterator(shm_nullptr); }
 	iterator find(const Key& k) { return iterator(m_tree.rbtree_lookup_key(k)); }
-	iterator erase(iterator it) {
-		auto it_remove = it++;
-		m_tree.rbtree_remove(it_remove._ptr);
-		return it;
-	}
+	iterator erase(iterator it) { return iterator(m_tree.rbtree_remove(it._ptr)); }
 
 private:
 	RBTree<Key, Value> m_tree;
