@@ -129,7 +129,7 @@ private:
 			assert(false);
 		}
 
-		for (int i = 0; i < l.size(); i++) {
+		for (size_t i = 0; i < l.size(); i++) {
 			const auto& key1 = l.operator[](i);
 			const auto& key2 = r[i];
 			if (key1 != key2) {

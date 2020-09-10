@@ -78,18 +78,18 @@ private:
 		log.DoLog(smd::Log::LogLevel::kInfo, "Raw pointer:%lld", shm_ptr.Raw());
 
 		// 随机访问
-		for (int i = 0; i < ARRAY_SIZE; i++) {
+		for (size_t i = 0; i < ARRAY_SIZE; i++) {
 			shm_ptr[i] = i * 10;
 		}
 
 		// 随机访问
-		for (int i = 0; i < ARRAY_SIZE; i++) {
+		for (size_t i = 0; i < ARRAY_SIZE; i++) {
 			log.DoLog(smd::Log::LogLevel::kInfo, "Array[%d] = %d", i, shm_ptr[i]);
 		}
 
 		//和普通指针一样可以++
 		auto p = shm_ptr;
-		for (int i = 0; i < ARRAY_SIZE; i++, p++) {
+		for (size_t i = 0; i < ARRAY_SIZE; i++, p++) {
 			log.DoLog(smd::Log::LogLevel::kInfo, "Array[%d] = %d", i, *p);
 		}
 

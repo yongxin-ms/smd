@@ -165,7 +165,6 @@ public:
 	}
 
 	void swap(ShmHash<Key>& x) {
-		std::swap(m_dummyKey, x.m_dummyKey);
 		std::swap(m_buckets, x.m_buckets);
 		std::swap(m_size, x.m_size);
 		std::swap(m_max_load_factor, x.m_max_load_factor);
