@@ -19,13 +19,6 @@ struct RBTreeNode {
 	RBTreeNode(const Value& val)
 		: color(RBTREE_NODE_RED)
 		, value(val) {}
-	void swap(RBTreeNode<Value>& x) {
-		std::swap(color, x.color);
-		std::swap(parent, x.parent);
-		std::swap(left_child, x.left_child);
-		std::swap(right_child, x.right_child);
-		std::swap(value, x.value);
-	}
 };
 
 template <typename value_type>
@@ -201,7 +194,7 @@ public:
 	}
 
 	// 删除一个节点之后，返回下一个节点
-	rbtree_node_ptr rbtree_remove(rbtree_node_ptr& node) {
+	rbtree_node_ptr rbtree_remove(rbtree_node_ptr node) {
 		if (node == shm_nullptr) {
 			return shm_nullptr;
 		}
@@ -217,7 +210,8 @@ public:
 			// k是node左子树中最大的那一个，仍然比node小
 			// node与k交换之后不会破坏二叉查找树的任何特性
 			// 交换完成之后，node位置变了
-			swap_places(node, k);
+			std::swap(node->value, k->value);
+			std::swap(node, k);
 		}
 
 		// 现在node最多只会有一个孩子
@@ -225,7 +219,7 @@ public:
 
 		if (replacement != shm_nullptr) {
 			// 待删除节点只有一个孩子
-			// 把node用n替换掉
+			// 把node用replacement替换掉
 			transplant(node, replacement);
 
 			if (color(node) == RBTREE_NODE_BLACK) {
@@ -249,6 +243,7 @@ public:
 			}
 		}
 
+		//auto tmp = node.Ptr();
 		deleteNode(node);
 		--size;
 		return replacement;
@@ -348,61 +343,6 @@ protected:
 		if (new_node != shm_nullptr) {
 			new_node->parent = old_node->parent;
 		}
-	}
-
-	void swap_places(rbtree_node_ptr high_node, rbtree_node_ptr low_node) {
-		assert(high_node != shm_nullptr && low_node != shm_nullptr);
-
-		//修改high父亲节点
-		if (high_node->parent == shm_nullptr) {
-			root = low_node;
-		} else if (high_node->parent->left_child == high_node) {
-			high_node->parent->left_child = low_node;
-		} else {
-			high_node->parent->right_child = low_node;
-		}
-
-		//修改low左孩子
-		if (low_node->left_child != shm_nullptr) {
-			low_node->left_child->parent = high_node;
-		}
-
-		//修改low右孩子
-		if (low_node->right_child != shm_nullptr) {
-			low_node->right_child->parent = high_node;
-		}
-
-		if (high_node->left_child == low_node) {
-			if (high_node->right_child != shm_nullptr) {
-				high_node->right_child->parent = low_node;
-			}
-
-			high_node->left_child = high_node;
-			low_node->parent = low_node;
-		} else if (high_node->right_child == low_node) {
-			if (high_node->left_child != shm_nullptr) {
-				high_node->left_child->parent = low_node;
-			}
-
-			high_node->right_child = high_node;
-			low_node->parent = low_node;
-		} else {
-			if (high_node->left_child != shm_nullptr) {
-				high_node->left_child->parent = low_node;
-			}
-
-			if (high_node->right_child != shm_nullptr) {
-				high_node->right_child->parent = low_node;
-			}
-
-			if (low_node->parent->left_child == low_node) {
-				low_node->parent->left_child = high_node;
-			} else {
-				low_node->parent->right_child = high_node;
-			}
-		}
-
-		high_node->swap(*low_node);
 	}
 
 	void rotate_left(rbtree_node_ptr node) {
