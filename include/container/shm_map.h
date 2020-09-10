@@ -206,8 +206,7 @@ public:
 			return shm_nullptr;
 		}
 
-		auto next_node = rbtree_next(node);
-
+		// 如果待删除的节点有两个孩子需要转换成只有一个孩子，方法是找一个相邻的替换
 		if (node->left_child != shm_nullptr && node->right_child != shm_nullptr) {
 			auto k = node->left_child;
 
@@ -217,29 +216,42 @@ public:
 
 			// k是node左子树中最大的那一个，仍然比node小
 			// node与k交换之后不会破坏二叉查找树的任何特性
-
+			// 交换完成之后，node位置变了
 			swap_places(node, k);
 		}
 
 		// 现在node最多只会有一个孩子
-		auto n = node->right_child != shm_nullptr ? node->right_child : node->left_child;
+		auto replacement = node->right_child != shm_nullptr ? node->right_child : node->left_child;
 
-		if (color(node) == RBTREE_NODE_BLACK) {
-			node->color = color(n);
+		if (replacement != shm_nullptr) {
+			// 待删除节点只有一个孩子
+			// 把node用n替换掉
+			transplant(node, replacement);
 
-			repair_after_remove(node);
-		}
+			if (color(node) == RBTREE_NODE_BLACK) {
+				repair_after_remove(replacement);
+			}
+		} else if (node->parent == shm_nullptr) {
+			// 根节点
+			root = shm_nullptr;
+		} else {
+			//无任何孩子节点
 
-		// 把node用n替换掉
-		transplant(node, n);
+			if (color(node) == RBTREE_NODE_BLACK)
+				repair_after_remove(node);
 
-		if (node->parent == shm_nullptr && n != shm_nullptr) {
-			n->color = RBTREE_NODE_BLACK;
+			if (node->parent != shm_nullptr) {
+				if (node == node->parent->left_child)
+					node->parent->left_child = shm_nullptr;
+				else if (node == node->parent->right_child)
+					node->parent->right_child = shm_nullptr;
+				node->parent = shm_nullptr;
+			}
 		}
 
 		deleteNode(node);
 		--size;
-		return next_node;
+		return replacement;
 	}
 
 	rbtree_node_ptr rbtree_first() {

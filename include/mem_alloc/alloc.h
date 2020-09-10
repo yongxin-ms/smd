@@ -53,6 +53,7 @@ public:
 		p->~T();
 		auto ptr = ToShmPointer<T>(p);
 		Free(ptr);
+		p = nullptr;
 	}
 
 	size_t GetUsed() const { return m_used; }
