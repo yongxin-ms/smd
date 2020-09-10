@@ -40,6 +40,7 @@ int main() {
 	assert(env != nullptr);
 	auto& log = env->GetLog();
 
+	std::srand(unsigned int(std::time(nullptr)));
 	for (int i = 0; i < 10; i++) {
 // 		TestPointer test_pointer(log);
 // 		TestString test_string(log);

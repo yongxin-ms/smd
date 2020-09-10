@@ -8,8 +8,8 @@ public:
 private:
 	void TestShmString(smd::Log& log) {
 		auto mem_usage = smd::g_alloc->GetUsed();
-		auto s = smd::g_alloc->New<smd::ShmString>(16);
-		assert(s->capacity() > 16);
+		auto s = smd::g_alloc->New<smd::ShmString>();
+		//assert(s->capacity() > 16);
 		assert(s->size() == 0);
 		assert(s->ToString() == "");
 
