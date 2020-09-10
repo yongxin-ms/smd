@@ -215,9 +215,13 @@ public:
 				k = k->right_child;
 			}
 
+			// k是node左子树中最大的那一个，仍然比node小
+			// node与k交换之后不会破坏二叉查找树的任何特性
+
 			swap_places(node, k);
 		}
 
+		// 现在node最多只会有一个孩子
 		auto n = node->right_child != shm_nullptr ? node->right_child : node->left_child;
 
 		if (color(node) == RBTREE_NODE_BLACK) {
@@ -226,6 +230,7 @@ public:
 			repair_after_remove(node);
 		}
 
+		// 把node用n替换掉
 		transplant(node, n);
 
 		if (node->parent == shm_nullptr && n != shm_nullptr) {
@@ -340,6 +345,7 @@ protected:
 	void swap_places(rbtree_node_ptr high_node, rbtree_node_ptr low_node) {
 		assert(high_node != shm_nullptr && low_node != shm_nullptr);
 
+		//修改high父亲节点
 		if (high_node->parent == shm_nullptr) {
 			root = low_node;
 		} else if (high_node->parent->left_child == high_node) {
@@ -348,10 +354,12 @@ protected:
 			high_node->parent->right_child = low_node;
 		}
 
+		//修改low左孩子
 		if (low_node->left_child != shm_nullptr) {
 			low_node->left_child->parent = high_node;
 		}
 
+		//修改low右孩子
 		if (low_node->right_child != shm_nullptr) {
 			low_node->right_child->parent = high_node;
 		}
