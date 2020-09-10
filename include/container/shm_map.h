@@ -280,10 +280,11 @@ public:
 protected:
 	rbtree_node_ptr root;
 	size_t size;
-	static int64_t compare(const Key& k, rbtree_node_ptr node) { return smd::compare(k, key(node)); }
+	static int64_t compare(const Key& k, rbtree_node_ptr node) {
+		return smd::compare(k, key(node));
+	}
 
 protected:
-
 	static RBTreeNodeColor color(rbtree_node_ptr node) {
 		return node != shm_nullptr ? node->color : RBTREE_NODE_BLACK;
 	}
@@ -560,9 +561,7 @@ public:
 		return *this;
 	}
 
-	iterator insert(const valueType& v) {
-		return iterator(m_tree.rbtree_insert(v));
-	}
+	iterator insert(const valueType& v) { return iterator(m_tree.rbtree_insert(v)); }
 	bool empty() const { return m_tree.rbtree_size() == 0; }
 	size_t size() const { return m_tree.rbtree_size(); }
 	void clear() { m_tree.rbtree_remove_all(); }
