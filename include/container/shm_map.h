@@ -111,28 +111,45 @@ struct rbtree_iterator {
 };
 
 template <typename Key, typename Value>
-class RBTree {
+class ShmMap {
 public:
-	typedef RBTree<Key, Value> this_type;
+	typedef ShmMap<Key, Value> this_type;
 	typedef std::pair<Key, Value> value_type;
 	typedef ShmPointer<RBTreeNode<value_type>> rbtree_node_ptr;
 	typedef rbtree_iterator<value_type, value_type*, value_type&> iterator;
 	typedef rbtree_iterator<value_type, const value_type*, const value_type&> const_iterator;
 
-	RBTree()
-		: root(shm_nullptr)
-		, size(0) {}
-	RBTree(const this_type& r) = delete;
-	this_type& operator=(const this_type& r) = delete;
-	~RBTree() { rbtree_remove_all(); }
+	ShmMap()
+		: root_(shm_nullptr)
+		, size_(0) {}
+	ShmMap(const this_type& r)
+		: root_(shm_nullptr)
+		, size_(0) {
+		for (auto it = r.begin(); it != r.end(); ++it) {
+			insert(std::make_pair(it->first, it->second));
+		}
+	}
 
-	size_t rbtree_size() const { return size; }
-	bool rbtree_empty() { return size == 0; }
+	this_type& operator=(const this_type& r) {
+		if (this != &r) {
+			ShmMap(r).swap(*this);
+		}
+		return *this;
+	}
 
-	rbtree_node_ptr rbtree_insert(const value_type& value) {
+	~ShmMap() { clear(); }
+
+	iterator begin() { return iterator(rbtree_first()); }
+	const_iterator begin() const { return const_iterator(rbtree_first()); }
+	iterator end() { return iterator(shm_nullptr); }
+	const_iterator end() const { return const_iterator(shm_nullptr); }
+
+	size_t size() const { return size_; }
+	bool empty() { return size_ == 0; }
+	rbtree_node_ptr insert(const value_type& value) {
 		auto node = createNode(value);
 
-		auto n = root;
+		auto n = root_;
 		if (n != shm_nullptr) {
 			for (;;) {
 				auto cmp = compare(key(node), n);
@@ -167,127 +184,27 @@ public:
 		node->color = RBTREE_NODE_RED;
 
 		if (n == shm_nullptr) {
-			root = node;
+			root_ = node;
 		}
 
 		repair_after_insert(node);
 
-		++size;
+		++size_;
 		return node;
 	}
 
-	rbtree_node_ptr rbtree_lookup_key(const Key& key) {
-		auto n = root;
-		while (n != shm_nullptr) {
-			auto cmp = compare(key, n);
-
-			if (cmp < 0) {
-				n = n->left_child;
-			} else if (cmp > 0) {
-				n = n->right_child;
-			} else {
-				break;
-			}
-		}
-
-		return n;
-	}
-
-	// 删除一个节点之后，返回下一个节点
-	rbtree_node_ptr rbtree_remove(rbtree_node_ptr node) {
-		if (node == shm_nullptr) {
-			return shm_nullptr;
-		}
-
-		// 如果待删除的节点有两个孩子需要转换成只有一个孩子，方法是找一个相邻的替换
-		if (node->left_child != shm_nullptr && node->right_child != shm_nullptr) {
-			auto k = node->left_child;
-
-			while (k->right_child != shm_nullptr) {
-				k = k->right_child;
-			}
-
-			// k是node左子树中最大的那一个，仍然比node小
-			// node与k交换之后不会破坏二叉查找树的任何特性
-			// 交换完成之后，node位置变了
-			std::swap(node->value, k->value);
-			std::swap(node, k);
-		}
-
-		// 现在node最多只会有一个孩子
-		auto replacement = node->right_child != shm_nullptr ? node->right_child : node->left_child;
-
-		if (replacement != shm_nullptr) {
-			// 待删除节点只有一个孩子
-			// 把node用replacement替换掉
-			transplant(node, replacement);
-
-			if (color(node) == RBTREE_NODE_BLACK) {
-				repair_after_remove(replacement);
-			}
-		} else if (node->parent == shm_nullptr) {
-			// 根节点
-			root = shm_nullptr;
-		} else {
-			//无任何孩子节点
-
-			if (color(node) == RBTREE_NODE_BLACK)
-				repair_after_remove(node);
-
-			if (node->parent != shm_nullptr) {
-				if (node == node->parent->left_child)
-					node->parent->left_child = shm_nullptr;
-				else if (node == node->parent->right_child)
-					node->parent->right_child = shm_nullptr;
-				node->parent = shm_nullptr;
-			}
-		}
-
-		//auto tmp = node.Ptr();
-		deleteNode(node);
-		--size;
-		return replacement;
-	}
-
-	rbtree_node_ptr rbtree_first() {
-		auto n = root;
-		if (n == shm_nullptr) {
-			return shm_nullptr;
-		}
-
-		while (n->left_child != shm_nullptr) {
-			n = n->left_child;
-		}
-
-		return n;
-	}
-
-	rbtree_node_ptr rbtree_last() {
-		auto n = root;
-		if (n == shm_nullptr) {
-			return shm_nullptr;
-		}
-
-		while (n->right_child != shm_nullptr) {
-			n = n->right_child;
-		}
-
-		return n;
-	}
-
-	void rbtree_remove_key(const Key& key) { rbtree_remove(rbtree_lookup_key(key)); }
-	void rbtree_remove_first() { rbtree_remove(rbtree_first()); }
-	void rbtree_remove_last() { rbtree_remove(rbtree_last()); }
-	void rbtree_remove_all() {
-		recurErase(root);
-
-		root = shm_nullptr;
-		size = 0;
+	iterator find(const Key& key) { return iterator(rbtree_lookup_key(key)); }
+	const_iterator find(const Key& key) const { return const_iterator(rbtree_lookup_key(key)); }
+	iterator erase(iterator it) { return iterator(rbtree_remove(it._ptr)); }
+	void clear() {
+		recurErase(root_);
+		root_ = shm_nullptr;
+		size_ = 0;
 	}
 
 protected:
-	rbtree_node_ptr root;
-	size_t size;
+	rbtree_node_ptr root_;
+	size_t size_;
 	static int64_t compare(const Key& k, rbtree_node_ptr node) {
 		return smd::compare(k, key(node));
 	}
@@ -333,7 +250,7 @@ protected:
 		assert(old_node != shm_nullptr);
 
 		if (old_node->parent == shm_nullptr) {
-			root = new_node;
+			root_ = new_node;
 		} else if (old_node == old_node->parent->left_child) {
 			old_node->parent->left_child = new_node;
 		} else {
@@ -507,35 +424,105 @@ protected:
 			deleteNode(x);
 		}
 	}
-};
 
-template <typename Key, typename Value>
-class ShmMap {
-public:
-	typedef typename RBTree<Key, Value>::value_type valueType;
-	typedef typename RBTree<Key, Value>::iterator iterator;
+	rbtree_node_ptr rbtree_lookup_key(const Key& key) {
+		auto n = root_;
+		while (n != shm_nullptr) {
+			auto cmp = compare(key, n);
 
-	ShmMap() {}
-	ShmMap(const ShmMap<Key, Value>& r) {}
-
-	ShmMap& operator=(const ShmMap<Key, Value>& r) {
-		if (this != &r) {
-			ShmMap(r).swap(*this);
+			if (cmp < 0) {
+				n = n->left_child;
+			} else if (cmp > 0) {
+				n = n->right_child;
+			} else {
+				break;
+			}
 		}
-		return *this;
+
+		return n;
 	}
 
-	iterator insert(const valueType& v) { return iterator(m_tree.rbtree_insert(v)); }
-	bool empty() const { return m_tree.rbtree_size() == 0; }
-	size_t size() const { return m_tree.rbtree_size(); }
-	void clear() { m_tree.rbtree_remove_all(); }
-	iterator begin() { return iterator(m_tree.rbtree_first()); }
-	iterator end() { return iterator(shm_nullptr); }
-	iterator find(const Key& k) { return iterator(m_tree.rbtree_lookup_key(k)); }
-	iterator erase(iterator it) { return iterator(m_tree.rbtree_remove(it._ptr)); }
+	// 删除一个节点之后，返回下一个节点
+	rbtree_node_ptr rbtree_remove(rbtree_node_ptr node) {
+		if (node == shm_nullptr) {
+			return shm_nullptr;
+		}
 
-private:
-	RBTree<Key, Value> m_tree;
+		// 如果待删除的节点有两个孩子需要转换成只有一个孩子，方法是找一个相邻的替换
+		if (node->left_child != shm_nullptr && node->right_child != shm_nullptr) {
+			auto k = node->left_child;
+
+			while (k->right_child != shm_nullptr) {
+				k = k->right_child;
+			}
+
+			// k是node左子树中最大的那一个，仍然比node小
+			// node与k交换之后不会破坏二叉查找树的任何特性
+			// 交换完成之后，node位置变了
+			std::swap(node->value, k->value);
+			std::swap(node, k);
+		}
+
+		// 现在node最多只会有一个孩子
+		auto replacement = node->right_child != shm_nullptr ? node->right_child : node->left_child;
+
+		if (replacement != shm_nullptr) {
+			// 待删除节点只有一个孩子
+			// 把node用replacement替换掉
+			transplant(node, replacement);
+
+			if (color(node) == RBTREE_NODE_BLACK) {
+				repair_after_remove(replacement);
+			}
+		} else if (node->parent == shm_nullptr) {
+			// 根节点
+			root_ = shm_nullptr;
+		} else {
+			//无任何孩子节点
+
+			if (color(node) == RBTREE_NODE_BLACK)
+				repair_after_remove(node);
+
+			if (node->parent != shm_nullptr) {
+				if (node == node->parent->left_child)
+					node->parent->left_child = shm_nullptr;
+				else if (node == node->parent->right_child)
+					node->parent->right_child = shm_nullptr;
+				node->parent = shm_nullptr;
+			}
+		}
+
+		// auto tmp = node.Ptr();
+		deleteNode(node);
+		--size_;
+		return replacement;
+	}
+
+	rbtree_node_ptr rbtree_first() const {
+		auto n = root_;
+		if (n == shm_nullptr) {
+			return shm_nullptr;
+		}
+
+		while (n->left_child != shm_nullptr) {
+			n = n->left_child;
+		}
+
+		return n;
+	}
+
+	rbtree_node_ptr rbtree_last() {
+		auto n = root_;
+		if (n == shm_nullptr) {
+			return shm_nullptr;
+		}
+
+		while (n->right_child != shm_nullptr) {
+			n = n->right_child;
+		}
+
+		return n;
+	}
 };
 
 } // namespace smd

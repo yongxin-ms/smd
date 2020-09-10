@@ -44,6 +44,11 @@ private:
 			log.DoLog(smd::Log::LogLevel::kInfo, "%s, %s", k.data(), v.data());
 		}
 
+		do {
+			smd::ShmMap<smd::ShmString, smd::ShmString> m(*obj);
+			assert(m.size() == obj->size());
+		} while (false);
+
 		for (size_t i = 0; i < vRoleIds.size(); i++) {
 			auto key = GetKey(vRoleIds[i]);
 
