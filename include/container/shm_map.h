@@ -133,22 +133,16 @@ public:
 	this_type& operator=(const this_type& r) = delete;
 	~RBTree() { rbtree_remove_all(); }
 
-	rbtree_node_ptr createNode(const value_type& val) {
-		return g_alloc->New<RBTreeNode<value_type>>(val);
-	}
-	void deleteNode(rbtree_node_ptr p) { g_alloc->Delete(p); }
-
-	static value_type& value(rbtree_node_ptr x) { return x->value; }
-	static const Key& key(rbtree_node_ptr x) { return value(x).first; }
-
 	size_t rbtree_size() const { return size; }
 	bool rbtree_empty() { return size == 0; }
 
-	void rbtree_insert(const Key& key, rbtree_node_ptr node) {
+	rbtree_node_ptr rbtree_insert(const value_type& value) {
+		rbtree_node_ptr node = createNode(value);
+
 		rbtree_node_ptr n = root;
 		if (n != shm_nullptr) {
 			for (;;) {
-				auto cmp = compare(key, n);
+				auto cmp = compare(key(node), n);
 
 				if (cmp < 0) {
 					if (n->left_child != shm_nullptr) {
@@ -167,8 +161,9 @@ public:
 						break;
 					}
 				} else {
-					replace(n, node);
-					return;
+					//节点重复，插入失败
+					deleteNode(node);
+					return shm_nullptr;
 				}
 			}
 		}
@@ -185,6 +180,7 @@ public:
 		repair_after_insert(node);
 
 		++size;
+		return node;
 	}
 
 	rbtree_node_ptr rbtree_lookup_key(const Key& key) {
@@ -204,10 +200,13 @@ public:
 		return n;
 	}
 
-	void rbtree_remove(rbtree_node_ptr node) {
+	// 删除一个节点之后，返回下一个节点
+	rbtree_node_ptr rbtree_remove(rbtree_node_ptr& node) {
 		if (node == shm_nullptr) {
-			return;
+			return shm_nullptr;
 		}
+
+		auto next_node = rbtree_next(node);
 
 		if (node->left_child != shm_nullptr && node->right_child != shm_nullptr) {
 			rbtree_node_ptr k = node->left_child;
@@ -233,11 +232,9 @@ public:
 			n->color = RBTREE_NODE_BLACK;
 		}
 
-		node->parent = shm_nullptr;
-		node->left_child = shm_nullptr;
-		node->right_child = shm_nullptr;
-
+		deleteNode(node);
 		--size;
+		return next_node;
 	}
 
 	rbtree_node_ptr rbtree_first() {
@@ -315,31 +312,13 @@ protected:
 		return sibling(node->parent);
 	}
 
-	void replace(rbtree_node_ptr old_node, rbtree_node_ptr new_node) {
-		assert(old_node != shm_nullptr && new_node != shm_nullptr);
-
-		if (root == old_node) {
-			root = new_node;
-		} else if (old_node == old_node->parent->left_child) {
-			old_node->parent->left_child = new_node;
-		} else {
-			old_node->parent->right_child = new_node;
-		}
-
-		if (old_node->left_child != shm_nullptr) {
-			old_node->left_child->parent = new_node;
-		}
-
-		if (old_node->right_child != shm_nullptr) {
-			old_node->right_child->parent = new_node;
-		}
-
-		*new_node = *old_node;
-
-		old_node->parent = shm_nullptr;
-		old_node->left_child = shm_nullptr;
-		old_node->right_child = shm_nullptr;
+	rbtree_node_ptr createNode(const value_type& val) {
+		return g_alloc->New<RBTreeNode<value_type>>(val);
 	}
+	void deleteNode(rbtree_node_ptr& p) { g_alloc->Delete(p); }
+
+	static value_type& value(rbtree_node_ptr x) { return x->value; }
+	static const Key& key(rbtree_node_ptr x) { return value(x).first; }
 
 	void transplant(rbtree_node_ptr old_node, rbtree_node_ptr new_node) {
 		assert(old_node != shm_nullptr);
@@ -582,9 +561,7 @@ public:
 	}
 
 	iterator insert(const valueType& v) {
-		auto ptr = m_tree.createNode(v);
-		m_tree.rbtree_insert(m_tree.key(ptr), ptr);
-		return iterator(ptr);
+		return iterator(m_tree.rbtree_insert(v));
 	}
 	bool empty() const { return m_tree.rbtree_size() == 0; }
 	size_t size() const { return m_tree.rbtree_size(); }
