@@ -137,9 +137,9 @@ public:
 	bool rbtree_empty() { return size == 0; }
 
 	rbtree_node_ptr rbtree_insert(const value_type& value) {
-		rbtree_node_ptr node = createNode(value);
+		auto node = createNode(value);
 
-		rbtree_node_ptr n = root;
+		auto n = root;
 		if (n != shm_nullptr) {
 			for (;;) {
 				auto cmp = compare(key(node), n);
@@ -184,8 +184,8 @@ public:
 	}
 
 	rbtree_node_ptr rbtree_lookup_key(const Key& key) {
-		rbtree_node_ptr n;
-		for (n = root; n != shm_nullptr;) {
+		auto n = root;
+		while (n != shm_nullptr) {
 			auto cmp = compare(key, n);
 
 			if (cmp < 0) {
@@ -238,7 +238,7 @@ public:
 	}
 
 	rbtree_node_ptr rbtree_first() {
-		rbtree_node_ptr n = root;
+		auto n = root;
 		if (n == shm_nullptr) {
 			return shm_nullptr;
 		}
@@ -251,7 +251,7 @@ public:
 	}
 
 	rbtree_node_ptr rbtree_last() {
-		rbtree_node_ptr n = root;
+		auto n = root;
 		if (n == shm_nullptr) {
 			return shm_nullptr;
 		}
@@ -391,7 +391,7 @@ protected:
 	void rotate_left(rbtree_node_ptr node) {
 		assert(node != shm_nullptr);
 
-		rbtree_node_ptr n = node->right_child;
+		auto n = node->right_child;
 
 		transplant(node, n);
 
@@ -408,7 +408,7 @@ protected:
 	void rotate_right(rbtree_node_ptr node) {
 		assert(node != shm_nullptr);
 
-		rbtree_node_ptr n = node->left_child;
+		auto n = node->left_child;
 
 		transplant(node, n);
 
