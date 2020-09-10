@@ -1,14 +1,15 @@
 ﻿#pragma once
 #include "shm_pointer.h"
+#include "shm_vector.h"
+#include "shm_list.h"
 
 namespace smd {
 
+template <class Key>
+class ShmHash;
+
 template <class Key, class ListIterator>
 class HashIterator {
-private:
-	template <class Key>
-	friend class ShmHash;
-
 public:
 	HashIterator(size_t index, ListIterator it, ShmPointer<ShmHash<Key>> ptr)
 		: bucket_index_(index)
@@ -51,7 +52,7 @@ public:
 
 	bool operator!=(const HashIterator<Key, ListIterator>& rhs) const { return !(*this == rhs); }
 
-private:
+public:
 	size_t bucket_index_;
 	ListIterator iterator_;
 	ShmPointer<ShmHash<Key>> container_;
@@ -164,10 +165,10 @@ public:
 	}
 
 	void swap(ShmHash<Key>& x) {
-		smd::swap(m_dummyKey, x.m_dummyKey);
-		smd::swap(m_buckets, x.m_buckets);
-		smd::swap(m_size, x.m_size);
-		smd::swap(m_max_load_factor, x.m_max_load_factor);
+		std::swap(m_dummyKey, x.m_dummyKey);
+		std::swap(m_buckets, x.m_buckets);
+		std::swap(m_size, x.m_size);
+		std::swap(m_max_load_factor, x.m_max_load_factor);
 	}
 
 private:
