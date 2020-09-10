@@ -284,11 +284,7 @@ public:
 	void rbtree_remove_first() { rbtree_remove(rbtree_first()); }
 	void rbtree_remove_last() { rbtree_remove(rbtree_last()); }
 	void rbtree_remove_all() {
-		if (root != shm_nullptr) {
-			root->parent = shm_nullptr;
-			root->left_child = shm_nullptr;
-			root->right_child = shm_nullptr;
-		}
+		recurErase(root);
 
 		root = shm_nullptr;
 		size = 0;
@@ -561,6 +557,14 @@ protected:
 			}
 
 			break;
+		}
+	}
+
+	void recurErase(rbtree_node_ptr& x) {
+		if (x != shm_nullptr) {
+			recurErase(x->left_child);
+			recurErase(x->right_child);
+			deleteNode(x);
 		}
 	}
 };
