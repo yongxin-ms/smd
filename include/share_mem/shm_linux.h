@@ -37,25 +37,18 @@ public:
 		: m_log(log) {}
 
 	bool acquire(const std::string& fmt_name, std::size_t size, ShareMemOpenMode mode) {
-		// Open the object for read-write access.
-		int flag = O_RDWR;
-		switch (mode) {
-		case kOpenExist:
+		int fd = ::shm_open(
+			fmt_name.c_str(), O_RDWR, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
+
+		if (mode == kCreateAlways) {
+			if (fd == -1) {
+				fd = ::shm_open(fmt_name.c_str(), O_CREAT | O_EXCL | O_RDWR,
+					S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
+			}
+		} else {
 			size = 0;
-			break;
-		// The check for the existence of the object,
-		// and its creation if it does not exist, are performed atomically.
-		case kCreateAlways:
-			flag |= O_CREAT | O_EXCL;
-			break;
-		// Create the shared memory object if it does not exist.
-		default:
-			flag |= O_CREAT;
-			break;
 		}
 
-		int fd = ::shm_open(
-			fmt_name.c_str(), flag, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
 		if (fd == -1) {
 			m_log.DoLog(Log::LogLevel::kError, "fail shm_open[%d]: %s\n", errno, fmt_name.c_str());
 			return false;
