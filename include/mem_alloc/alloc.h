@@ -99,4 +99,10 @@ private:
 
 Alloc* g_alloc = nullptr;
 
+template <typename T>
+T* ShmPointer<T>::Ptr() const {
+	assert(m_offSet != shm_nullptr && m_offSet != 0);
+	return (T*)(g_alloc->StorageBasePtr() + m_offSet);
+}
+
 } // namespace smd

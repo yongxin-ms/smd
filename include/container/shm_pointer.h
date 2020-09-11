@@ -6,9 +6,6 @@ enum : int64_t {
 	shm_nullptr = -1,
 };
 
-class Alloc;
-extern Alloc* g_alloc;
-
 template <typename T>
 class ShmPointer {
 public:
@@ -17,11 +14,7 @@ public:
 	ShmPointer(const ShmPointer&) = default;
 	ShmPointer& operator=(const ShmPointer&) = default;
 
-	T* Ptr() const {
-		assert(m_offSet != shm_nullptr && m_offSet != 0);
-		return (T*)(g_alloc->StorageBasePtr() + m_offSet);
-	}
-
+	T* Ptr() const;
 	T* operator->() const { return Ptr(); }
 	T& operator*() const { return *Ptr(); }
 
