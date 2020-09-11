@@ -24,8 +24,8 @@ constexpr std::size_t calc_size(std::size_t size) {
 	return ((((size - 1) / alignof(info_t)) + 1) * alignof(info_t)) + sizeof(info_t);
 }
 
-inline auto& acc_of(void* mem, std::size_t size) {
-	return reinterpret_cast<info_t*>(static_cast<byte*>(mem) + size - sizeof(info_t))->acc_;
+inline std::atomic_size_t& acc_of(void* mem, std::size_t size) {
+	return reinterpret_cast<info_t*>(static_cast<unsigned char*>(mem) + size - sizeof(info_t))->acc_;
 }
 
 } // namespace
@@ -84,7 +84,7 @@ public:
 			struct stat st;
 			if (::fstat(fd, &st) != 0) {
 				m_log.DoLog(Log::LogLevel::kError, "fail fstat[%d]: %s, size = %zd\n", errno,
-					name_.c_str(), ii->size_);
+					name_.c_str(), size_);
 				return nullptr;
 			}
 			size_ = static_cast<std::size_t>(st.st_size);
