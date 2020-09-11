@@ -115,7 +115,7 @@ public:
 	iterator find(const key_type& key) {
 		auto index = bucket_index(key);
 		for (auto it = begin(index); it != end(index); ++it) {
-			if (equal_to<key_type>()(key, *it))
+			if (key == *it)
 				return iterator(index, it, g_alloc->ToShmPointer<ShmHash<Key>>(this));
 		}
 		return end();

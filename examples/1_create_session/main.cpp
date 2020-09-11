@@ -36,7 +36,7 @@ int main() {
 
 	const std::string GUID("0x1001187fb");
 	//auto env = mgr->CreateEnv(GUID, 25, smd::kOpenExist);
-	auto env = mgr->CreateEnv(GUID, 29, smd::kCreateAlways);
+	auto env = mgr->CreateEnv(GUID, 25, smd::kCreateAlways);
 	assert(env != nullptr);
 	auto& log = env->GetLog();
 
