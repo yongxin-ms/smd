@@ -6,6 +6,9 @@ enum : int64_t {
 	shm_nullptr = -1,
 };
 
+class Alloc;
+extern Alloc* g_alloc;
+
 template <typename T>
 class ShmPointer {
 public:

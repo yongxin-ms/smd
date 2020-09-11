@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD 11)
 
 if (CMAKE_SYSTEM_NAME MATCHES "Linux")
 	message(debug_flag2:${debug})
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -pthread -Wall -g")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -pthread -Wall -g -lrt")
 	find_program(CCACHE_FOUND ccache)
 	if (CCACHE_FOUND)
 		set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)

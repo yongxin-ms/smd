@@ -97,6 +97,6 @@ private:
 	const char* m_storagePtr;
 };
 
-static Alloc* g_alloc = nullptr;
+Alloc* g_alloc = nullptr;
 
 } // namespace smd

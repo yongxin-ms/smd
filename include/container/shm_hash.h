@@ -143,7 +143,7 @@ public:
 		--m_size;
 		auto t = position++;
 		auto index = t.bucket_index_;
-		auto it = m_buckets[index].erase(t.iterator_);
+		m_buckets[index].erase(t.iterator_);
 		return position;
 	}
 
