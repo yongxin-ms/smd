@@ -17,5 +17,6 @@ cmake-build-debug
 *.pb.h
 .DS_Store
 x64
+examples/1_create_session/bin/
 examples/2_string_op/bin/
 examples/build/
