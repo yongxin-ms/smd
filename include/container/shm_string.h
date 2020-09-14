@@ -24,6 +24,11 @@ public:
 		internal_copy(r.data(), r.size());
 	}
 
+	ShmString(const char* buf, size_t size) {
+		resize(GetSuitableCapacity(size + 1));
+		internal_copy(buf, size);
+	}
+
 	ShmString& operator=(const std::string& r) {
 		ShmString(r).swap(*this);
 		return *this;

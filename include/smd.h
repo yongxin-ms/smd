@@ -18,21 +18,15 @@ public:
 		: m_log(log)
 		, m_alloc(log, ptr, sizeof(ShmHead), level, create_new)
 		, m_head(*((ShmHead*)ptr))
-		, m_allStrings(m_head.allStrings)
-		, m_allLists(m_head.allLists)
-		, m_allMaps(m_head.allMaps)
-		, m_allHashes(m_head.allHashes)
-	{
+		, m_allStrings(m_head.global_variable.allStrings)
+		, m_allLists(m_head.global_variable.allLists)
+		, m_allMaps(m_head.global_variable.allMaps)
+		, m_allHashes(m_head.global_variable.allHashes) {
 		m_head.visit_num++;
+		m_head.last_visit_time = time(nullptr);
 		g_alloc = &m_alloc;
 
 		if (create_new) {
-
-			//
-			// 这样能让以后分配的地址不会为0，也不用回收
-			//
-			g_alloc->Malloc<char>();
-
 			if (m_allStrings != shm_nullptr && m_allStrings != 0) {
 				m_alloc.Delete(m_allStrings);
 			}
@@ -60,26 +54,29 @@ public:
 
 	size_t GetUsed() { return m_alloc.GetUsed(); }
 
-	//字符串
+	// 写操作
 	void SSet(const Slice& key, const Slice& value) {
-		ShmString strKey(key.ToString());
+		ShmString strKey(key.data(), key.size());
 		auto it = m_allStrings->find(strKey);
 		if (it == m_allStrings->end()) {
-			ShmString strValue(value.ToString());
+			ShmString strValue(value.data(), value.size());
 			m_allStrings->insert(std::make_pair(strKey, strValue));
 		} else {
 			it->second = value.ToString();
 		}
 	}
 
+	// 读操作
 	bool SGet(const Slice& key, Slice* value) {
-		ShmString strKey(key.ToString());
+		ShmString strKey(key.data(), key.size());
 		auto it = m_allStrings->find(strKey);
 		if (it == m_allStrings->end()) {
 			return false;
 		} else {
 			if (value != nullptr) {
 				const auto& strValue = it->second;
+
+				// 返回的是数据指针，调用者自己是否需要拷贝
 				*value = Slice(strValue.data(), strValue.size());
 			}
 
@@ -87,14 +84,15 @@ public:
 		}
 	}
 
+	// 删除操作
 	bool SDel(const Slice& key) {
-		ShmString strKey(key.ToString());
+		ShmString strKey(key.data(), key.size());
 		auto it = m_allStrings->find(strKey);
 		if (it == m_allStrings->end()) {
 			return false;
 		}
 
-		m_allStrings->erase(it);
+		it = m_allStrings->erase(it);
 		return true;
 	}
 

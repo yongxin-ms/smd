@@ -15,6 +15,12 @@ public:
 
 		if (create_new) {
 			m_buddy = SmdBuddyAlloc::buddy_new(m_basePtr, level);
+
+			//
+			// 这样能让以后分配的地址不会为0，也不用回收
+			//
+
+			Malloc<char>();
 		}
 	}
 
