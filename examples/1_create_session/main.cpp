@@ -35,8 +35,8 @@ int main() {
 	});
 
 	const std::string GUID("0x1001187fb");
-	//auto env = mgr->CreateEnv(GUID, 25, smd::kOpenExist);
-	auto env = mgr->CreateEnv(GUID, 25, smd::kCreateAlways);
+	auto env = mgr->CreateEnv(GUID, 25, smd::kOpenExist);
+	//auto env = mgr->CreateEnv(GUID, 25, smd::kCreateAlways);
 	assert(env != nullptr);
 	auto& log = env->GetLog();
 
@@ -47,7 +47,7 @@ int main() {
 // 		TestList test_list(log);
 // 		TestVector test_vector(log);
 // 		TestHash test_hash(log);
-		TestMap test_map(log);
+// 		TestMap test_map(log);
 	}
 
 	std::string key("StartCounter");
@@ -88,8 +88,7 @@ int main() {
 		const auto& key = it->first;
 		const auto& value = it->second;
 
-		log.DoLog(smd::Log::LogLevel::kInfo, "Key:%s Value:%s", key.ToString().data(),
-			value.ToString().data());
+		log.DoLog(smd::Log::LogLevel::kInfo, "Key:%s Value:%s", key.data(), value.data());
 	}
 
 	int n = 0;
