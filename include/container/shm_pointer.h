@@ -7,58 +7,58 @@ enum : int64_t {
 };
 
 template <typename T>
-class ShmPointer {
+class shm_pointer {
 public:
-	ShmPointer(int64_t addr = shm_nullptr)
+	shm_pointer(int64_t addr = shm_nullptr)
 		: m_offSet(addr) {}
-	ShmPointer(const ShmPointer&) = default;
-	ShmPointer& operator=(const ShmPointer&) = default;
+	shm_pointer(const shm_pointer&) = default;
+	shm_pointer& operator=(const shm_pointer&) = default;
 
 	T* Ptr() const;
 	T* operator->() const { return Ptr(); }
 	T& operator*() const { return *Ptr(); }
 
 	int64_t Raw() const { return m_offSet; }
-	bool operator==(const ShmPointer& r) const { return m_offSet == r.m_offSet; }
-	bool operator!=(const ShmPointer& r) const { return m_offSet != r.m_offSet; }
+	bool operator==(const shm_pointer& r) const { return m_offSet == r.m_offSet; }
+	bool operator!=(const shm_pointer& r) const { return m_offSet != r.m_offSet; }
 
-	int64_t operator-(const ShmPointer& r) const { return (m_offSet - r.m_offSet) / sizeof(T); }
-	ShmPointer operator+(int n) const {
-		ShmPointer tmp(*this);
+	int64_t operator-(const shm_pointer& r) const { return (m_offSet - r.m_offSet) / sizeof(T); }
+	shm_pointer operator+(int n) const {
+		shm_pointer tmp(*this);
 		tmp.m_offSet += n * sizeof(T);
 		return tmp;
 	}
 
 	T& operator[](int n) {
-		ShmPointer tmp(*this);
+		shm_pointer tmp(*this);
 		tmp.m_offSet += n * sizeof(T);
 		return *tmp;
 	}
 
 	const T& operator[](int n) const {
-		ShmPointer tmp(*this);
+		shm_pointer tmp(*this);
 		tmp.m_offSet += n * sizeof(T);
 		return *tmp;
 	}
 
-	ShmPointer& operator++() {
+	shm_pointer& operator++() {
 		m_offSet += sizeof(T);
 		return *this;
 	}
 
-	ShmPointer operator++(int) {
-		ShmPointer tmp(*this);
+	shm_pointer operator++(int) {
+		shm_pointer tmp(*this);
 		m_offSet += sizeof(T);
 		return tmp;
 	}
 
-	ShmPointer& operator--() {
+	shm_pointer& operator--() {
 		m_offSet -= sizeof(T);
 		return *this;
 	}
 
-	ShmPointer operator--(int) {
-		ShmPointer tmp(*this);
+	shm_pointer operator--(int) {
+		shm_pointer tmp(*this);
 		m_offSet -= sizeof(T);
 		return tmp;
 	}

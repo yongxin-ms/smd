@@ -8,40 +8,40 @@
 
 namespace smd {
 
-class ShmString {
+class shm_string {
 public:
-	ShmString(size_t size = 0) {
+	shm_string(size_t size = 0) {
 		resize(GetSuitableCapacity(size + 1));
 	}
 
-	ShmString(const std::string& r) {
+	shm_string(const std::string& r) {
 		resize(GetSuitableCapacity(r.size() + 1));
 		internal_copy(r.data(), r.size());
 	}
 
-	ShmString(const ShmString& r) {
+	shm_string(const shm_string& r) {
 		resize(GetSuitableCapacity(r.size() + 1));
 		internal_copy(r.data(), r.size());
 	}
 
-	ShmString(const char* buf, size_t size) {
+	shm_string(const char* buf, size_t size) {
 		resize(GetSuitableCapacity(size + 1));
 		internal_copy(buf, size);
 	}
 
-	ShmString& operator=(const std::string& r) {
-		ShmString(r).swap(*this);
+	shm_string& operator=(const std::string& r) {
+		shm_string(r).swap(*this);
 		return *this;
 	}
 
-	ShmString& operator=(const ShmString& r) {
+	shm_string& operator=(const shm_string& r) {
 		if (this != &r) {
-			ShmString(r).swap(*this);
+			shm_string(r).swap(*this);
 		}
 		return *this;
 	}
 
-	~ShmString() {
+	~shm_string() {
 		resize(0);
 		m_size = 0;
 	}
@@ -52,7 +52,7 @@ public:
 	bool empty() { return m_size > 0; }
 	size_t capacity() const { return m_capacity; }
 
-	ShmString& assign(const std::string& r) {
+	shm_string& assign(const std::string& r) {
 		if (r.size() < m_capacity) {
 			internal_copy(r.data(), r.size());
 			shrink_to_fit();
@@ -64,7 +64,7 @@ public:
 		return *this;
 	}
 
-	ShmString& append(const ShmString& str) {
+	shm_string& append(const shm_string& str) {
 		if (capacity() <= size() + str.size()) {
 			resize(GetSuitableCapacity(size() + str.size() + 1));
 		}
@@ -73,7 +73,7 @@ public:
 		return *this;
 	}
 
-	ShmString& append(const std::string& str) {
+	shm_string& append(const std::string& str) {
 		if (capacity() <= size() + str.size()) {
 			resize(GetSuitableCapacity(size() + str.size() + 1));
 		}
@@ -82,7 +82,7 @@ public:
 		return *this;
 	}
 
-	ShmString& append(const char* s) {
+	shm_string& append(const char* s) {
 		size_t len = strlen(s);
 		if (capacity() <= size() + len) {
 			resize(GetSuitableCapacity(size() + len + 1));
@@ -92,7 +92,7 @@ public:
 		return *this;
 	}
 
-	ShmString& append(const char* s, size_t n) {
+	shm_string& append(const char* s, size_t n) {
 		if (capacity() <= size() + n) {
 			resize(GetSuitableCapacity(size() + n + 1));
 		}
@@ -101,7 +101,7 @@ public:
 		return *this;
 	}
 
-	int compare(const ShmString& b) const {
+	int compare(const shm_string& b) const {
 		const size_t min_len = (size() < b.size()) ? size() : b.size();
 		int r = memcmp(data(), b.data(), min_len);
 		if (r == 0) {
@@ -120,7 +120,7 @@ public:
 
 	std::string ToString() const { return std::string(data(), size()); }
 
-	bool operator==(const ShmString& rhs) const {
+	bool operator==(const shm_string& rhs) const {
 		auto p1 = data();
 		auto p2 = rhs.data();
 		return ((size() == rhs.size()) && (memcmp(p1, p2, size()) == 0));
@@ -148,7 +148,7 @@ private:
 			return Utility::NextPowOf2(size);
 	}
 
-	void swap(ShmString& x) {
+	void swap(shm_string& x) {
 		std::swap(m_ptr, x.m_ptr);
 		std::swap(m_capacity, x.m_capacity);
 		std::swap(m_size, x.m_size);
@@ -185,17 +185,17 @@ private:
 	}
 
 private:
-	ShmPointer<char> m_ptr = shm_nullptr;
+	shm_pointer<char> m_ptr = shm_nullptr;
 	size_t m_capacity = 0;
 	size_t m_size = 0;
 };
 
-inline bool operator!=(const ShmString& x, const ShmString& y) { return !(x == y); }
-inline bool operator<(const ShmString& x, const ShmString& y) { return x.compare(y) < 0; }
-inline bool operator>(const ShmString& x, const ShmString& y) { return x.compare(y) > 0; }
+inline bool operator!=(const shm_string& x, const shm_string& y) { return !(x == y); }
+inline bool operator<(const shm_string& x, const shm_string& y) { return x.compare(y) < 0; }
+inline bool operator>(const shm_string& x, const shm_string& y) { return x.compare(y) > 0; }
 
 template <>
-int64_t compare(const ShmString& x, const ShmString& y) {
+int64_t compare(const shm_string& x, const shm_string& y) {
 	return x.compare(y);
 }
 
@@ -203,8 +203,8 @@ int64_t compare(const ShmString& x, const ShmString& y) {
 
 namespace std {
 template <>
-struct hash<smd::ShmString> {
-	typedef smd::ShmString argument_type;
+struct hash<smd::shm_string> {
+	typedef smd::shm_string argument_type;
 	typedef std::size_t result_type;
 
 	result_type operator()(argument_type const& s) const {

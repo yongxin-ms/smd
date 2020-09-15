@@ -14,11 +14,11 @@ private:
 	void TestShmList(smd::Log& log) {
 		auto mem_usage = smd::g_alloc->GetUsed();
 
-		auto l = smd::g_alloc->New<smd::ShmList<smd::ShmString>>();
+		auto l = smd::g_alloc->New<smd::shm_list<smd::shm_string>>();
 
 		// 验证在尾部添加元素
 		assert(l->size() == 0);
-		l->push_back(smd::ShmString("hello"));
+		l->push_back(smd::shm_string("hello"));
 		assert(l->size() == 1);
 		assert(l->front().ToString() == "hello");
 		assert(l->back().ToString() == "hello");
@@ -27,7 +27,7 @@ private:
 
 			// 验证在尾部添加多个元素
 			for (int i = 0; i < 100; i++) {
-				l->push_back(smd::ShmString(Util::Text::Format("TestText%02d", i)));
+				l->push_back(smd::shm_string(Util::Text::Format("TestText%02d", i)));
 			}
 			assert(l->size() == 101);
 			assert(l->front().ToString() == "hello");
@@ -43,7 +43,7 @@ private:
 
 			// 验证在头部添加多个元素
 			for (int i = 0; i < 100; i++) {
-				l->push_front(smd::ShmString(Util::Text::Format("TestText%02d", i)));
+				l->push_front(smd::shm_string(Util::Text::Format("TestText%02d", i)));
 			}
 			assert(l->size() == 101);
 			assert(l->front().ToString() == "TestText99");
@@ -59,7 +59,7 @@ private:
 
 			// 验证在尾部添加多个元素
 			for (int i = 0; i < 100; i++) {
-				l->push_back(smd::ShmString(Util::Text::Format("TestText%02d", i)));
+				l->push_back(smd::shm_string(Util::Text::Format("TestText%02d", i)));
 			}
 			assert(l->size() == 101);
 			assert(l->front().ToString() == "hello");
@@ -79,32 +79,32 @@ private:
 		} while (false);
 
 		do {
-			smd::ShmList<smd::ShmString> l1(*l);
+			smd::shm_list<smd::shm_string> l1(*l);
 			// 验证在尾部添加多个元素
 			for (int i = 0; i < 100; i++) {
-				l1.push_back(smd::ShmString(Util::Text::Format("TestText%02d", i)));
+				l1.push_back(smd::shm_string(Util::Text::Format("TestText%02d", i)));
 			}
 			assert(l1.size() == 101);
 			assert(l1.front().ToString() == "hello");
 			assert(l1.back().ToString() == "TestText99");
 
-			smd::ShmList<smd::ShmString> l2;
+			smd::shm_list<smd::shm_string> l2;
 			l2 = *l;
 			// 验证在尾部添加多个元素
 			for (int i = 0; i < 100; i++) {
-				l2.push_back(smd::ShmString(Util::Text::Format("TestText%02d", i)));
+				l2.push_back(smd::shm_string(Util::Text::Format("TestText%02d", i)));
 			}
 			assert(l2.size() == 101);
 			assert(l2.front().ToString() == "hello");
 			assert(l2.back().ToString() == "TestText99");
 		} while (false);
 
-		l->push_back(smd::ShmString("world"));
+		l->push_back(smd::shm_string("world"));
 		assert(l->size() == 2);
 		assert(l->front().ToString() == "hello");
 		assert(l->back().ToString() == "world");
 
-		l->push_back(smd::ShmString("will"));
+		l->push_back(smd::shm_string("will"));
 		assert(l->size() == 3);
 		assert(l->front().ToString() == "hello");
 		assert(l->back().ToString() == "will");
@@ -126,7 +126,7 @@ private:
 
 	void TestListEqual(smd::Log& log) {
 		auto mem_usage = smd::g_alloc->GetUsed();
-		auto l = smd::g_alloc->New<smd::ShmList<smd::ShmString>>().Ptr();
+		auto l = smd::g_alloc->New<smd::shm_list<smd::shm_string>>().Ptr();
 		std::list<std::string> list_ref;
 
 		std::vector<int> vRoleIds;
@@ -164,7 +164,7 @@ private:
 		};
 
 		auto mem_usage = smd::g_alloc->GetUsed();
-		auto l = smd::g_alloc->New<smd::ShmList<StMyData>>();
+		auto l = smd::g_alloc->New<smd::shm_list<StMyData>>();
 
 		// 验证在尾部添加元素
 		assert(l->size() == 0);
@@ -180,7 +180,7 @@ private:
 
 private:
 	//测试专用
-	bool IsEqual(smd::ShmList<smd::ShmString>& l, const std::list<std::string>& r) {
+	bool IsEqual(smd::shm_list<smd::shm_string>& l, const std::list<std::string>& r) {
 		if (l.size() != r.size()) {
 			assert(false);
 		}

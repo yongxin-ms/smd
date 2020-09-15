@@ -4,18 +4,18 @@
 namespace smd {
 
 template <class T>
-class ShmVector {
+class shm_vector {
 	typedef T value_type;
-	typedef ShmPointer<T> iterator;
+	typedef shm_pointer<T> iterator;
 	typedef T& reference;
 	typedef iterator pointer;
 
 public:
-	ShmVector(size_t capacity = 1) {
+	shm_vector(size_t capacity = 1) {
 		reserve(capacity);
 	}
 
-	ShmVector(const ShmVector& r) {
+	shm_vector(const shm_vector& r) {
 		reserve(r.size());
 		for (size_t i = 0; i < r.size(); i++) {
 			const auto& element = r[i];
@@ -23,14 +23,14 @@ public:
 		}
 	}
 
-	ShmVector& operator=(const ShmVector& r) {
+	shm_vector& operator=(const shm_vector& r) {
 		if (this != &r) {
-			ShmVector(r).swap(*this);
+			shm_vector(r).swap(*this);
 		}
 		return *this;
 	}
 
-	~ShmVector() {
+	~shm_vector() {
 		while (!empty()) {
 			pop_back();
 		}
@@ -80,9 +80,9 @@ public:
 		new_capacity = GetSuitableCapacity(std::max(old_size, new_capacity));
 
 		//多分配一个，用来存放尾结点
-		auto new_list = g_alloc->Malloc<ShmPointer<value_type>>(new_capacity + 1);
+		auto new_list = g_alloc->Malloc<shm_pointer<value_type>>(new_capacity + 1);
 		if (old_size > 0) {
-			memcpy(new_list.Ptr(), m_start.Ptr(), sizeof(ShmPointer<value_type>) * old_size);
+			memcpy(new_list.Ptr(), m_start.Ptr(), sizeof(shm_pointer<value_type>) * old_size);
 			g_alloc->Free(m_start, capacity() + 1);
 		}
 
@@ -121,7 +121,7 @@ public:
 	}
 
 private:
-	void swap(ShmVector& x) {
+	void swap(shm_vector& x) {
 		std::swap(m_start, x.m_start);
 		std::swap(m_finish, x.m_finish);
 		std::swap(m_endOfStorage, x.m_endOfStorage);
@@ -138,9 +138,9 @@ private:
 	}
 
 private:
-	ShmPointer<ShmPointer<value_type>> m_start = shm_nullptr;
-	ShmPointer<ShmPointer<value_type>> m_finish = shm_nullptr;
-	ShmPointer<ShmPointer<value_type>> m_endOfStorage = shm_nullptr;
+	shm_pointer<shm_pointer<value_type>> m_start = shm_nullptr;
+	shm_pointer<shm_pointer<value_type>> m_finish = shm_nullptr;
+	shm_pointer<shm_pointer<value_type>> m_endOfStorage = shm_nullptr;
 };
 
 } // namespace smd

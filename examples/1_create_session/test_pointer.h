@@ -18,7 +18,7 @@ private:
 		auto mem_usage = smd::g_alloc->GetUsed();
 
 		// 开辟共享内存
-		smd::ShmPointer<int> shm_ptr = smd::g_alloc->New<int>();
+		smd::shm_pointer<int> shm_ptr = smd::g_alloc->New<int>();
 		assert(shm_ptr != smd::shm_nullptr);
 
 		// 指针在本次分配的相对位置
@@ -46,7 +46,7 @@ private:
 		assert(ptr != nullptr);
 
 		// 两种指针的互相转换
-		smd::ShmPointer<int> shm_ptr = smd::g_alloc->ToShmPointer<int>(ptr);
+		smd::shm_pointer<int> shm_ptr = smd::g_alloc->ToShmPointer<int>(ptr);
 		assert(shm_ptr.Ptr() == ptr);
 
 		// 指针在共享内存中的相对位置
@@ -71,7 +71,7 @@ private:
 		const size_t ARRAY_SIZE = 16;
 
 		// 开辟共享内存
-		smd::ShmPointer<int> shm_ptr = smd::g_alloc->Malloc<int>(ARRAY_SIZE);
+		smd::shm_pointer<int> shm_ptr = smd::g_alloc->Malloc<int>(ARRAY_SIZE);
 		assert(shm_ptr != smd::shm_nullptr);
 
 		// 指针在共享内存中的相对位置
@@ -116,12 +116,12 @@ private:
 			StB() { m_pointer_a = smd::g_alloc->New<StA>(); }
 			~StB() { smd::g_alloc->Delete(m_pointer_a); }
 
-			smd::ShmPointer<StA> m_pointer_a;
+			smd::shm_pointer<StA> m_pointer_a;
 			int m_b1;
 		};
 
 		// 开辟共享内存
-		smd::ShmPointer<StB> shm_ptr = smd::g_alloc->New<StB>();
+		smd::shm_pointer<StB> shm_ptr = smd::g_alloc->New<StB>();
 		assert(shm_ptr != smd::shm_nullptr);
 
 		// 指针在共享内存中的相对位置

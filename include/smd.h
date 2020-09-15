@@ -43,10 +43,10 @@ public:
 				m_alloc.Delete(m_allHashes);
 			}
 
-			m_allStrings = m_alloc.New<ShmMap<ShmString, ShmString>>();
-			m_allLists = m_alloc.New<ShmMap<ShmString, ShmList<ShmString>>>();
-			m_allMaps = m_alloc.New<ShmMap<ShmString, ShmMap<ShmString, ShmString>>>();
-			m_allHashes = m_alloc.New<ShmMap<ShmString, ShmHash<ShmString>>>();
+			m_allStrings = m_alloc.New<shm_map<shm_string, shm_string>>();
+			m_allLists = m_alloc.New<shm_map<shm_string, shm_list<shm_string>>>();
+			m_allMaps = m_alloc.New<shm_map<shm_string, shm_map<shm_string, shm_string>>>();
+			m_allHashes = m_alloc.New<shm_map<shm_string, shm_hash<shm_string>>>();
 		}
 	}
 
@@ -56,10 +56,10 @@ public:
 
 	// 写操作
 	void SSet(const Slice& key, const Slice& value) {
-		ShmString strKey(key.data(), key.size());
+		shm_string strKey(key.data(), key.size());
 		auto it = m_allStrings->find(strKey);
 		if (it == m_allStrings->end()) {
-			ShmString strValue(value.data(), value.size());
+			shm_string strValue(value.data(), value.size());
 			m_allStrings->insert(std::make_pair(strKey, strValue));
 		} else {
 			it->second = value.ToString();
@@ -68,7 +68,7 @@ public:
 
 	// 读操作
 	bool SGet(const Slice& key, Slice* value) {
-		ShmString strKey(key.data(), key.size());
+		shm_string strKey(key.data(), key.size());
 		auto it = m_allStrings->find(strKey);
 		if (it == m_allStrings->end()) {
 			return false;
@@ -86,7 +86,7 @@ public:
 
 	// 删除操作
 	bool SDel(const Slice& key) {
-		ShmString strKey(key.data(), key.size());
+		shm_string strKey(key.data(), key.size());
 		auto it = m_allStrings->find(strKey);
 		if (it == m_allStrings->end()) {
 			return false;
@@ -101,20 +101,20 @@ public:
 	//
 	// 内置string, list, map, hash四种数据类型
 	//
-	ShmMap<ShmString, ShmString>& GetAllStrings() { return *m_allStrings; }
-	ShmMap<ShmString, ShmList<ShmString>>& GetAllLists() { return *m_allLists; }
-	ShmMap<ShmString, ShmMap<ShmString, ShmString>>& GetAllMaps() { return *m_allMaps; }
-	ShmMap<ShmString, ShmHash<ShmString>>& GetAllHashes() { return *m_allHashes; }
+	shm_map<shm_string, shm_string>& GetAllStrings() { return *m_allStrings; }
+	shm_map<shm_string, shm_list<shm_string>>& GetAllLists() { return *m_allLists; }
+	shm_map<shm_string, shm_map<shm_string, shm_string>>& GetAllMaps() { return *m_allMaps; }
+	shm_map<shm_string, shm_hash<shm_string>>& GetAllHashes() { return *m_allHashes; }
 
 private:
 	Log& m_log;
 	Alloc m_alloc;
 	ShmHead& m_head;
 
-	ShmPointer<ShmMap<ShmString, ShmString>>& m_allStrings;
-	ShmPointer<ShmMap<ShmString, ShmList<ShmString>>>& m_allLists;
-	ShmPointer<ShmMap<ShmString, ShmMap<ShmString, ShmString>>>& m_allMaps;
-	ShmPointer<ShmMap<ShmString, ShmHash<ShmString>>>& m_allHashes;
+	shm_pointer<shm_map<shm_string, shm_string>>& m_allStrings;
+	shm_pointer<shm_map<shm_string, shm_list<shm_string>>>& m_allLists;
+	shm_pointer<shm_map<shm_string, shm_map<shm_string, shm_string>>>& m_allMaps;
+	shm_pointer<shm_map<shm_string, shm_hash<shm_string>>>& m_allHashes;
 };
 
 class EnvMgr {

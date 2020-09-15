@@ -4,16 +4,16 @@
 namespace smd {
 
 template <class T>
-class ShmList;
+class shm_list;
 
 template <class T>
 struct ListNode {
-	ShmPointer<ShmList<T>> container;
+	shm_pointer<shm_list<T>> container;
 	T data;
-	ShmPointer<ListNode> prev;
-	ShmPointer<ListNode> next;
+	shm_pointer<ListNode> prev;
+	shm_pointer<ListNode> next;
 
-	ListNode(ShmPointer<ShmList<T>> c, const T& d, ShmPointer<ListNode> p, ShmPointer<ListNode> n)
+	ListNode(shm_pointer<shm_list<T>> c, const T& d, shm_pointer<ListNode> p, shm_pointer<ListNode> n)
 		: container(c)
 		, data(d)
 		, prev(p)
@@ -28,7 +28,7 @@ struct ListNode {
 template <class T>
 class ListIterator {
 public:
-	typedef ShmPointer<ListNode<T>> nodePtr;
+	typedef shm_pointer<ListNode<T>> nodePtr;
 
 	nodePtr p;
 
@@ -77,33 +77,33 @@ public:
 };
 
 template <class T>
-class ShmList {
+class shm_list {
 public:
-	typedef ShmPointer<ListNode<T>> nodePtr;
+	typedef shm_pointer<ListNode<T>> nodePtr;
 	typedef ListIterator<T> iterator;
 
-	ShmList()
+	shm_list()
 		: m_head(NewNode(T()))
 		, m_tail(m_head) {}
 
-	ShmList(const ShmList<T>& r)
-		: m_head(NewNode(*((ShmList<T>&)r).end()))
+	shm_list(const shm_list<T>& r)
+		: m_head(NewNode(*((shm_list<T>&)r).end()))
 		, m_tail(m_head) {
-		ShmList<T>* r1 = (ShmList<T>*)&r;
+		shm_list<T>* r1 = (shm_list<T>*)&r;
 		for (iterator it = r1->begin(); it != r1->end(); ++it) {
 			auto& element = *it;
 			push_back(element);
 		}
 	}
 
-	ShmList& operator=(const ShmList& l) {
+	shm_list& operator=(const shm_list& l) {
 		if (this != &l) {
-			ShmList(l).swap(*this);
+			shm_list(l).swap(*this);
 		}
 		return *this;
 	}
 
-	~ShmList() {
+	~shm_list() {
 		clear();
 		g_alloc->Delete(m_tail.p);
 
@@ -201,7 +201,7 @@ public:
 private:
 	nodePtr NewNode(const T& val) {
 		auto p = g_alloc->New<ListNode<T>>(
-			g_alloc->ToShmPointer<ShmList<T>>(this), val, shm_nullptr, shm_nullptr);
+			g_alloc->ToShmPointer<shm_list<T>>(this), val, shm_nullptr, shm_nullptr);
 		return p;
 	}
 
@@ -210,7 +210,7 @@ private:
 		g_alloc->Delete(p);
 	}
 
-	void swap(ShmList<T>& x) {
+	void swap(shm_list<T>& x) {
 		std::swap(m_head, x.m_head);
 		std::swap(m_tail, x.m_tail);
 	}

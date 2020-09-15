@@ -11,9 +11,9 @@ enum RBTreeNodeColor : bool {
 template <typename Value>
 struct RBTreeNode {
 	RBTreeNodeColor color;
-	ShmPointer<RBTreeNode> parent;
-	ShmPointer<RBTreeNode> left_child;
-	ShmPointer<RBTreeNode> right_child;
+	shm_pointer<RBTreeNode> parent;
+	shm_pointer<RBTreeNode> left_child;
+	shm_pointer<RBTreeNode> right_child;
 	Value value;
 
 	RBTreeNode(const Value& val)
@@ -22,7 +22,7 @@ struct RBTreeNode {
 };
 
 template <typename value_type>
-static ShmPointer<RBTreeNode<value_type>> rbtree_prev(ShmPointer<RBTreeNode<value_type>> node) {
+static shm_pointer<RBTreeNode<value_type>> rbtree_prev(shm_pointer<RBTreeNode<value_type>> node) {
 	if (node == shm_nullptr) {
 		return shm_nullptr;
 	}
@@ -37,7 +37,7 @@ static ShmPointer<RBTreeNode<value_type>> rbtree_prev(ShmPointer<RBTreeNode<valu
 		return node;
 	}
 
-	ShmPointer<RBTreeNode<value_type>> n;
+	shm_pointer<RBTreeNode<value_type>> n;
 	while ((n = node->parent) != shm_nullptr && node == n->left_child) {
 		node = n;
 	}
@@ -46,7 +46,7 @@ static ShmPointer<RBTreeNode<value_type>> rbtree_prev(ShmPointer<RBTreeNode<valu
 }
 
 template <typename value_type>
-static ShmPointer<RBTreeNode<value_type>> rbtree_next(ShmPointer<RBTreeNode<value_type>> node) {
+static shm_pointer<RBTreeNode<value_type>> rbtree_next(shm_pointer<RBTreeNode<value_type>> node) {
 	if (node == shm_nullptr) {
 		return shm_nullptr;
 	}
@@ -61,7 +61,7 @@ static ShmPointer<RBTreeNode<value_type>> rbtree_next(ShmPointer<RBTreeNode<valu
 		return node;
 	}
 
-	ShmPointer<RBTreeNode<value_type>> n;
+	shm_pointer<RBTreeNode<value_type>> n;
 	while ((n = node->parent) != shm_nullptr && node == n->right_child) {
 		node = n;
 	}
@@ -73,11 +73,11 @@ template <typename T, typename Pointer, typename Reference>
 struct rbtree_iterator {
 	typedef rbtree_iterator<T, Pointer, Reference> this_type;
 
-	ShmPointer<RBTreeNode<T>> _ptr;
+	shm_pointer<RBTreeNode<T>> _ptr;
 
 	rbtree_iterator()
 		: _ptr(shm_nullptr) {}
-	rbtree_iterator(ShmPointer<RBTreeNode<T>> pNode)
+	rbtree_iterator(shm_pointer<RBTreeNode<T>> pNode)
 		: _ptr(pNode) {}
 	rbtree_iterator(const this_type& x) = default;
 
@@ -111,18 +111,18 @@ struct rbtree_iterator {
 };
 
 template <typename Key, typename Value>
-class ShmMap {
+class shm_map {
 public:
-	typedef ShmMap<Key, Value> this_type;
+	typedef shm_map<Key, Value> this_type;
 	typedef std::pair<Key, Value> value_type;
-	typedef ShmPointer<RBTreeNode<value_type>> rbtree_node_ptr;
+	typedef shm_pointer<RBTreeNode<value_type>> rbtree_node_ptr;
 	typedef rbtree_iterator<value_type, value_type*, value_type&> iterator;
 	typedef rbtree_iterator<value_type, const value_type*, const value_type&> const_iterator;
 
-	ShmMap()
+	shm_map()
 		: root_(shm_nullptr)
 		, size_(0) {}
-	ShmMap(const this_type& r)
+	shm_map(const this_type& r)
 		: root_(shm_nullptr)
 		, size_(0) {
 		for (auto it = r.begin(); it != r.end(); ++it) {
@@ -132,12 +132,12 @@ public:
 
 	this_type& operator=(const this_type& r) {
 		if (this != &r) {
-			ShmMap(r).swap(*this);
+			shm_map(r).swap(*this);
 		}
 		return *this;
 	}
 
-	~ShmMap() { clear(); }
+	~shm_map() { clear(); }
 
 	iterator begin() { return iterator(rbtree_first()); }
 	const_iterator begin() const { return const_iterator(rbtree_first()); }

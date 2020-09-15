@@ -12,7 +12,7 @@ public:
 private:
 	void TestMapString(smd::Log& log) {
 		auto mem_usage = smd::g_alloc->GetUsed();
-		auto obj = smd::g_alloc->New<smd::ShmMap<smd::ShmString, smd::ShmString>>().Ptr();
+		auto obj = smd::g_alloc->New<smd::shm_map<smd::shm_string, smd::shm_string>>().Ptr();
 		std::map<std::string, std::string> ref;
 
 		std::vector<int> vRoleIds;
@@ -45,7 +45,7 @@ private:
 		}
 
 		do {
-			smd::ShmMap<smd::ShmString, smd::ShmString> m(*obj);
+			smd::shm_map<smd::shm_string, smd::shm_string> m(*obj);
 			assert(m.size() == obj->size());
 		} while (false);
 
@@ -79,7 +79,7 @@ private:
 
 	void TestMapPod(smd::Log& log) {
 		auto mem_usage = smd::g_alloc->GetUsed();
-		auto obj = smd::g_alloc->New<smd::ShmMap<uint64_t, uint64_t>>();
+		auto obj = smd::g_alloc->New<smd::shm_map<uint64_t, uint64_t>>();
 		std::map<uint64_t, uint64_t> ref;
 
 		std::vector<uint64_t> vRoleIds;
@@ -150,7 +150,7 @@ private:
 	}
 
 	//测试专用
-	static bool IsEqual(smd::ShmMap<smd::ShmString, smd::ShmString>& l,
+	static bool IsEqual(smd::shm_map<smd::shm_string, smd::shm_string>& l,
 		const std::map<std::string, std::string>& r) {
 		if (l.size() != r.size()) {
 			assert(false);
@@ -182,7 +182,7 @@ private:
 	}
 
 	//测试专用
-	static bool IsEqual(smd::ShmMap<uint64_t, uint64_t>& l, const std::map<uint64_t, uint64_t>& r) {
+	static bool IsEqual(smd::shm_map<uint64_t, uint64_t>& l, const std::map<uint64_t, uint64_t>& r) {
 		if (l.size() != r.size()) {
 			assert(false);
 		}

@@ -8,7 +8,7 @@ public:
 private:
 	void TestShmString(smd::Log& log) {
 		auto mem_usage = smd::g_alloc->GetUsed();
-		auto s = smd::g_alloc->New<smd::ShmString>();
+		auto s = smd::g_alloc->New<smd::shm_string>();
 		//assert(s->capacity() > 16);
 		assert(s->size() == 0);
 		assert(s->ToString() == "");
@@ -24,7 +24,7 @@ private:
 		s->assign("hello");
 
 		// 验证两个对象的创建互不影响
-		auto t = smd::g_alloc->New<smd::ShmString>(32);
+		auto t = smd::g_alloc->New<smd::shm_string>(32);
 
 		t->assign("world");
 		assert(t->ToString() == "world");
@@ -34,7 +34,7 @@ private:
 		assert(s->ToString() == "hello");
 
 		// 验证拷贝构造函数
-		t = smd::g_alloc->New<smd::ShmString>(*s);
+		t = smd::g_alloc->New<smd::shm_string>(*s);
 		assert(t->data() != s->data());
 		assert(t->ToString() == "hello");
 		smd::g_alloc->Delete(t);
@@ -42,7 +42,7 @@ private:
 		assert(s->ToString() == "hello");
 
 		// 验证拷贝构造函数
-		t = smd::g_alloc->New<smd::ShmString>("hello");
+		t = smd::g_alloc->New<smd::shm_string>("hello");
 		assert(t->data() != s->data());
 		assert(t->ToString() == "hello");
 		smd::g_alloc->Delete(t);
@@ -51,7 +51,7 @@ private:
 
 		do {
 			// 验证拷贝构造函数
-			smd::ShmString t1(*s);
+			smd::shm_string t1(*s);
 			assert(t1.data() != s->data());
 			assert(t1.ToString() == s->ToString());
 

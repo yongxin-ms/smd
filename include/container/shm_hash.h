@@ -6,12 +6,12 @@
 namespace smd {
 
 template <class Key>
-class ShmHash;
+class shm_hash;
 
 template <class Key, class ListIterator>
 class HashIterator {
 public:
-	HashIterator(size_t index, ListIterator it, ShmPointer<ShmHash<Key>> ptr)
+	HashIterator(size_t index, ListIterator it, shm_pointer<shm_hash<Key>> ptr)
 		: bucket_index_(index)
 		, iterator_(it)
 		, container_(ptr){};
@@ -55,25 +55,25 @@ public:
 public:
 	size_t bucket_index_;
 	ListIterator iterator_;
-	ShmPointer<ShmHash<Key>> container_;
+	shm_pointer<shm_hash<Key>> container_;
 };
 
 template <class Key>
-class ShmHash {
-	friend class HashIterator<Key, typename ShmList<Key>::iterator>;
+class shm_hash {
+	friend class HashIterator<Key, typename shm_list<Key>::iterator>;
 
 public:
 	typedef size_t size_type;
 	typedef Key key_type;
-	typedef HashIterator<Key, typename ShmList<key_type>::iterator> iterator;
-	typedef typename ShmList<key_type>::iterator local_iterator;
+	typedef HashIterator<Key, typename shm_list<key_type>::iterator> iterator;
+	typedef typename shm_list<key_type>::iterator local_iterator;
 
-	ShmHash(size_t bucket_count = 1)
+	shm_hash(size_t bucket_count = 1)
 		: m_buckets(m_primeUtil.NextPrime(bucket_count)) {
-		m_buckets.resize(m_buckets.capacity(), ShmList<key_type>());
+		m_buckets.resize(m_buckets.capacity(), shm_list<key_type>());
 	}
 
-	~ShmHash() { m_buckets.clear(); }
+	~shm_hash() { m_buckets.clear(); }
 
 	bool empty() const { return m_size == 0; }
 	size_t size() const { return m_size; }
@@ -86,7 +86,7 @@ public:
 	void rehash(size_type n) {
 		if (n <= m_buckets.size())
 			return;
-		ShmHash<Key> temp(next_prime(n));
+		shm_hash<Key> temp(next_prime(n));
 		for (auto& val : *this) {
 			temp.insert(val);
 		}
@@ -101,12 +101,12 @@ public:
 		}
 		if (index == m_buckets.size())
 			return end();
-		return iterator(index, m_buckets[index].begin(), g_alloc->ToShmPointer<ShmHash<Key>>(this));
+		return iterator(index, m_buckets[index].begin(), g_alloc->ToShmPointer<shm_hash<Key>>(this));
 	}
 
 	iterator end() {
 		return iterator(m_buckets.size() - 1, m_buckets[m_buckets.size() - 1].end(),
-			g_alloc->ToShmPointer<ShmHash<Key>>(this));
+			g_alloc->ToShmPointer<shm_hash<Key>>(this));
 	}
 
 	local_iterator begin(size_type i) { return m_buckets[i].begin(); }
@@ -116,7 +116,7 @@ public:
 		auto index = bucket_index(key);
 		for (auto it = begin(index); it != end(index); ++it) {
 			if (key == *it)
-				return iterator(index, it, g_alloc->ToShmPointer<ShmHash<Key>>(this));
+				return iterator(index, it, g_alloc->ToShmPointer<shm_hash<Key>>(this));
 		}
 		return end();
 	}
@@ -134,7 +134,7 @@ public:
 			m_buckets[index].push_front(val);
 			++m_size;
 			return std::pair<iterator, bool>(iterator(
-				index, m_buckets[index].begin(), g_alloc->ToShmPointer<ShmHash<Key>>(this)), true);
+				index, m_buckets[index].begin(), g_alloc->ToShmPointer<shm_hash<Key>>(this)), true);
 		}
 		return std::pair<iterator, bool>(end(), false);
 	}
@@ -164,7 +164,7 @@ public:
 		}
 	}
 
-	void swap(ShmHash<Key>& x) {
+	void swap(shm_hash<Key>& x) {
 		std::swap(m_buckets, x.m_buckets);
 		std::swap(m_size, x.m_size);
 		std::swap(m_max_load_factor, x.m_max_load_factor);
@@ -186,7 +186,7 @@ private:
 	}
 
 private:
-	ShmVector<ShmList<Key>> m_buckets;
+	shm_vector<shm_list<Key>> m_buckets;
 	size_t m_size = 0;
 	float m_max_load_factor = 0.0f;
 
@@ -194,6 +194,6 @@ private:
 };
 
 template <class Key>
-PrimeUtil ShmHash<Key>::m_primeUtil;
+PrimeUtil shm_hash<Key>::m_primeUtil;
 
 } // namespace smd

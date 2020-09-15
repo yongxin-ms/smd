@@ -17,26 +17,26 @@ enum {
 	MAGIC_NUM = 0x12345678,
 };
 
-class ShmString;
+class shm_string;
 
 template <class T>
-class ShmList;
+class shm_list;
 
 template <typename K, typename V>
-class ShmMap;
+class shm_map;
 
 template <class T>
-class ShmHash;
+class shm_hash;
 
 template <typename T>
-class ShmPointer;
+class shm_pointer;
 
 #pragma pack(push, 1)
 struct StGlobalVariable {
-	ShmPointer<ShmMap<ShmString, ShmString>> allStrings;
-	ShmPointer<ShmMap<ShmString, ShmList<ShmString>>> allLists;
-	ShmPointer<ShmMap<ShmString, ShmMap<ShmString, ShmString>>> allMaps;
-	ShmPointer<ShmMap<ShmString, ShmHash<ShmString>>> allHashes;
+	shm_pointer<shm_map<shm_string, shm_string>> allStrings;
+	shm_pointer<shm_map<shm_string, shm_list<shm_string>>> allLists;
+	shm_pointer<shm_map<shm_string, shm_map<shm_string, shm_string>>> allMaps;
+	shm_pointer<shm_map<shm_string, shm_hash<shm_string>>> allHashes;
 
 	char reserve[256];
 };

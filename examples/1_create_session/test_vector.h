@@ -12,18 +12,18 @@ public:
 private:
 	void TestShmVector(smd::Log& log) {
 		auto mem_usage = smd::g_alloc->GetUsed();
-		auto v = smd::g_alloc->New<smd::ShmVector<smd::ShmString>>();
+		auto v = smd::g_alloc->New<smd::shm_vector<smd::shm_string>>();
 
 		assert(v->size() == 0);
-		v->push_back(smd::ShmString("hello"));
+		v->push_back(smd::shm_string("hello"));
 		assert(v->size() == 1);
 		assert(v->front().ToString() == "hello");
 		assert(v->back().ToString() == "hello");
 
 		do {
-			smd::ShmVector<smd::ShmString> v1(*v);
+			smd::shm_vector<smd::shm_string> v1(*v);
 			for (int i = 0; i < 100; ++i) {
-				v1.push_back(smd::ShmString(Util::Text::Format("TestText%02d", i)));
+				v1.push_back(smd::shm_string(Util::Text::Format("TestText%02d", i)));
 			}
 			assert(v1.size() == 101);
 			assert(v1[0].ToString() == "hello");
@@ -36,7 +36,7 @@ private:
 			assert(v1[0].ToString() == "hello");
 
 			for (int i = 0; i < 100; ++i) {
-				v1.push_back(smd::ShmString(Util::Text::Format("TestText%02d", i)));
+				v1.push_back(smd::shm_string(Util::Text::Format("TestText%02d", i)));
 			}
 			assert(v1.size() == 101);
 			assert(v1[0].ToString() == "hello");
@@ -49,18 +49,18 @@ private:
 			assert(v1.size() == 1);
 			assert(v1[0].ToString() == "hello");
 
-			v1.resize(300, smd::ShmString("123"));
+			v1.resize(300, smd::shm_string("123"));
 			assert(v1.size() == 300);
 			assert(v1[299].ToString() == "123");
 
 		} while (false);
 
-		v->push_back(smd::ShmString("world"));
+		v->push_back(smd::shm_string("world"));
 		assert(v->size() == 2);
 		assert(v->front().ToString() == "hello");
 		assert(v->back().ToString() == "world");
 
-		v->push_back(smd::ShmString("will"));
+		v->push_back(smd::shm_string("will"));
 		assert(v->size() == 3);
 		assert(v->front().ToString() == "hello");
 		assert(v->back().ToString() == "will");
@@ -87,8 +87,8 @@ private:
 
 	void TestShmVectorResize(smd::Log& log) {
 		auto mem_usage = smd::g_alloc->GetUsed();
-		auto v = smd::g_alloc->New<smd::ShmVector<smd::ShmString>>(64);
-		v->resize(v->capacity(), smd::ShmString(""));
+		auto v = smd::g_alloc->New<smd::shm_vector<smd::shm_string>>(64);
+		v->resize(v->capacity(), smd::shm_string(""));
 
 		smd::g_alloc->Delete(v);
 		assert(v == smd::shm_nullptr);
@@ -108,7 +108,7 @@ private:
 		};
 
 		auto mem_usage = smd::g_alloc->GetUsed();
-		auto v = smd::g_alloc->New<smd::ShmVector<StMyData>>();
+		auto v = smd::g_alloc->New<smd::shm_vector<StMyData>>();
 
 		// 验证在尾部添加元素
 		assert(v->size() == 0);
@@ -124,7 +124,7 @@ private:
 
 private:
 	//测试专用
-	bool IsEqual(smd::ShmVector<smd::ShmString>& l, const std::vector<std::string>& r) {
+	bool IsEqual(smd::shm_vector<smd::shm_string>& l, const std::vector<std::string>& r) {
 		if (l.size() != r.size()) {
 			assert(false);
 		}

@@ -25,15 +25,15 @@ public:
 	}
 
 	template <class T>
-	ShmPointer<T> Malloc(size_t n = 1) {
+	shm_pointer<T> Malloc(size_t n = 1) {
 		auto size = sizeof(T) * n;
 		auto addr = _Malloc(size);
 		// m_log.DoLog(Log::LogLevel::kDebug, "malloc: 0x%p:(%d)", ptr, size);
-		return ShmPointer<T>(addr);
+		return shm_pointer<T>(addr);
 	}
 
 	template <class T>
-	void Free(ShmPointer<T>& p, size_t n = 1) {
+	void Free(shm_pointer<T>& p, size_t n = 1) {
 		assert(p != shm_nullptr && p != 0);
 		auto size = sizeof(T) * n;
 		// m_log.DoLog(Log::LogLevel::kDebug, "free: 0x%p:(%d)", p, size);
@@ -42,14 +42,14 @@ public:
 	}
 
 	template <class T, typename... P>
-	ShmPointer<T> New(P&&... params) {
+	shm_pointer<T> New(P&&... params) {
 		auto t = Malloc<T>();
 		::new (t.Ptr()) T(std::forward<P>(params)...);
 		return t;
 	}
 
 	template <class T>
-	void Delete(ShmPointer<T>& p) {
+	void Delete(shm_pointer<T>& p) {
 		(p.Ptr())->~T();
 		Free(p);
 	}
@@ -66,14 +66,14 @@ public:
 	const char* StorageBasePtr() const { return m_storagePtr; }
 
 	template <class T>
-	ShmPointer<T> null_ptr() const {
-		return ShmPointer<T>(m_storagePtr);
+	shm_pointer<T> null_ptr() const {
+		return shm_pointer<T>(m_storagePtr);
 	}
 
 	template <class T>
-	ShmPointer<T> ToShmPointer(void* p) const {
+	shm_pointer<T> ToShmPointer(void* p) const {
 		int64_t offset = (const char*)p - m_storagePtr;
-		return ShmPointer<T>(offset);
+		return shm_pointer<T>(offset);
 	}
 
 private:
@@ -106,7 +106,7 @@ private:
 Alloc* g_alloc = nullptr;
 
 template <typename T>
-T* ShmPointer<T>::Ptr() const {
+T* shm_pointer<T>::Ptr() const {
 	assert(m_offSet != shm_nullptr && m_offSet != 0);
 	return (T*)(g_alloc->StorageBasePtr() + m_offSet);
 }

@@ -12,7 +12,7 @@ public:
 private:
 	void TestHashString(smd::Log& log) {
 		auto mem_usage = smd::g_alloc->GetUsed();
-		auto obj = smd::g_alloc->New<smd::ShmHash<smd::ShmString>>().Ptr();
+		auto obj = smd::g_alloc->New<smd::shm_hash<smd::shm_string>>().Ptr();
 		std::unordered_set<std::string> ref;
 
 		std::vector<int> vRoleIds;
@@ -25,7 +25,7 @@ private:
 		for (size_t i = 0; i < vRoleIds.size(); i++) {
 			auto key = GetKey(vRoleIds[i]);
 
-			obj->insert(smd::ShmString(key));
+			obj->insert(smd::shm_string(key));
 			ref.insert(key);
 
 			// 插入相同的数据，这两个map应该完全相同
@@ -72,7 +72,7 @@ private:
 
 	void TestHashPod(smd::Log& log) {
 		auto mem_usage = smd::g_alloc->GetUsed();
-		auto obj = smd::g_alloc->New<smd::ShmHash<uint64_t>>();
+		auto obj = smd::g_alloc->New<smd::shm_hash<uint64_t>>();
 		std::unordered_set<uint64_t> ref;
 
 		std::vector<uint64_t> vRoleIds;
@@ -138,7 +138,7 @@ private:
 	}
 
 	// 这段代码可以优化下，这里主要用于测试
-	bool IsEqual(smd::ShmHash<smd::ShmString>& l, const std::unordered_set<std::string>& r) {
+	bool IsEqual(smd::shm_hash<smd::shm_string>& l, const std::unordered_set<std::string>& r) {
 		if (l.size() != r.size())
 			return false;
 
@@ -151,7 +151,7 @@ private:
 
 		for (auto it = r.begin(); it != r.end(); ++it) {
 			const auto& key = *it;
-			if (l.find(smd::ShmString(key)) == l.end()) {
+			if (l.find(smd::shm_string(key)) == l.end()) {
 				return false;
 			}
 		}
@@ -160,7 +160,7 @@ private:
 	}
 
 	// 这段代码可以优化下，这里主要用于测试
-	bool IsEqual(smd::ShmHash<uint64_t>& l, const std::unordered_set<uint64_t>& r) {
+	bool IsEqual(smd::shm_hash<uint64_t>& l, const std::unordered_set<uint64_t>& r) {
 		if (l.size() != r.size())
 			return false;
 
