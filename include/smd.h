@@ -136,28 +136,22 @@ public:
 
 		size_t size = sizeof(ShmHead) + SmdBuddyAlloc::get_index_size(level) +
 					  SmdBuddyAlloc::get_storage_size(level);
-		if (!m_shmHandle.acquire(guid, size, option)) {
-			m_log.DoLog(Log::LogLevel::kError, "acquire failed, %s:%llu", guid.data(), size);
-			return nullptr;
-		}
-
-		size_t sizeFact = 0;
-		void* ptr = m_shmHandle.get_mem(&sizeFact);
+		void* ptr = m_shmHandle.acquire(guid, size, option);
 		if (ptr == nullptr) {
-			m_log.DoLog(Log::LogLevel::kError, "get_mem failed, %s:%llu", guid.data(), size);
+			m_log.DoLog(Log::LogLevel::kError, "acquire failed, %s:%llu", guid.data(), size);
 			return nullptr;
 		}
 
 		ShmHead* head = (ShmHead*)ptr;
 		bool create_new = false;
 		if (option == kOpenExist && strcmp(head->guid, guid.data()) == 0 &&
-			head->magic_num == MAGIC_NUM && head->total_size == sizeFact) {
+			head->magic_num == MAGIC_NUM && head->total_size == size) {
 			m_log.DoLog(Log::LogLevel::kInfo, "attach existed memory, %s:%llu", guid.data(), size);
 		} else {
 			create_new = true;
 			memset(head, 0, sizeof(ShmHead));
 			strncpy(head->guid, guid.data(), sizeof(head->guid) - 1);
-			head->total_size = sizeFact;
+			head->total_size = size;
 			head->create_time = time(nullptr);
 			head->visit_num = 0;
 			head->magic_num = MAGIC_NUM;

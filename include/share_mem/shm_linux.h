@@ -36,46 +36,39 @@ public:
 	ShmLinux(Log& log)
 		: m_log(log) {}
 
-	bool acquire(const std::string& fmt_name, std::size_t size, ShareMemOpenMode mode) {
-		int fd = ::shm_open(
-			fmt_name.c_str(), O_RDWR, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
+	void* acquire(const std::string& fmt_name, std::size_t size, ShareMemOpenMode mode) {
+		name_ = fmt_name;
+		fd_ = ::shm_open(
+			name_.c_str(), O_RDWR, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
 
 		if (mode == kCreateAlways) {
-			if (fd == -1) {
-				fd = ::shm_open(fmt_name.c_str(), O_CREAT | O_EXCL | O_RDWR,
-					S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
+			if (fd_ == 0) {
+				::shm_unlink(name_.c_str());
 			}
+
+			fd_ = ::shm_open(name_.c_str(), O_CREAT | O_EXCL | O_RDWR,
+					S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
+
+			if (fd_ < 0) {
+				m_log.DoLog(Log::LogLevel::kError, "fail shm_open[%d]: %s\n", errno, name_.c_str());
+				return nullptr;
+			}
+
+			size_ = calc_size(size);
+			if (::ftruncate(fd, static_cast<off_t>(size_)) != 0) {
+				m_log.DoLog(Log::LogLevel::kError, "fail ftruncate[%d]: %s, size = %zd\n", errno,
+					name_.c_str(), size_);
+				return nullptr;
+			}
+
 		} else {
-			size = 0;
-		}
+			if (fd_ < 0) {
+				m_log.DoLog(Log::LogLevel::kError, "fail shm_open[%d]: %s\n", errno, name_.c_str());
+				return false;
+			}
 
-		if (fd == -1) {
-			m_log.DoLog(Log::LogLevel::kError, "fail shm_open[%d]: %s\n", errno, fmt_name.c_str());
-			return false;
-		}
-
-		fd_ = fd;
-		size_ = size;
-		name_ = fmt_name;
-		return true;
-	}
-
-	void* get_mem(std::size_t* size) {
-		if (mem_ != nullptr) {
-			if (size != nullptr)
-				*size = size_;
-			return mem_;
-		}
-
-		int fd = fd_;
-		if (fd == -1) {
-			m_log.DoLog(Log::LogLevel::kError, "fail to_mem: invalid id (fd = -1)\n");
-			return nullptr;
-		}
-
-		if (size_ == 0) {
 			struct stat st;
-			if (::fstat(fd, &st) != 0) {
+			if (::fstat(fd_, &st) != 0) {
 				m_log.DoLog(Log::LogLevel::kError, "fail fstat[%d]: %s, size = %zd\n", errno,
 					name_.c_str(), size_);
 				return nullptr;
@@ -86,60 +79,29 @@ public:
 					name_.c_str(), size_);
 				return nullptr;
 			}
-		} else {
-			size_ = calc_size(size_);
-			if (::ftruncate(fd, static_cast<off_t>(size_)) != 0) {
-				m_log.DoLog(Log::LogLevel::kError, "fail ftruncate[%d]: %s, size = %zd\n", errno,
+
+			if (size_ < size) {
+				m_log.DoLog(Log::LogLevel::kError, "fail to_mem: %s, invalid size = %zd\n",
 					name_.c_str(), size_);
 				return nullptr;
 			}
 		}
 
-		void* mem = ::mmap(nullptr, size_, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-		if (mem == MAP_FAILED) {
+		mem_ = ::mmap(nullptr, size_, PROT_READ | PROT_WRITE, MAP_SHARED, fd_, 0);
+		if (mem_ == MAP_FAILED) {
 			m_log.DoLog(Log::LogLevel::kError, "fail mmap[%d]: %s, size = %zd\n", errno,
 				name_.c_str(), size_);
 			return nullptr;
 		}
 
-		::close(fd);
-		fd_ = -1;
-		mem_ = mem;
-		if (size != nullptr)
-			*size = size_;
-		acc_of(mem, size_).fetch_add(1, std::memory_order_release);
-		return mem;
+		acc_of(mem_, size_).fetch_add(1, std::memory_order_release);
+		return mem_;
 	}
 
 	void release() {
-		if (mem_ == nullptr || size_ == 0) {
-			m_log.DoLog(Log::LogLevel::kError, "fail release: invalid id (mem = %p, size = %zd)\n",
-				mem_, size_);
-		} else if (acc_of(mem_, size_).fetch_sub(1, std::memory_order_acquire) == 1) {
-			::munmap(mem_, size_);
-			if (!name_.empty()) {
-				::shm_unlink(name_.c_str());
-			}
-		} else {
+		if (mem_ != nullptr && size_ > 0) {
 			::munmap(mem_, size_);
 		}
-	}
-
-	void remove() {
-		auto name = name_;
-		release();
-		if (!name.empty()) {
-			::shm_unlink(name.c_str());
-		}
-	}
-
-	void remove(const std::string& name) {
-		if (name.size() <= 0) {
-			m_log.DoLog(Log::LogLevel::kError, "fail remove: name is empty\n");
-			return;
-		}
-
-		::shm_unlink(name.c_str());
 	}
 
 private:
