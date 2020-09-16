@@ -91,5 +91,9 @@ int main() {
 		log.DoLog(smd::Log::LogLevel::kInfo, "Key:%s Value:%s", key.data(), value.data());
 	}
 
+#ifdef _WIN32
+	int n = 0;
+	std::cin >> n;
+#endif
 	return 0;
 }
