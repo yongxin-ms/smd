@@ -40,10 +40,10 @@ public:
 		name_ = fmt_name;
 		size_ = calc_size(size);
 		int64_t shm_key = strtol(fmt_name.c_str(), nullptr, 0);
-		shm_id_ = shmget(shm_key, size, 0x0640 | IPC_CREAT);
+		shm_id_ = shmget(shm_key, size_, 0);
 
 		if (mode == kCreateAlways) {
-			if (shm_id_ == 0) {
+			if (shm_id_ != 0) {
 				if (shmctl(shm_id_, IPC_RMID, nullptr) < 0) {
 					m_log.DoLog(
 						Log::LogLevel::kError, "fail shmctl IPC_RMID[%d]: %s\n", errno, name_.c_str());
