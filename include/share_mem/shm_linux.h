@@ -39,18 +39,19 @@ public:
 	void* acquire(const std::string& fmt_name, std::size_t size, ShareMemOpenMode mode) {
 		name_ = fmt_name;
 		size_ = calc_size(size);
-		shm_id_ = shmget(fmt_name, size, 0640 | IPC_CREAT);
+		int64_t shm_key = strtol(fmt_name.c_str(), nullptr, 0);
+		shm_id_ = shmget(shm_key, size, 0x0640 | IPC_CREAT);
 
 		if (mode == kCreateAlways) {
 			if (shm_id_ == 0) {
-				if (shmctl(shm_id, IPC_RMID, nullptr) < 0) {
+				if (shmctl(shm_id_, IPC_RMID, nullptr) < 0) {
 					m_log.DoLog(
 						Log::LogLevel::kError, "fail shmctl IPC_RMID[%d]: %s\n", errno, name_.c_str());
 					return nullptr;
 				}
 			}
 
-			shm_id_ = shmget(fmt_name, size_, 0640 | IPC_CREAT | IPC_EXCL);
+			shm_id_ = shmget(shm_key, size_, 0640 | IPC_CREAT | IPC_EXCL);
 			if (shm_id_ < 0) {
 				m_log.DoLog(Log::LogLevel::kError, "fail shmget IPC_EXCL [%d]: %s\n", errno, name_.c_str());
 				return nullptr;

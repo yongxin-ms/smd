@@ -35,8 +35,8 @@ int main() {
 	});
 
 	const std::string GUID("0x1001187fb");
-	auto env = mgr->CreateEnv(GUID, 25, smd::kOpenExist);
-	//auto env = mgr->CreateEnv(GUID, 25, smd::kCreateAlways);
+	//auto env = mgr->CreateEnv(GUID, 25, smd::kOpenExist);
+	auto env = mgr->CreateEnv(GUID, 25, smd::kCreateAlways);
 	assert(env != nullptr);
 	auto& log = env->GetLog();
 
@@ -91,7 +91,5 @@ int main() {
 		log.DoLog(smd::Log::LogLevel::kInfo, "Key:%s Value:%s", key.data(), value.data());
 	}
 
-	int n = 0;
-	std::cin >> n;
 	return 0;
 }
