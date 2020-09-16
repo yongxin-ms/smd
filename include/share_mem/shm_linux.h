@@ -55,7 +55,7 @@ public:
 			}
 
 			size_ = calc_size(size);
-			if (::ftruncate(fd, static_cast<off_t>(size_)) != 0) {
+			if (::ftruncate(fd_, static_cast<off_t>(size_)) != 0) {
 				m_log.DoLog(Log::LogLevel::kError, "fail ftruncate[%d]: %s, size = %zd\n", errno,
 					name_.c_str(), size_);
 				return nullptr;
@@ -64,7 +64,7 @@ public:
 		} else {
 			if (fd_ < 0) {
 				m_log.DoLog(Log::LogLevel::kError, "fail shm_open[%d]: %s\n", errno, name_.c_str());
-				return false;
+				return nullptr;
 			}
 
 			struct stat st;
