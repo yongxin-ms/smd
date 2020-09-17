@@ -11,7 +11,14 @@
 #include "test_hash.h"
 #include "test_map.h"
 
-int main() {
+int main(int argc, char* argv[]) {
+
+	//缺省是冷启动，加入参数1表示热启动
+	smd::ShareMemOpenMode openMode = smd::kCreateAlways;
+	if (argc == 2 && atoi(argv[1]) == 1) {
+		openMode = smd::kOpenExist;
+	}
+
 	auto mgr = new smd::EnvMgr;
 	mgr->SetLogLevel(smd::Log::LogLevel::kInfo);
 	mgr->SetLogHandler([](smd::Log::LogLevel lv, const char* s) {
@@ -35,8 +42,7 @@ int main() {
 	});
 
 	const std::string GUID("0x1001187fb");
-	auto env = mgr->CreateEnv(GUID, 25, smd::kOpenExist);
-	//auto env = mgr->CreateEnv(GUID, 25, smd::kCreateAlways);
+	auto env = mgr->CreateEnv(GUID, 25, openMode);
 	assert(env != nullptr);
 	auto& log = env->GetLog();
 
