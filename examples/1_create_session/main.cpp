@@ -47,14 +47,14 @@ int main(int argc, char* argv[]) {
 	auto& log = env->GetLog();
 
 	std::srand((unsigned int)std::time(nullptr));
-// 	for (int i = 0; i < 10; i++) {
-// 		TestPointer test_pointer(log);
-// 		TestString test_string(log);
-// 		TestList test_list(log);
-// 		TestVector test_vector(log);
-// 		TestHash test_hash(log);
-// 		TestMap test_map(log);
-// 	}
+	for (int i = 0; i < 10; i++) {
+		TestPointer test_pointer(log);
+		TestString test_string(log);
+		TestList test_list(log);
+		TestVector test_vector(log);
+		TestHash test_hash(log);
+		TestMap test_map(log);
+	}
 
 	std::string key("StartCounter");
 	smd::Slice value;
@@ -75,7 +75,6 @@ int main(int argc, char* argv[]) {
 	}
 
 	auto& all_strings = env->GetAllStrings();
-	//auto& all_strings = *smd::g_alloc->New<smd::shm_map<smd::shm_string, smd::shm_string>>();
 
 	all_strings.insert(std::make_pair(smd::shm_string("will1"), smd::shm_string("1")));
 	all_strings.insert(std::make_pair(smd::shm_string("will2"), smd::shm_string("2")));

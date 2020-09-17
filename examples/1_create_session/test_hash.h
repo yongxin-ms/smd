@@ -39,7 +39,7 @@ private:
 
 		for (auto it = obj->begin(); it != obj->end(); ++it) {
 			const auto& k = *it;
-			log.DoLog(smd::Log::LogLevel::kInfo, "%s", k.data());
+			//log.DoLog(smd::Log::LogLevel::kInfo, "%s", k.data());
 		}
 
 		for (size_t i = 0; i < vRoleIds.size(); i++) {
@@ -100,7 +100,7 @@ private:
 
 		for (auto it = obj->begin(); it != obj->end(); ++it) {
 			const auto& k = *it;
-			log.DoLog(smd::Log::LogLevel::kInfo, "%llu", k);
+			//log.DoLog(smd::Log::LogLevel::kInfo, "%llu", k);
 		}
 
 		for (size_t i = 0; i < vRoleIds.size(); i++) {
