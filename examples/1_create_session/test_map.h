@@ -39,8 +39,8 @@ private:
 		assert(obj->find(GetKey(COUNT)) == obj->end());
 
 		for (auto it = obj->begin(); it != obj->end(); ++it) {
-			const auto& k = it->first;
-			const auto& v = it->second;
+			//const auto& k = it->first;
+			//const auto& v = it->second;
 			//log.DoLog(smd::Log::LogLevel::kInfo, "%s, %s", k.data(), v.data());
 		}
 
@@ -107,8 +107,8 @@ private:
 		assert(obj->find(COUNT) == obj->end());
 
 		for (auto it = obj->begin(); it != obj->end(); ++it) {
-			const auto& k = it->first;
-			const auto& v = it->second;
+			//const auto& k = it->first;
+			//const auto& v = it->second;
 			//log.DoLog(smd::Log::LogLevel::kInfo, "%llu, %llu", k, v);
 		}
 
