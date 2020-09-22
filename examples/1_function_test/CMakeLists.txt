@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
 
-set(PROJECT_NAME create_session)
+set(PROJECT_NAME function_test)
 PROJECT(${PROJECT_NAME})
 set(CMAKE_CXX_STANDARD 11)
 
