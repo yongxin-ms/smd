@@ -47,7 +47,7 @@ int main(int argc, char* argv[]) {
 	auto& log = env->GetLog();
 
 	std::srand((unsigned int)std::time(nullptr));
-	for (int i = 0; i < 10; i++) {
+	for (int i = 0; i < 2; i++) {
 		TestPointer test_pointer(log);
 		TestString test_string(log);
 		TestList test_list(log);
