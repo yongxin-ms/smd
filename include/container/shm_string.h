@@ -2,7 +2,7 @@
 #include <string>
 #include <assert.h>
 #include "../common/utility.h"
-#include "../container/functional.h"
+#include "../common/functional.h"
 #include "../mem_alloc/alloc.h"
 #include "shm_pointer.h"
 

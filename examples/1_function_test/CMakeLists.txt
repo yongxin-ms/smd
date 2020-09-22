@@ -46,7 +46,7 @@ set(INCLUDE_FILES
 	)
 	
 set(COMMON_FILES
-	${CMAKE_CURRENT_SOURCE_DIR}/../../include/common/shm_defines.h
+	${CMAKE_CURRENT_SOURCE_DIR}/../../include/common/functional.h
 	${CMAKE_CURRENT_SOURCE_DIR}/../../include/common/slice.h
 	${CMAKE_CURRENT_SOURCE_DIR}/../../include/common/log.h
 	${CMAKE_CURRENT_SOURCE_DIR}/../../include/common/utility.h
@@ -59,7 +59,7 @@ set(CONTAINER_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/../../include/container/shm_pointer.h
 	${CMAKE_CURRENT_SOURCE_DIR}/../../include/container/shm_map.h
 	${CMAKE_CURRENT_SOURCE_DIR}/../../include/container/shm_vector.h
-	${CMAKE_CURRENT_SOURCE_DIR}/../../include/container/functional.h
+	${CMAKE_CURRENT_SOURCE_DIR}/../../include/container/shm_defines.h
 	)
 
 set(MEM_ALLOC_FILES
