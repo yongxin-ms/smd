@@ -6,7 +6,7 @@
 #include "container/shm_hash.h"
 #include "container/shm_map.h"
 #include "common/slice.h"
-#include "share_mem/shm_handle.h"
+#include "mem_alloc/shm_handle.h"
 
 namespace smd {
 
