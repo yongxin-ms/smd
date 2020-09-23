@@ -45,7 +45,7 @@ struct StGlobalVariable {
 };
 
 struct ShmHead {
-	char guid[GUID_SIZE + 1];
+	int shm_key;
 	size_t total_size;
 	time_t create_time;
 	time_t last_visit_time;

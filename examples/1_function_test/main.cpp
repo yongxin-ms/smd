@@ -41,8 +41,7 @@ int main(int argc, char* argv[]) {
 		}
 	});
 
-	const std::string GUID("0x1001187fb");
-	auto env = mgr->CreateEnv(GUID, 25, openMode);
+	auto env = mgr->CreateEnv(0x001187fb, 25, openMode);
 	assert(env != nullptr);
 	auto& log = env->GetLog();
 

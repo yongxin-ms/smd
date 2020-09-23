@@ -10,21 +10,18 @@ public:
 	ShmWin(Log& log)
 		: m_log(log) {}
 
-	void* acquire(const std::string& fmt_name, std::size_t size, ShareMemOpenMode mode) {
-		if (fmt_name.size() <= 0) {
-			m_log.DoLog(Log::LogLevel::kError, "fail acquire: name is empty\n");
-			return nullptr;
-		}
-
+	void* acquire(int shm_key, std::size_t size, ShareMemOpenMode mode) {
+		char fmt_name[64];
+		_snprintf(fmt_name, sizeof(fmt_name), "%08x", shm_key);
 		if (mode == kOpenExist) {
-			m_handle = ::OpenFileMapping(FILE_MAP_ALL_ACCESS, FALSE, fmt_name.c_str());
+			m_handle = ::OpenFileMapping(FILE_MAP_ALL_ACCESS, FALSE, fmt_name);
 			if (m_handle == NULL) {
 				m_handle = ::CreateFileMapping(INVALID_HANDLE_VALUE, NULL,
-					PAGE_READWRITE | SEC_COMMIT, 0, static_cast<DWORD>(size), fmt_name.c_str());
+					PAGE_READWRITE | SEC_COMMIT, 0, static_cast<DWORD>(size), fmt_name);
 			}
 		} else {
 			m_handle = ::CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE | SEC_COMMIT,
-				0, static_cast<DWORD>(size), fmt_name.c_str());
+				0, static_cast<DWORD>(size), fmt_name);
 // 			if ((::GetLastError() == ERROR_ALREADY_EXISTS)) {
 // 				::CloseHandle(h);
 // 				m_handle = NULL;
@@ -33,7 +30,7 @@ public:
 
 		if (m_handle == NULL) {
 			m_log.DoLog(Log::LogLevel::kError, "fail CreateFileMapping/OpenFileMapping[%d]: %s\n",
-				static_cast<int>(::GetLastError()), fmt_name.data());
+				static_cast<int>(::GetLastError()), fmt_name);
 			return nullptr;
 		}
 

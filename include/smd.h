@@ -135,42 +135,37 @@ public:
 	}
 	void SetLogLevel(Log::LogLevel lv) { m_log.SetLogLevel(lv); }
 	std::string NewGuid() { return ""; }
-	Env* CreateEnv(const std::string& guid, unsigned level, ShareMemOpenMode option);
+	Env* CreateEnv(int shm_key, unsigned level, ShareMemOpenMode option);
 
 private:
 	Log m_log;
 	ShmHandle m_shmHandle;
 };
 
-Env* EnvMgr::CreateEnv(const std::string& guid, unsigned level, ShareMemOpenMode option) {
-	if (guid.size() > GUID_SIZE) {
-		m_log.DoLog(Log::LogLevel::kError, "guid too long, %s", guid.data());
-		return nullptr;
-	}
-
+Env* EnvMgr::CreateEnv(int shm_key, unsigned level, ShareMemOpenMode option) {
 	size_t size = sizeof(ShmHead) + SmdBuddyAlloc::get_index_size(level) +
 				  SmdBuddyAlloc::get_storage_size(level);
-	void* ptr = m_shmHandle.acquire(guid, size, option);
+	void* ptr = m_shmHandle.acquire(shm_key, size, option);
 	if (ptr == nullptr) {
-		m_log.DoLog(Log::LogLevel::kError, "acquire failed, %s:%llu", guid.data(), size);
+		m_log.DoLog(Log::LogLevel::kError, "acquire failed, %08x:%llu", shm_key, size);
 		return nullptr;
 	}
 
 	ShmHead* head = (ShmHead*)ptr;
 	bool create_new = false;
-	if (option == kOpenExist && strcmp(head->guid, guid.data()) == 0 &&
+	if (option == kOpenExist && head->shm_key == shm_key &&
 		head->magic_num == MAGIC_NUM && head->total_size == size) {
-		m_log.DoLog(Log::LogLevel::kInfo, "attach existed memory, %s:%llu", guid.data(), size);
+		m_log.DoLog(Log::LogLevel::kInfo, "attach existed memory, %08x:%llu", shm_key, size);
 	} else {
 		create_new = true;
 		memset(head, 0, sizeof(ShmHead));
-		strncpy(head->guid, guid.data(), sizeof(head->guid) - 1);
+		head->shm_key = shm_key;
 		head->total_size = size;
 		head->create_time = time(nullptr);
 		head->visit_num = 0;
 		head->magic_num = MAGIC_NUM;
 
-		m_log.DoLog(Log::LogLevel::kInfo, "create new memory, %s:%llu", guid.data(), size);
+		m_log.DoLog(Log::LogLevel::kInfo, "create new memory, %08x:%llu", shm_key, size);
 	}
 
 	auto env = new Env(m_log, ptr, level, create_new);

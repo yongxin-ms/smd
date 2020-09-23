@@ -25,7 +25,8 @@ constexpr std::size_t calc_size(std::size_t size) {
 }
 
 inline std::atomic_size_t& acc_of(void* mem, std::size_t size) {
-	return reinterpret_cast<info_t*>(static_cast<unsigned char*>(mem) + size - sizeof(info_t))->acc_;
+	return reinterpret_cast<info_t*>(static_cast<unsigned char*>(mem) + size - sizeof(info_t))
+		->acc_;
 }
 
 } // namespace
@@ -36,37 +37,37 @@ public:
 	ShmLinux(Log& log)
 		: m_log(log) {}
 
-	void* acquire(const std::string& fmt_name, std::size_t size, ShareMemOpenMode mode) {
-		name_ = fmt_name;
+	void* acquire(int shm_key, std::size_t size, ShareMemOpenMode mode) {
 		size_ = calc_size(size);
-		int64_t shm_key = strtol(fmt_name.c_str(), nullptr, 0);
 		shm_id_ = shmget(shm_key, size_, 0);
 
 		if (mode == kCreateAlways) {
 			if (shm_id_ != 0) {
 				if (shmctl(shm_id_, IPC_RMID, nullptr) < 0) {
 					m_log.DoLog(
-						Log::LogLevel::kError, "fail shmctl IPC_RMID[%d]: %s\n", errno, name_.c_str());
+						Log::LogLevel::kError, "fail shmctl IPC_RMID[%08x]: %d\n", shm_key, errno);
 					return nullptr;
 				}
 			}
 
 			shm_id_ = shmget(shm_key, size_, 0640 | IPC_CREAT | IPC_EXCL);
 			if (shm_id_ < 0) {
-				m_log.DoLog(Log::LogLevel::kError, "fail shmget IPC_EXCL [%d]: %s\n", errno, name_.c_str());
+				m_log.DoLog(
+					Log::LogLevel::kError, "fail shmget IPC_EXCL [%08x]: %d\n", shm_key, errno);
 				return nullptr;
 			}
 		} else {
 			if (shm_id_ < 0) {
-				m_log.DoLog(Log::LogLevel::kError, "fail shmget IPC_CREAT [%d]: %s\n", errno, name_.c_str());
+				m_log.DoLog(
+					Log::LogLevel::kError, "fail shmget IPC_CREAT [%08x]: %d\n", shm_key, errno);
 				return nullptr;
 			}
 		}
 
 		mem_ = shmat(shm_id_, nullptr, 0);
 		if (mem_ == reinterpret_cast<void*>(-1)) {
-			m_log.DoLog(Log::LogLevel::kError, "fail shmat[%d]: %s, size = %zd\n", errno,
-				name_.c_str(), size_);
+			m_log.DoLog(
+				Log::LogLevel::kError, "fail shmat[%08x]: %d, size = %zd\n", shm_key, errno, size_);
 			return nullptr;
 		}
 
@@ -85,6 +86,5 @@ private:
 	int shm_id_ = -1;
 	void* mem_ = nullptr;
 	std::size_t size_ = 0;
-	std::string name_;
 };
 } // namespace smd

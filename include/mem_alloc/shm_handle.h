@@ -14,8 +14,8 @@ public:
 	ShmHandle(Log& log)
 		: m_shm(log) {}
 
-	void* acquire(const std::string& name, std::size_t size, ShareMemOpenMode mode) {
-		return m_shm.acquire(name, size, mode);
+	void* acquire(int shm_key, std::size_t size, ShareMemOpenMode mode) {
+		return m_shm.acquire(shm_key, size, mode);
 	}
 
 	void release() { m_shm.release(); }
