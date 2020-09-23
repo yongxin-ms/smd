@@ -12,7 +12,7 @@
 #include <cstring>
 
 #include "../common/log.h"
-#include "../common/shm_defines.h"
+#include "../container/shm_defines.h"
 
 namespace {
 
