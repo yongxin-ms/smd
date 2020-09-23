@@ -134,7 +134,6 @@ public:
 		m_log.SetLogHandler(f);
 	}
 	void SetLogLevel(Log::LogLevel lv) { m_log.SetLogLevel(lv); }
-	std::string NewGuid() { return ""; }
 	Env* CreateEnv(int shm_key, unsigned level, ShareMemOpenMode option);
 
 private:
@@ -153,8 +152,8 @@ Env* EnvMgr::CreateEnv(int shm_key, unsigned level, ShareMemOpenMode option) {
 
 	ShmHead* head = (ShmHead*)ptr;
 	bool create_new = false;
-	if (option == kOpenExist && head->shm_key == shm_key &&
-		head->magic_num == MAGIC_NUM && head->total_size == size) {
+	if (option == kOpenExist && head->shm_key == shm_key && head->magic_num == MAGIC_NUM &&
+		head->total_size == size) {
 		m_log.DoLog(Log::LogLevel::kInfo, "attach existed memory, %08x:%llu", shm_key, size);
 	} else {
 		create_new = true;
