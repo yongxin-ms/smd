@@ -158,7 +158,7 @@ Env* EnvMgr::CreateEnv(int shm_key, unsigned level, ShareMemOpenMode option) {
 		m_log.DoLog(Log::LogLevel::kInfo, "attach existed memory, %08x:%llu", shm_key, size);
 	} else {
 		create_new = true;
-		memset(head, 0, sizeof(ShmHead));
+		memset(ptr, 0, sizeof(ShmHead));
 		head->shm_key = shm_key;
 		head->total_size = size;
 		head->create_time = time(nullptr);
