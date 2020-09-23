@@ -42,7 +42,7 @@ public:
 		shm_id_ = shmget(shm_key, size_, 0);
 
 		if (mode == kCreateAlways) {
-			if (shm_id_ != 0) {
+			if (shm_id_ > 0) {
 				if (shmctl(shm_id_, IPC_RMID, nullptr) < 0) {
 					m_log.DoLog(
 						Log::LogLevel::kError, "fail shmctl IPC_RMID[%08x]: %d\n", shm_key, errno);
