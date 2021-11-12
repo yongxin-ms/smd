@@ -18,7 +18,7 @@ public:
 
 	void DoLog(LogLevel lv, const char* fmt, ...) {
 		if (lv <= log_level_ && log_func_) {
-			char buf[4096];
+			char buf[1024];
 			va_list args;
 			va_start(args, fmt);
 			vsnprintf(buf, sizeof(buf) - 1, fmt, args);

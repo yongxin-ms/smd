@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "smd.h"
+#include <smd.h>
 
 
 class TestPointer {
@@ -71,7 +71,7 @@ private:
 		const size_t ARRAY_SIZE = 16;
 
 		// 开辟共享内存
-		smd::shm_pointer<int> shm_ptr = smd::g_alloc->Malloc<int>(ARRAY_SIZE);
+		auto shm_ptr = smd::g_alloc->Malloc<size_t>(ARRAY_SIZE);
 		assert(shm_ptr != smd::shm_nullptr);
 
 		// 指针在共享内存中的相对位置

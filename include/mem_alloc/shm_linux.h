@@ -11,8 +11,8 @@
 #include <utility>
 #include <cstring>
 
-#include "../common/log.h"
-#include "../container/shm_defines.h"
+#include <common/log.h>
+#include <container/shm_defines.h>
 
 namespace {
 

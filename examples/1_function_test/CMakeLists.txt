@@ -1,27 +1,17 @@
 cmake_minimum_required(VERSION 3.5)
 
-set(PROJECT_NAME function_test)
-PROJECT(${PROJECT_NAME})
-set(CMAKE_CXX_STANDARD 11)
+set(PROJECT_NAME FunctionTest)
+PROJECT(${PROJECT_NAME} LANGUAGES CXX)
 
-if (CMAKE_SYSTEM_NAME MATCHES "Linux")
-	message(debug_flag2:${debug})
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -pthread -Wall -g -lrt")
-	find_program(CCACHE_FOUND ccache)
-	if (CCACHE_FOUND)
-		set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
-		set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
-	endif(CCACHE_FOUND)
-	add_definitions(-D_GLIBCXX_USE_CXX11_ABI=0)
-elseif (CMAKE_SYSTEM_NAME MATCHES "Windows")
-	message (debug_flag3:${debug})
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4819")
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4267")
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4996")
-	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")
-	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd")
+set(CMAKE_UNITY_BUILD yes)
+set(CMAKE_UNITY_BUILD_BATCH_SIZE 16)
+
+if (WIN32)
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj")
 	set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ${PROJECT_NAME})
-endif ()
+else()
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -Wall -g -pthread")
+endif()
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
 
@@ -29,61 +19,36 @@ INCLUDE_DIRECTORIES(
 	${CMAKE_CURRENT_SOURCE_DIR}
 	${CMAKE_CURRENT_SOURCE_DIR}/../../include
 	)
-
-set(SOURCE_FILES
-	${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/util.h
-	${CMAKE_CURRENT_SOURCE_DIR}/test_hash.h
-	${CMAKE_CURRENT_SOURCE_DIR}/test_list.h
-	${CMAKE_CURRENT_SOURCE_DIR}/test_map.h
-	${CMAKE_CURRENT_SOURCE_DIR}/test_pointer.h
-	${CMAKE_CURRENT_SOURCE_DIR}/test_string.h
-	${CMAKE_CURRENT_SOURCE_DIR}/test_vector.h
-	)
 	
-set(INCLUDE_FILES
-	${CMAKE_CURRENT_SOURCE_DIR}/../../include/smd.h
+file(GLOB SELF_TEMP_SRC_FILES
+	"*.cpp"
+	"*.h"
 	)
+source_group(src FILES ${SELF_TEMP_SRC_FILES})
+list(APPEND SELF_SRC_FILES ${SELF_TEMP_SRC_FILES})
+
+file(GLOB SELF_TEMP_SRC_FILES
+	"../../include/*.h"
+	)
+source_group(include FILES ${SELF_TEMP_SRC_FILES})
+list(APPEND SELF_SRC_FILES ${SELF_TEMP_SRC_FILES})
 	
-set(COMMON_FILES
-	${CMAKE_CURRENT_SOURCE_DIR}/../../include/common/functional.h
-	${CMAKE_CURRENT_SOURCE_DIR}/../../include/common/slice.h
-	${CMAKE_CURRENT_SOURCE_DIR}/../../include/common/log.h
-	${CMAKE_CURRENT_SOURCE_DIR}/../../include/common/utility.h
+file(GLOB SELF_TEMP_SRC_FILES
+	"../../include/common/*.h"
 	)
-	
-set(CONTAINER_FILES
-	${CMAKE_CURRENT_SOURCE_DIR}/../../include/container/shm_hash.h
-	${CMAKE_CURRENT_SOURCE_DIR}/../../include/container/shm_list.h
-	${CMAKE_CURRENT_SOURCE_DIR}/../../include/container/shm_string.h
-	${CMAKE_CURRENT_SOURCE_DIR}/../../include/container/shm_pointer.h
-	${CMAKE_CURRENT_SOURCE_DIR}/../../include/container/shm_map.h
-	${CMAKE_CURRENT_SOURCE_DIR}/../../include/container/shm_vector.h
-	${CMAKE_CURRENT_SOURCE_DIR}/../../include/container/shm_defines.h
+source_group(include\\common FILES ${SELF_TEMP_SRC_FILES})
+list(APPEND SELF_SRC_FILES ${SELF_TEMP_SRC_FILES})
+
+file(GLOB SELF_TEMP_SRC_FILES
+	"../../include/container/*.h"
 	)
+source_group(include\\container FILES ${SELF_TEMP_SRC_FILES})
+list(APPEND SELF_SRC_FILES ${SELF_TEMP_SRC_FILES})
 
-set(MEM_ALLOC_FILES
-	${CMAKE_CURRENT_SOURCE_DIR}/../../include/mem_alloc/buddy.h
-	${CMAKE_CURRENT_SOURCE_DIR}/../../include/mem_alloc/alloc.h
-	${CMAKE_CURRENT_SOURCE_DIR}/../../include/mem_alloc/shm_handle.h
-	${CMAKE_CURRENT_SOURCE_DIR}/../../include/mem_alloc/shm_linux.h
-	${CMAKE_CURRENT_SOURCE_DIR}/../../include/mem_alloc/shm_win.h
+file(GLOB SELF_TEMP_SRC_FILES
+	"../../include/mem_alloc/*.h"
 	)
+source_group(include\\mem_alloc FILES ${SELF_TEMP_SRC_FILES})
+list(APPEND SELF_SRC_FILES ${SELF_TEMP_SRC_FILES})
 
-source_group(source FILES ${SOURCE_FILES})
-source_group(include FILES ${INCLUDE_FILES})
-
-source_group(include\\common FILES ${COMMON_FILES})
-source_group(include\\container FILES ${CONTAINER_FILES})
-source_group(include\\mem_alloc FILES ${MEM_ALLOC_FILES})
-
-add_definitions(-DASIO_STANDALONE)
-
-add_executable(${PROJECT_NAME}
-	${SOURCE_FILES}
-	${INCLUDE_FILES}
-	${COMMON_FILES}
-	${CONTAINER_FILES}
-	${MEM_ALLOC_FILES}
-	)
-
+add_executable(${PROJECT_NAME} ${SELF_SRC_FILES})

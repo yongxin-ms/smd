@@ -1,10 +1,11 @@
 ﻿#pragma once
 #include <string>
 #include <assert.h>
-#include "../common/utility.h"
-#include "../common/functional.h"
-#include "../mem_alloc/alloc.h"
-#include "shm_pointer.h"
+
+#include <common/utility.h>
+#include <common/functional.h>
+#include <mem_alloc/alloc.h>
+#include <container/shm_pointer.h>
 
 namespace smd {
 

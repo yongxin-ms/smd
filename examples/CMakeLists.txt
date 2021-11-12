@@ -1,4 +1,4 @@
-project(examples)
+project(SmdExamples)
 cmake_minimum_required (VERSION 3.5)
 
 add_subdirectory(${PROJECT_SOURCE_DIR}/1_function_test)

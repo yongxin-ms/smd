@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "smd.h"
+#include <smd.h>
 
 class TestString {
 public:

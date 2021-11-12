@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include <map>
-#include "smd.h"
+#include <smd.h>
 
 class TestMap {
 public:

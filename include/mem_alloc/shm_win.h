@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include <windows.h>
 #include <string>
-#include "../container/shm_defines.h"
+#include <container/shm_defines.h>
 
 namespace smd {
 
@@ -12,7 +12,7 @@ public:
 
 	void* acquire(int shm_key, std::size_t size, ShareMemOpenMode mode) {
 		char fmt_name[64];
-		_snprintf(fmt_name, sizeof(fmt_name), "%08x", shm_key);
+		_snprintf_s(fmt_name, sizeof(fmt_name), "%08x", shm_key);
 		if (mode == kOpenExist) {
 			m_handle = ::OpenFileMapping(FILE_MAP_ALL_ACCESS, FALSE, fmt_name);
 			if (m_handle == NULL) {

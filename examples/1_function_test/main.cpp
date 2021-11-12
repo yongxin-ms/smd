@@ -1,7 +1,7 @@
 ﻿#include <stdio.h>
 #include <iostream>
 #include <algorithm>
-#include "smd.h"
+#include <smd.h>
 #include "util.h"
 
 #include "test_pointer.h"

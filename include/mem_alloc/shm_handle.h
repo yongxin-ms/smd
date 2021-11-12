@@ -2,9 +2,9 @@
 #include <cstddef>
 
 #ifdef _WIN32
-#include "shm_win.h"
+#include <mem_alloc/shm_win.h>
 #else
-#include "shm_linux.h"
+#include "mem_alloc/shm_linux.h"
 #endif
 
 namespace smd {

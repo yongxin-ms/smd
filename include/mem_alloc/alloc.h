@@ -1,7 +1,7 @@
 ﻿#pragma once
-#include "buddy.h"
-#include "../container/shm_pointer.h"
-#include "../common/log.h"
+#include <mem_alloc/buddy.h>
+#include <container/shm_pointer.h>
+#include <common/log.h>
 
 namespace smd {
 
