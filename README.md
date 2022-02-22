@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿# Shared Memory Dictionary
+﻿﻿﻿﻿﻿﻿﻿# Shared Memory Dictionary
 
 ### 共享内存字典
 
@@ -55,7 +55,7 @@ Share Memory Dictionary
 | 7    | 考虑下直接复用nginx的各个容器                                |                           |
 | 8    | 接口和数据成员的接口类型（主要是各种整数）需要优化下，消除警告 |                           |
 | 9    | 增加std::array数据类型                                       |                           |
-|      |                                                              |                           |
+| 10   | 要尽量避免因为进程崩溃而生成的脏数据（中间状态），参考文件系统的一些做法 |                           |
 |      |                                                              |                           |
 |      |                                                              |                           |
 |      |                                                              |                           |
