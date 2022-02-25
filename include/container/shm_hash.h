@@ -190,10 +190,10 @@ private:
 	size_t m_size = 0;
 	float m_max_load_factor = 0.0f;
 
-	static PrimeUtil m_primeUtil;
+	static util::PrimeUtil m_primeUtil;
 };
 
 template <class Key>
-PrimeUtil shm_hash<Key>::m_primeUtil;
+util::PrimeUtil shm_hash<Key>::m_primeUtil;
 
 } // namespace smd

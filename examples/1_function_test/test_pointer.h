@@ -4,17 +4,17 @@
 
 class TestPointer {
 public:
-	TestPointer(smd::Log& log) {
-		TestStdNewDelete(log);
-		TestNewDelete(log);
-		TestArrayPointer(log);
-		TestPointerToObject(log);
+	TestPointer() {
+		TestStdNewDelete();
+		TestNewDelete();
+		TestArrayPointer();
+		TestPointerToObject();
 	}
 
 private:
 
 	// 标准的分配与回收用法
-	void TestStdNewDelete(smd::Log& log) {
+	void TestStdNewDelete() {
 		auto mem_usage = smd::g_alloc->GetUsed();
 
 		// 开辟共享内存
@@ -22,7 +22,7 @@ private:
 		assert(shm_ptr != smd::shm_nullptr);
 
 		// 指针在本次分配的相对位置
-		log.DoLog(smd::Log::LogLevel::kInfo, "Raw pointer:%lld", shm_ptr.Raw());
+		SMD_LOG_INFO("Raw pointer:%lld", shm_ptr.Raw());
 
 		// 访问
 		*shm_ptr = 10;
@@ -34,11 +34,11 @@ private:
 
 		// 没有内存泄露
 		assert(mem_usage == smd::g_alloc->GetUsed());
-		log.DoLog(smd::Log::LogLevel::kInfo, "TestStdNewDelete complete");
+		SMD_LOG_INFO("TestStdNewDelete complete");
 	}
 
 	// 另一种分配与回收的用法
-	void TestNewDelete(smd::Log& log) {
+	void TestNewDelete() {
 		auto mem_usage = smd::g_alloc->GetUsed();
 
 		// 开辟共享内存
@@ -50,7 +50,7 @@ private:
 		assert(shm_ptr.Ptr() == ptr);
 
 		// 指针在共享内存中的相对位置
-		log.DoLog(smd::Log::LogLevel::kInfo, "Raw pointer:%lld", shm_ptr.Raw());
+		SMD_LOG_INFO("Raw pointer:%lld", shm_ptr.Raw());
 
 		// 访问
 		*shm_ptr = 10;
@@ -62,11 +62,11 @@ private:
 
 		// 没有内存泄露
 		assert(mem_usage == smd::g_alloc->GetUsed());
-		log.DoLog(smd::Log::LogLevel::kInfo, "TestNewDelete complete");
+		SMD_LOG_INFO("TestNewDelete complete");
 	}
 
 	// 指向一个数组
-	void TestArrayPointer(smd::Log& log) {
+	void TestArrayPointer() {
 		auto mem_usage = smd::g_alloc->GetUsed();
 		const size_t ARRAY_SIZE = 16;
 
@@ -75,7 +75,7 @@ private:
 		assert(shm_ptr != smd::shm_nullptr);
 
 		// 指针在共享内存中的相对位置
-		log.DoLog(smd::Log::LogLevel::kInfo, "Raw pointer:%lld", shm_ptr.Raw());
+		SMD_LOG_INFO("Raw pointer:%lld", shm_ptr.Raw());
 
 		// 随机访问
 		for (size_t i = 0; i < ARRAY_SIZE; i++) {
@@ -84,13 +84,13 @@ private:
 
 		// 随机访问
 		for (size_t i = 0; i < ARRAY_SIZE; i++) {
-			log.DoLog(smd::Log::LogLevel::kInfo, "Array[%d] = %d", i, shm_ptr[i]);
+			SMD_LOG_INFO("Array[%d] = %d", i, shm_ptr[i]);
 		}
 
 		//和普通指针一样可以++
 		auto p = shm_ptr;
 		for (size_t i = 0; i < ARRAY_SIZE; i++, p++) {
-			log.DoLog(smd::Log::LogLevel::kInfo, "Array[%d] = %d", i, *p);
+			SMD_LOG_INFO("Array[%d] = %d", i, *p);
 		}
 
 		// 回收共享内存
@@ -99,11 +99,11 @@ private:
 
 		// 没有内存泄露
 		assert(mem_usage == smd::g_alloc->GetUsed());
-		log.DoLog(smd::Log::LogLevel::kInfo, "TestPointer complete");
+		SMD_LOG_INFO("TestPointer complete");
 	}
 
 	// 指向一个对象
-	void TestPointerToObject(smd::Log& log) {
+	void TestPointerToObject() {
 		auto mem_usage = smd::g_alloc->GetUsed();
 
 		struct StA {
@@ -125,7 +125,7 @@ private:
 		assert(shm_ptr != smd::shm_nullptr);
 
 		// 指针在共享内存中的相对位置
-		log.DoLog(smd::Log::LogLevel::kInfo, "Raw pointer:%lld", shm_ptr.Raw());
+		SMD_LOG_INFO("Raw pointer:%lld", shm_ptr.Raw());
 
 		// 访问
 		shm_ptr->m_b1 = 10;
@@ -142,6 +142,6 @@ private:
 
 		// 没有内存泄露
 		assert(mem_usage == smd::g_alloc->GetUsed());
-		log.DoLog(smd::Log::LogLevel::kInfo, "TestPointer complete");
+		SMD_LOG_INFO("TestPointer complete");
 	}
 };

@@ -4,14 +4,14 @@
 
 class TestList {
 public:
-	TestList(smd::Log& log) {
-		TestShmList(log);
-		TestListEqual(log);
-		TestShmListPod(log);
+	TestList() {
+		TestShmList();
+		TestListEqual();
+		TestShmListPod();
 	}
 
 private:
-	void TestShmList(smd::Log& log) {
+	void TestShmList() {
 		auto mem_usage = smd::g_alloc->GetUsed();
 
 		auto l = smd::g_alloc->New<smd::shm_list<smd::shm_string>>();
@@ -121,10 +121,10 @@ private:
 		assert(l == smd::shm_nullptr);
 
 		assert(mem_usage == smd::g_alloc->GetUsed());
-		log.DoLog(smd::Log::LogLevel::kInfo, "TestShmList complete");
+		SMD_LOG_INFO("TestShmList complete");
 	}
 
-	void TestListEqual(smd::Log& log) {
+	void TestListEqual() {
 		auto mem_usage = smd::g_alloc->GetUsed();
 		auto l = smd::g_alloc->New<smd::shm_list<smd::shm_string>>().Ptr();
 		std::list<std::string> list_ref;
@@ -150,10 +150,10 @@ private:
 		list_ref.clear();
 
 		assert(mem_usage == smd::g_alloc->GetUsed());
-		log.DoLog(smd::Log::LogLevel::kInfo, "TestListEqual complete");
+		SMD_LOG_INFO("TestListEqual complete");
 	}
 
-	void TestShmListPod(smd::Log& log) {
+	void TestShmListPod() {
 		struct StMyData {
 			uint64_t role_id_;
 			int hp_;
@@ -175,7 +175,7 @@ private:
 		smd::g_alloc->Delete(l);
 		assert(l == smd::shm_nullptr);
 		assert(mem_usage == smd::g_alloc->GetUsed());
-		log.DoLog(smd::Log::LogLevel::kInfo, "TestShmListPod complete");
+		SMD_LOG_INFO("TestShmListPod complete");
 	}
 
 private:

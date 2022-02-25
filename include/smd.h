@@ -12,11 +12,10 @@ namespace smd {
 
 class Env {
 public:
-	Env(Log& log, void* ptr, unsigned level, bool create_new);
+	Env(void* ptr, unsigned level, bool create_new);
 	~Env() {}
 
 	size_t GetUsed() { return m_alloc.GetUsed(); }
-	Log& GetLog() { return m_log; }
 
 	//
 	// 内置string, list, map, hash 四种基本数据类型
@@ -37,7 +36,6 @@ public:
 	bool SDel(const Slice& key);
 
 private:
-	Log& m_log;
 	ShmHead& m_head;
 	Alloc m_alloc;
 
@@ -47,10 +45,9 @@ private:
 	shm_pointer<shm_map<shm_string, shm_hash<shm_string>>>& m_allHashes;
 };
 
-Env::Env(Log& log, void* ptr, unsigned level, bool create_new)
-	: m_log(log)
-	, m_head(*((ShmHead*)ptr))
-	, m_alloc(log, ptr, sizeof(ShmHead), level, create_new)
+Env::Env(void* ptr, unsigned level, bool create_new)
+	: m_head(*((ShmHead*)ptr))
+	, m_alloc(ptr, sizeof(ShmHead), level, create_new)
 	, m_allStrings(m_head.global_variable.allStrings)
 	, m_allLists(m_head.global_variable.allLists)
 	, m_allMaps(m_head.global_variable.allMaps)
@@ -127,17 +124,33 @@ bool Env::SDel(const Slice& key) {
 
 class EnvMgr {
 public:
-	EnvMgr()
-		: m_shmHandle(m_log){};
+	EnvMgr() {
+		SetLogHandler(
+			[](Log::LogLevel lv, const char* msg) {
+				std::string time_now = util::Time::FormatDateTime(std::chrono::system_clock::now());
+				switch (lv) {
+				case Log::LogLevel::kError:
+					printf("%s Error: %s\n", time_now.c_str(), msg);
+					break;
+				case Log::LogLevel::kWarning:
+					printf("%s Warning: %s\n", time_now.c_str(), msg);
+					break;
+				case Log::LogLevel::kInfo:
+					printf("%s Info: %s\n", time_now.c_str(), msg);
+					break;
+				case Log::LogLevel::kDebug:
+					printf("%s Debug: %s\n", time_now.c_str(), msg);
+					break;
+				default:
+					break;
+				}
+			},
+			Log::LogLevel::kDebug);
+	};
 
-	void SetLogHandler(std::function<void(Log::LogLevel, const char*)> f) {
-		m_log.SetLogHandler(f);
-	}
-	void SetLogLevel(Log::LogLevel lv) { m_log.SetLogLevel(lv); }
 	Env* CreateEnv(int shm_key, unsigned level, ShareMemOpenMode option);
 
 private:
-	Log m_log;
 	ShmHandle m_shmHandle;
 };
 
@@ -146,7 +159,7 @@ Env* EnvMgr::CreateEnv(int shm_key, unsigned level, ShareMemOpenMode option) {
 				  SmdBuddyAlloc::get_storage_size(level);
 	void* ptr = m_shmHandle.acquire(shm_key, size, option);
 	if (ptr == nullptr) {
-		m_log.DoLog(Log::LogLevel::kError, "acquire failed, %08x:%llu", shm_key, size);
+		SMD_LOG_ERROR("acquire failed, %08x:%llu", shm_key, size);
 		return nullptr;
 	}
 
@@ -154,7 +167,7 @@ Env* EnvMgr::CreateEnv(int shm_key, unsigned level, ShareMemOpenMode option) {
 	bool create_new = false;
 	if (option == kOpenExist && head->shm_key == shm_key && head->magic_num == MAGIC_NUM &&
 		head->total_size == size) {
-		m_log.DoLog(Log::LogLevel::kInfo, "attach existed memory, %08x:%llu", shm_key, size);
+		SMD_LOG_INFO("attach existed memory, %08x:%llu", shm_key, size);
 	} else {
 		create_new = true;
 		memset(ptr, 0, sizeof(ShmHead));
@@ -164,10 +177,10 @@ Env* EnvMgr::CreateEnv(int shm_key, unsigned level, ShareMemOpenMode option) {
 		head->visit_num = 0;
 		head->magic_num = MAGIC_NUM;
 
-		m_log.DoLog(Log::LogLevel::kInfo, "create new memory, %08x:%llu", shm_key, size);
+		SMD_LOG_INFO("create new memory, %08x:%llu", shm_key, size);
 	}
 
-	auto env = new Env(m_log, ptr, level, create_new);
+	auto env = new Env(ptr, level, create_new);
 	return env;
 }
 

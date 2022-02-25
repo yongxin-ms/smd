@@ -3,14 +3,14 @@
 
 class TestVector {
 public:
-	TestVector(smd::Log& log) {
-		TestShmVector(log);
-		TestShmVectorResize(log);
-		TestShmVectorPod(log);
+	TestVector() {
+		TestShmVector();
+		TestShmVectorResize();
+		TestShmVectorPod();
 	}
 
 private:
-	void TestShmVector(smd::Log& log) {
+	void TestShmVector() {
 		auto mem_usage = smd::g_alloc->GetUsed();
 		auto v = smd::g_alloc->New<smd::shm_vector<smd::shm_string>>();
 
@@ -82,10 +82,10 @@ private:
 		assert(v == smd::shm_nullptr);
 		assert(mem_usage == smd::g_alloc->GetUsed());
 
-		log.DoLog(smd::Log::LogLevel::kInfo, "TestShmVector complete");
+		SMD_LOG_INFO("TestShmVector complete");
 	}
 
-	void TestShmVectorResize(smd::Log& log) {
+	void TestShmVectorResize() {
 		auto mem_usage = smd::g_alloc->GetUsed();
 		auto v = smd::g_alloc->New<smd::shm_vector<smd::shm_string>>(64);
 		v->resize(v->capacity(), smd::shm_string(""));
@@ -94,10 +94,10 @@ private:
 		assert(v == smd::shm_nullptr);
 		assert(mem_usage == smd::g_alloc->GetUsed());
 
-		log.DoLog(smd::Log::LogLevel::kInfo, "TestShmVectorResize complete");
+		SMD_LOG_INFO("TestShmVectorResize complete");
 	}
 
-	void TestShmVectorPod(smd::Log& log) {
+	void TestShmVectorPod() {
 		struct StMyData {
 			uint64_t role_id_;
 			int hp_;
@@ -119,7 +119,7 @@ private:
 		smd::g_alloc->Delete(v);
 		assert(v == smd::shm_nullptr);
 		assert(mem_usage == smd::g_alloc->GetUsed());
-		log.DoLog(smd::Log::LogLevel::kInfo, "TestShmVectorPod complete");
+		SMD_LOG_INFO("TestShmVectorPod complete");
 	}
 
 private:

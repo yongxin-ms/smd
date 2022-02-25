@@ -3,10 +3,12 @@
 
 class TestString {
 public:
-	TestString(smd::Log& log) { TestShmString(log); }
+	TestString() {
+		TestShmString();
+	}
 
 private:
-	void TestShmString(smd::Log& log) {
+	void TestShmString() {
 		auto mem_usage = smd::g_alloc->GetUsed();
 		auto s = smd::g_alloc->New<smd::shm_string>();
 		//assert(s->capacity() > 16);
@@ -70,6 +72,6 @@ private:
 		assert(s == smd::shm_nullptr);
 		assert(mem_usage == smd::g_alloc->GetUsed());
 
-		log.DoLog(smd::Log::LogLevel::kInfo, "TestShmString complete");
+		SMD_LOG_INFO("TestShmString complete");
 	}
 };

@@ -4,13 +4,13 @@
 
 class TestMap {
 public:
-	TestMap(smd::Log& log) {
-		TestMapPod(log);
-		TestMapString(log);
+	TestMap() {
+		TestMapPod();
+		TestMapString();
 	}
 
 private:
-	void TestMapString(smd::Log& log) {
+	void TestMapString() {
 		auto mem_usage = smd::g_alloc->GetUsed();
 		auto obj = smd::g_alloc->New<smd::shm_map<smd::shm_string, smd::shm_string>>().Ptr();
 		std::map<std::string, std::string> ref;
@@ -74,10 +74,10 @@ private:
 		ref.clear();
 
 		assert(mem_usage == smd::g_alloc->GetUsed());
-		log.DoLog(smd::Log::LogLevel::kInfo, "TestMapString complete");
+		SMD_LOG_INFO("TestMapString complete");
 	}
 
-	void TestMapPod(smd::Log& log) {
+	void TestMapPod() {
 		auto mem_usage = smd::g_alloc->GetUsed();
 		auto obj = smd::g_alloc->New<smd::shm_map<uint64_t, uint64_t>>();
 		std::map<uint64_t, uint64_t> ref;
@@ -137,7 +137,7 @@ private:
 		assert(obj == smd::shm_nullptr);
 		assert(mem_usage == smd::g_alloc->GetUsed());
 
-		log.DoLog(smd::Log::LogLevel::kInfo, "TestMapPod complete");
+		SMD_LOG_INFO("TestMapPod complete");
 	}
 
 private:

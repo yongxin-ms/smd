@@ -11,8 +11,7 @@ namespace smd {
 
 class ShmHandle {
 public:
-	ShmHandle(Log& log)
-		: m_shm(log) {}
+	ShmHandle() {}
 
 	void* acquire(int shm_key, std::size_t size, ShareMemOpenMode mode) {
 		return m_shm.acquire(shm_key, size, mode);

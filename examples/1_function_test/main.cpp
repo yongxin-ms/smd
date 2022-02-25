@@ -20,39 +20,17 @@ int main(int argc, char* argv[]) {
 	}
 
 	auto mgr = new smd::EnvMgr;
-	mgr->SetLogLevel(smd::Log::LogLevel::kInfo);
-	mgr->SetLogHandler([](smd::Log::LogLevel lv, const char* s) {
-		std::string time_now = Util::Time::FormatDateTime(time(nullptr));
-		switch (lv) {
-		case smd::Log::LogLevel::kError:
-			printf("%s Error: %s\n", time_now.c_str(), s);
-			break;
-		case smd::Log::LogLevel::kWarning:
-			printf("%s Warning: %s\n", time_now.c_str(), s);
-			break;
-		case smd::Log::LogLevel::kInfo:
-			printf("%s Info: %s\n", time_now.c_str(), s);
-			break;
-		case smd::Log::LogLevel::kDebug:
-			printf("%s Debug: %s\n", time_now.c_str(), s);
-			break;
-		default:
-			break;
-		}
-	});
-
 	auto env = mgr->CreateEnv(0x001187fb, 25, openMode);
 	assert(env != nullptr);
-	auto& log = env->GetLog();
 
 	std::srand((unsigned int)std::time(nullptr));
 	for (int i = 0; i < 2; i++) {
-		TestPointer test_pointer(log);
-		TestString test_string(log);
-		TestList test_list(log);
-		TestVector test_vector(log);
-		TestHash test_hash(log);
-		TestMap test_map(log);
+		TestPointer test_pointer;
+		TestString test_string;
+		TestList test_list;
+		TestVector test_vector;
+		TestHash test_hash;
+		TestMap test_map;
 	}
 
 	std::string key("StartCounter");
@@ -64,10 +42,10 @@ int main(int argc, char* argv[]) {
 		count++;
 		env->SSet(key, std::to_string(count));
 
-		log.DoLog(smd::Log::LogLevel::kInfo, "%s is %d", key.data(), count);
+		SMD_LOG_INFO("%s is %d", key.data(), count);
 	} else {
 		// 如果不存在
-		log.DoLog(smd::Log::LogLevel::kInfo, "first time run");
+		SMD_LOG_INFO("first time run");
 
 		count = 1;
 		env->SSet(key, std::to_string(count));
@@ -92,7 +70,7 @@ int main(int argc, char* argv[]) {
 		const auto& key = it->first;
 		const auto& value = it->second;
 
-		log.DoLog(smd::Log::LogLevel::kInfo, "Key:%s Value:%s", key.data(), value.data());
+		SMD_LOG_INFO("Key:%s Value:%s", key.data(), value.data());
 	}
 
 #ifdef _WIN32

@@ -130,7 +130,7 @@ private:
 	size_t GetSuitableCapacity(size_t size) {
 		if (size < 1)
 			size = 1;
-		return Utility::NextPowOf2(size);
+		return util::Utility::NextPowOf2(size);
 	}
 
 	void shrink_to_fit() {

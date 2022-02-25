@@ -4,13 +4,13 @@
 
 class TestHash {
 public:
-	TestHash(smd::Log& log) {
-		TestHashPod(log);
-		TestHashString(log);
+	TestHash() {
+		TestHashPod();
+		TestHashString();
 	}
 
 private:
-	void TestHashString(smd::Log& log) {
+	void TestHashString() {
 		auto mem_usage = smd::g_alloc->GetUsed();
 		auto obj = smd::g_alloc->New<smd::shm_hash<smd::shm_string>>().Ptr();
 		std::unordered_set<std::string> ref;
@@ -67,10 +67,10 @@ private:
 		ref.clear();
 
 		assert(mem_usage == smd::g_alloc->GetUsed());
-		log.DoLog(smd::Log::LogLevel::kInfo, "TestHashString complete");
+		SMD_LOG_INFO("TestHashString complete");
 	}
 
-	void TestHashPod(smd::Log& log) {
+	void TestHashPod() {
 		auto mem_usage = smd::g_alloc->GetUsed();
 		auto obj = smd::g_alloc->New<smd::shm_hash<uint64_t>>();
 		std::unordered_set<uint64_t> ref;
@@ -128,7 +128,7 @@ private:
 		assert(obj == smd::shm_nullptr);
 		assert(mem_usage == smd::g_alloc->GetUsed());
 
-		log.DoLog(smd::Log::LogLevel::kInfo, "TestMapPod complete");
+		SMD_LOG_INFO("TestMapPod complete");
 	}
 
 private:

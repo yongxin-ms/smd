@@ -34,8 +34,7 @@ inline std::atomic_size_t& acc_of(void* mem, std::size_t size) {
 namespace smd {
 class ShmLinux {
 public:
-	ShmLinux(Log& log)
-		: m_log(log) {}
+	ShmLinux() {}
 
 	void* acquire(int shm_key, std::size_t size, ShareMemOpenMode mode) {
 		size_ = calc_size(size);
@@ -44,30 +43,26 @@ public:
 		if (mode == kCreateAlways) {
 			if (shm_id_ > 0) {
 				if (shmctl(shm_id_, IPC_RMID, nullptr) < 0) {
-					m_log.DoLog(
-						Log::LogLevel::kError, "fail shmctl IPC_RMID[%08x]: %d\n", shm_key, errno);
+					SMD_LOG_ERROR("fail shmctl IPC_RMID[%08x]: %d\n", shm_key, errno);
 					return nullptr;
 				}
 			}
 
 			shm_id_ = shmget(shm_key, size_, 0640 | IPC_CREAT | IPC_EXCL);
 			if (shm_id_ < 0) {
-				m_log.DoLog(
-					Log::LogLevel::kError, "fail shmget IPC_EXCL [%08x]: %d\n", shm_key, errno);
+				SMD_LOG_ERROR("fail shmget IPC_EXCL [%08x]: %d\n", shm_key, errno);
 				return nullptr;
 			}
 		} else {
 			if (shm_id_ < 0) {
-				m_log.DoLog(
-					Log::LogLevel::kError, "fail shmget IPC_CREAT [%08x]: %d\n", shm_key, errno);
+				SMD_LOG_ERROR("fail shmget IPC_CREAT [%08x]: %d\n", shm_key, errno);
 				return nullptr;
 			}
 		}
 
 		mem_ = shmat(shm_id_, nullptr, 0);
 		if (mem_ == reinterpret_cast<void*>(-1)) {
-			m_log.DoLog(
-				Log::LogLevel::kError, "fail shmat[%08x]: %d, size = %zd\n", shm_key, errno, size_);
+			SMD_LOG_ERROR("fail shmat[%08x]: %d, size = %zd\n", shm_key, errno, size_);
 			return nullptr;
 		}
 
@@ -82,7 +77,6 @@ public:
 	}
 
 private:
-	Log& m_log;
 	int shm_id_ = -1;
 	void* mem_ = nullptr;
 	std::size_t size_ = 0;
