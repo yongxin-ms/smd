@@ -95,6 +95,15 @@ private:
 	size_t m_used = 0;
 };
 
-Alloc* g_alloc = nullptr;
+static Alloc* g_alloc = nullptr;
+
+static void CreateAlloc(void* ptr, size_t off_set, unsigned level, bool create_new) {
+	if (g_alloc != nullptr) {
+		delete g_alloc;
+		g_alloc = nullptr;
+	}
+
+	g_alloc = new Alloc(ptr, off_set, level, create_new);
+}
 
 } // namespace smd

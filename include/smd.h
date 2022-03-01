@@ -159,7 +159,7 @@ Env* Env::Create(int shm_key, unsigned level, ShareMemOpenMode option) {
 		g_alloc = nullptr;
 	}
 
-	g_alloc = new Alloc(ptr, sizeof(ShmHead), level, create_new);
+	CreateAlloc(ptr, sizeof(ShmHead), level, create_new);
 	auto env = new Env(ptr, create_new);
 	return env;
 }
