@@ -134,8 +134,9 @@ private:
 		for (auto i = 0; i < COUNT; i++) {
 			vRoleIds.push_back(i);
 		}
-
-		std::random_shuffle(vRoleIds.begin(), vRoleIds.end());
+		
+		std::default_random_engine generator{ std::random_device{}() };
+		std::shuffle(vRoleIds.begin(), vRoleIds.end(), generator);
 
 		for (size_t i = 0; i < vRoleIds.size(); i++) {
 			auto key = Util::Text::Format("Key%05d", vRoleIds[i]);
