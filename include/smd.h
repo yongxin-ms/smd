@@ -12,19 +12,29 @@ namespace smd {
 
 class Env {
 public:
-	Env(void* ptr, unsigned level, bool create_new);
-	~Env() {}
-
 	static Env* Create(int shm_key, unsigned level, ShareMemOpenMode option);
-	size_t GetUsed() { return m_alloc.GetUsed(); }
+
+	Env(void* ptr, bool create_new);
+	~Env() {}
 
 	//
 	// 内置string, list, map, hash 四种基本数据类型
 	//
-	shm_map<shm_string, shm_string>& GetAllStrings() { return *m_allStrings; }
-	shm_map<shm_string, shm_list<shm_string>>& GetAllLists() { return *m_allLists; }
-	shm_map<shm_string, shm_map<shm_string, shm_string>>& GetAllMaps() { return *m_allMaps; }
-	shm_map<shm_string, shm_hash<shm_string>>& GetAllHashes() { return *m_allHashes; }
+	shm_map<shm_string, shm_string>& GetAllStrings() {
+		return *m_allStrings;
+	}
+
+	shm_map<shm_string, shm_list<shm_string>>& GetAllLists() {
+		return *m_allLists;
+	}
+
+	shm_map<shm_string, shm_map<shm_string, shm_string>>& GetAllMaps() {
+		return *m_allMaps;
+	}
+
+	shm_map<shm_string, shm_hash<shm_string>>& GetAllHashes() {
+		return *m_allHashes;
+	}
 
 	//
 	// 字符串操作
@@ -38,46 +48,41 @@ public:
 
 private:
 	ShmHead& m_head;
-	Alloc m_alloc;
-
 	shm_pointer<shm_map<shm_string, shm_string>>& m_allStrings;
 	shm_pointer<shm_map<shm_string, shm_list<shm_string>>>& m_allLists;
 	shm_pointer<shm_map<shm_string, shm_map<shm_string, shm_string>>>& m_allMaps;
 	shm_pointer<shm_map<shm_string, shm_hash<shm_string>>>& m_allHashes;
 };
 
-Env::Env(void* ptr, unsigned level, bool create_new)
+Env::Env(void* ptr, bool create_new)
 	: m_head(*((ShmHead*)ptr))
-	, m_alloc(ptr, sizeof(ShmHead), level, create_new)
 	, m_allStrings(m_head.global_variable.allStrings)
 	, m_allLists(m_head.global_variable.allLists)
 	, m_allMaps(m_head.global_variable.allMaps)
 	, m_allHashes(m_head.global_variable.allHashes) {
 	m_head.visit_num++;
 	m_head.last_visit_time = time(nullptr);
-	g_alloc = &m_alloc;
-
 	if (create_new) {
 		if (m_allStrings != shm_nullptr && m_allStrings != 0) {
-			m_alloc.Delete(m_allStrings);
+			g_alloc->Delete(m_allStrings);
 		}
 
 		if (m_allLists != shm_nullptr && m_allLists != 0) {
-			m_alloc.Delete(m_allLists);
+			g_alloc->Delete(m_allLists);
 		}
 
 		if (m_allMaps != shm_nullptr && m_allMaps != 0) {
-			m_alloc.Delete(m_allMaps);
+			g_alloc->Delete(m_allMaps);
 		}
 
 		if (m_allHashes != shm_nullptr && m_allHashes != 0) {
-			m_alloc.Delete(m_allHashes);
+			g_alloc->Delete(m_allHashes);
 		}
 
-		m_allStrings = m_alloc.New<shm_map<shm_string, shm_string>>();
-		m_allLists = m_alloc.New<shm_map<shm_string, shm_list<shm_string>>>();
-		m_allMaps = m_alloc.New<shm_map<shm_string, shm_map<shm_string, shm_string>>>();
-		m_allHashes = m_alloc.New<shm_map<shm_string, shm_hash<shm_string>>>();
+		m_allStrings = g_alloc->New<shm_map<shm_string, shm_string>>();
+		m_allLists = g_alloc->New<shm_map<shm_string, shm_list<shm_string>>>();
+		m_allMaps = g_alloc->New<shm_map<shm_string, shm_map<shm_string, shm_string>>>();
+		m_allHashes = g_alloc->New<shm_map<shm_string, shm_hash<shm_string>>>();
 	}
 }
 
@@ -124,10 +129,16 @@ bool Env::SDel(const Slice& key) {
 }
 
 Env* Env::Create(int shm_key, unsigned level, ShareMemOpenMode option) {
-	smd::CreateShmHandle();
+	if (g_shm_handle == nullptr) {
+		g_shm_handle = new ShmHandle;
+	}
 
-	size_t size = sizeof(ShmHead) + SmdBuddyAlloc::get_index_size(level) +
-				  SmdBuddyAlloc::get_storage_size(level);
+	if (g_alloc != nullptr) {
+		delete g_alloc;
+		g_alloc = nullptr;
+	}
+
+	size_t size = sizeof(ShmHead) + SmdBuddyAlloc::get_index_size(level) + SmdBuddyAlloc::get_storage_size(level);
 	void* ptr = g_shm_handle->acquire(shm_key, size, option);
 	if (ptr == nullptr) {
 		SMD_LOG_ERROR("acquire failed, %08x:%llu", shm_key, size);
@@ -151,7 +162,8 @@ Env* Env::Create(int shm_key, unsigned level, ShareMemOpenMode option) {
 		SMD_LOG_INFO("create new memory, %08x:%llu", shm_key, size);
 	}
 
-	auto env = new Env(ptr, level, create_new);
+	g_alloc = new Alloc(ptr, sizeof(ShmHead), level, create_new);
+	auto env = new Env(ptr, create_new);
 	return env;
 }
 
