@@ -6,6 +6,8 @@ enum : int64_t {
 	shm_nullptr = -1,
 };
 
+static const char* g_storagePtr = nullptr;
+
 template <typename T>
 class shm_pointer {
 public:
@@ -70,7 +72,5 @@ public:
 private:
 	int64_t m_offSet;
 };
-
-static const char* g_storagePtr = nullptr;
 
 } // namespace smd
