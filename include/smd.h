@@ -165,7 +165,7 @@ Env* EnvMgr::CreateEnv(int shm_key, unsigned level, ShareMemOpenMode option) {
 
 	ShmHead* head = (ShmHead*)ptr;
 	bool create_new = false;
-	if (option == kOpenExist && head->shm_key == shm_key && head->magic_num == MAGIC_NUM &&
+	if (option == ShareMemOpenMode::kOpenExist && head->shm_key == shm_key && head->magic_num == MAGIC_NUM &&
 		head->total_size == size) {
 		SMD_LOG_INFO("attach existed memory, %08x:%llu", shm_key, size);
 	} else {

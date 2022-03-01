@@ -14,9 +14,9 @@
 int main(int argc, char* argv[]) {
 
 	//缺省是冷启动，加入参数1表示热启动
-	smd::ShareMemOpenMode openMode = smd::kCreateAlways;
+	smd::ShareMemOpenMode openMode = smd::ShareMemOpenMode::kCreateAlways;
 	if (argc == 2 && atoi(argv[1]) == 1) {
-		openMode = smd::kOpenExist;
+		openMode = smd::ShareMemOpenMode::kOpenExist;
 	}
 
 	auto mgr = new smd::EnvMgr;

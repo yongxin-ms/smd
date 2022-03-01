@@ -23,19 +23,19 @@ public:
 	bool operator!=(const shm_pointer& r) const { return m_offSet != r.m_offSet; }
 
 	int64_t operator-(const shm_pointer& r) const { return (m_offSet - r.m_offSet) / sizeof(T); }
-	shm_pointer operator+(int n) const {
+	shm_pointer operator+(int64_t n) const {
 		shm_pointer tmp(*this);
 		tmp.m_offSet += n * sizeof(T);
 		return tmp;
 	}
 
-	T& operator[](int n) {
+	T& operator[](int64_t n) {
 		shm_pointer tmp(*this);
 		tmp.m_offSet += n * sizeof(T);
 		return *tmp;
 	}
 
-	const T& operator[](int n) const {
+	const T& operator[](int64_t n) const {
 		shm_pointer tmp(*this);
 		tmp.m_offSet += n * sizeof(T);
 		return *tmp;

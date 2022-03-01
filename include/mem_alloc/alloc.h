@@ -77,7 +77,7 @@ public:
 
 private:
 	int64_t _Malloc(size_t size) {
-		auto off_set = SmdBuddyAlloc::buddy_alloc(m_buddy, size);
+		auto off_set = SmdBuddyAlloc::buddy_alloc(m_buddy, uint32_t(size));
 		if (off_set < 0) {
 			assert(false);
 			return 0;

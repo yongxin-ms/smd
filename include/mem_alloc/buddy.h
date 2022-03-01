@@ -44,15 +44,9 @@ public:
 		return self;
 	}
 
-	static int buddy_alloc(buddy* self, int s) {
-		int size;
-		if (s == 0) {
-			size = 1;
-		} else {
-			// 下一个2的倍数大小
-			size = (int)next_pow_of_2(s);
-		}
-		int length = 1 << self->level;
+	static int buddy_alloc(buddy* self, uint32_t s) {
+		const uint32_t size = s == 0 ? 1 : next_pow_of_2(s);
+		uint32_t length = 1 << self->level;
 
 		// 空间不够了
 		if (size > length)
@@ -190,7 +184,9 @@ public:
 	}
 
 private:
-	static inline int is_pow_of_2(uint32_t x) { return !(x & (x - 1)); }
+	static inline uint32_t is_pow_of_2(uint32_t x) {
+		return !(x & (x - 1));
+	}
 
 	static inline uint32_t next_pow_of_2(uint32_t x) {
 		if (is_pow_of_2(x))

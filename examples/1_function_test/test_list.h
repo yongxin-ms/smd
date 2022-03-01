@@ -131,7 +131,7 @@ private:
 
 		std::vector<int> vRoleIds;
 		const size_t COUNT = 1000;
-		for (size_t i = 0; i < COUNT; i++) {
+		for (auto i = 0; i < COUNT; i++) {
 			vRoleIds.push_back(i);
 		}
 

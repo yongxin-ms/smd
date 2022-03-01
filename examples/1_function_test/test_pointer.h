@@ -78,18 +78,18 @@ private:
 		SMD_LOG_INFO("Raw pointer:%lld", shm_ptr.Raw());
 
 		// 随机访问
-		for (size_t i = 0; i < ARRAY_SIZE; i++) {
+		for (auto i = 0; i < ARRAY_SIZE; i++) {
 			shm_ptr[i] = i * 10;
 		}
 
 		// 随机访问
-		for (size_t i = 0; i < ARRAY_SIZE; i++) {
+		for (auto i = 0; i < ARRAY_SIZE; i++) {
 			SMD_LOG_INFO("Array[%d] = %d", i, shm_ptr[i]);
 		}
 
 		//和普通指针一样可以++
 		auto p = shm_ptr;
-		for (size_t i = 0; i < ARRAY_SIZE; i++, p++) {
+		for (auto i = 0; i < ARRAY_SIZE; i++, p++) {
 			SMD_LOG_INFO("Array[%d] = %d", i, *p);
 		}
 

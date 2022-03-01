@@ -2,22 +2,22 @@
 #include <cstddef>
 
 #ifdef _WIN32
-#include <mem_alloc/shm_win.h>
+	#include <mem_alloc/shm_win.h>
 #else
-#include "mem_alloc/shm_linux.h"
+	#include "mem_alloc/shm_linux.h"
 #endif
 
 namespace smd {
 
 class ShmHandle {
 public:
-	ShmHandle() {}
-
-	void* acquire(int shm_key, std::size_t size, ShareMemOpenMode mode) {
+	void* acquire(int shm_key, size_t size, ShareMemOpenMode mode) {
 		return m_shm.acquire(shm_key, size, mode);
 	}
 
-	void release() { m_shm.release(); }
+	void release() {
+		m_shm.release();
+	}
 
 private:
 #ifdef _WIN32

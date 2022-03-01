@@ -5,7 +5,7 @@ namespace smd {
 //
 // 共享内存的两种开启模式
 //
-enum ShareMemOpenMode {
+enum class ShareMemOpenMode {
 
 	// 冷重启，总是创建新的，不管之前是否存在
 	// 如果之前有数据，会覆盖掉已有的数据
@@ -40,8 +40,6 @@ struct StGlobalVariable {
 	shm_pointer<shm_map<shm_string, shm_list<shm_string>>> allLists;
 	shm_pointer<shm_map<shm_string, shm_map<shm_string, shm_string>>> allMaps;
 	shm_pointer<shm_map<shm_string, shm_hash<shm_string>>> allHashes;
-
-	char reserve[256];
 };
 
 struct ShmHead {

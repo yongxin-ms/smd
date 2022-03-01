@@ -146,7 +146,7 @@ private:
 		if (size <= 16)
 			return 16;
 		else
-			return util::Utility::NextPowOf2(size);
+			return util::Utility::NextPowOf2(uint32_t(size));
 	}
 
 	void swap(shm_string& x) {

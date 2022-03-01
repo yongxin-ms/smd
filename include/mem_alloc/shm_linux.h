@@ -14,8 +14,7 @@
 #include <common/log.h>
 #include <container/shm_defines.h>
 
-namespace {
-
+namespace smd {
 struct info_t {
 	std::atomic_size_t acc_;
 };
@@ -25,22 +24,16 @@ constexpr std::size_t calc_size(std::size_t size) {
 }
 
 inline std::atomic_size_t& acc_of(void* mem, std::size_t size) {
-	return reinterpret_cast<info_t*>(static_cast<unsigned char*>(mem) + size - sizeof(info_t))
-		->acc_;
+	return reinterpret_cast<info_t*>(static_cast<unsigned char*>(mem) + size - sizeof(info_t))->acc_;
 }
 
-} // namespace
-
-namespace smd {
 class ShmLinux {
 public:
-	ShmLinux() {}
-
-	void* acquire(int shm_key, std::size_t size, ShareMemOpenMode mode) {
+	void* acquire(int shm_key, size_t size, ShareMemOpenMode mode) {
 		size_ = calc_size(size);
 		shm_id_ = shmget(shm_key, size_, 0);
 
-		if (mode == kCreateAlways) {
+		if (mode == ShareMemOpenMode::kCreateAlways) {
 			if (shm_id_ > 0) {
 				if (shmctl(shm_id_, IPC_RMID, nullptr) < 0) {
 					SMD_LOG_ERROR("fail shmctl IPC_RMID[%08x]: %d\n", shm_key, errno);
@@ -73,12 +66,14 @@ public:
 	void release() {
 		if (mem_ != nullptr && size_ > 0) {
 			shmdt(mem_);
+			mem_ = nullptr;
+			size_ = 0;
 		}
 	}
 
 private:
 	int shm_id_ = -1;
 	void* mem_ = nullptr;
-	std::size_t size_ = 0;
+	size_t size_ = 0;
 };
 } // namespace smd
