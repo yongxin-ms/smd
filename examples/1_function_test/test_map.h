@@ -16,7 +16,7 @@ private:
 		std::map<std::string, std::string> ref;
 
 		std::vector<int> vRoleIds;
-		const size_t COUNT = 1000;
+		const int COUNT = 1000;
 		for (auto i = 0; i < COUNT; i++) {
 			vRoleIds.push_back(i);
 		}

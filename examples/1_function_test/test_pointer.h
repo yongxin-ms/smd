@@ -68,7 +68,7 @@ private:
 	// 指向一个数组
 	void TestArrayPointer() {
 		auto mem_usage = smd::g_alloc->GetUsed();
-		const size_t ARRAY_SIZE = 16;
+		const int ARRAY_SIZE = 16;
 
 		// 开辟共享内存
 		auto shm_ptr = smd::g_alloc->Malloc<size_t>(ARRAY_SIZE);
