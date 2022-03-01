@@ -66,7 +66,7 @@ public:
 	T& operator*() { return (*p).data; }
 	T* operator->() { return &((*p).data); }
 
-	void swap(ListIterator<T>& x) { std:swap(p, x.p); }
+	void swap(ListIterator<T>& x) { swap(p, x.p); }
 
 	friend bool operator!=(const ListIterator<T>& x, const ListIterator<T>& y) {
 		return x.p != y.p;

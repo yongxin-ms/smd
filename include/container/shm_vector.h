@@ -47,7 +47,7 @@ public:
 
 	//访问元素相关
 	reference operator[](size_t i) { return *m_start[i]; }
-	const reference operator[](size_t i) const { return *m_start[i]; }
+	reference operator[](size_t i) const { return *m_start[i]; }
 	reference front() { return **m_start; }
 	reference back() { return *(m_start[size() - 1]); }
 
