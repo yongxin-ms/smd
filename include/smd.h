@@ -15,6 +15,7 @@ public:
 	Env(void* ptr, unsigned level, bool create_new);
 	~Env() {}
 
+	static Env* Create(int shm_key, unsigned level, ShareMemOpenMode option);
 	size_t GetUsed() { return m_alloc.GetUsed(); }
 
 	//
@@ -122,42 +123,12 @@ bool Env::SDel(const Slice& key) {
 	return true;
 }
 
-class EnvMgr {
-public:
-	EnvMgr() {
-		SetLogHandler(
-			[](Log::LogLevel lv, const char* msg) {
-				std::string time_now = util::Time::FormatDateTime(std::chrono::system_clock::now());
-				switch (lv) {
-				case Log::LogLevel::kError:
-					printf("%s Error: %s\n", time_now.c_str(), msg);
-					break;
-				case Log::LogLevel::kWarning:
-					printf("%s Warning: %s\n", time_now.c_str(), msg);
-					break;
-				case Log::LogLevel::kInfo:
-					printf("%s Info: %s\n", time_now.c_str(), msg);
-					break;
-				case Log::LogLevel::kDebug:
-					printf("%s Debug: %s\n", time_now.c_str(), msg);
-					break;
-				default:
-					break;
-				}
-			},
-			Log::LogLevel::kDebug);
-	};
+Env* Env::Create(int shm_key, unsigned level, ShareMemOpenMode option) {
+	smd::CreateShmHandle();
 
-	Env* CreateEnv(int shm_key, unsigned level, ShareMemOpenMode option);
-
-private:
-	ShmHandle m_shmHandle;
-};
-
-Env* EnvMgr::CreateEnv(int shm_key, unsigned level, ShareMemOpenMode option) {
 	size_t size = sizeof(ShmHead) + SmdBuddyAlloc::get_index_size(level) +
 				  SmdBuddyAlloc::get_storage_size(level);
-	void* ptr = m_shmHandle.acquire(shm_key, size, option);
+	void* ptr = g_shm_handle->acquire(shm_key, size, option);
 	if (ptr == nullptr) {
 		SMD_LOG_ERROR("acquire failed, %08x:%llu", shm_key, size);
 		return nullptr;

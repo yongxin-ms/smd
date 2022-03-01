@@ -27,4 +27,15 @@ private:
 #endif
 };
 
+static ShmHandle* g_shm_handle = nullptr;
+
+static void CreateShmHandle() {
+	if (g_shm_handle != nullptr) {
+		delete g_shm_handle;
+		g_shm_handle = nullptr;
+	}
+
+	g_shm_handle = new ShmHandle;
+}
+
 } // namespace smd

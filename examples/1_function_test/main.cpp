@@ -12,6 +12,27 @@
 #include "test_map.h"
 
 int main(int argc, char* argv[]) {
+	smd::SetLogHandler(
+		[](smd::Log::LogLevel lv, const char* msg) {
+			std::string time_now = smd::util::Time::FormatDateTime(std::chrono::system_clock::now());
+			switch (lv) {
+			case smd::Log::LogLevel::kError:
+				printf("%s Error: %s\n", time_now.c_str(), msg);
+				break;
+			case smd::Log::LogLevel::kWarning:
+				printf("%s Warning: %s\n", time_now.c_str(), msg);
+				break;
+			case smd::Log::LogLevel::kInfo:
+				printf("%s Info: %s\n", time_now.c_str(), msg);
+				break;
+			case smd::Log::LogLevel::kDebug:
+				printf("%s Debug: %s\n", time_now.c_str(), msg);
+				break;
+			default:
+				break;
+			}
+		},
+		smd::Log::LogLevel::kInfo);
 
 	//缺省是冷启动，加入参数1表示热启动
 	smd::ShareMemOpenMode openMode = smd::ShareMemOpenMode::kCreateAlways;
@@ -19,8 +40,7 @@ int main(int argc, char* argv[]) {
 		openMode = smd::ShareMemOpenMode::kOpenExist;
 	}
 
-	auto mgr = new smd::EnvMgr;
-	auto env = mgr->CreateEnv(0x001187fb, 25, openMode);
+	auto env = smd::Env::Create(0x001187fb, 25, openMode);
 	assert(env != nullptr);
 
 	std::srand((unsigned int)std::time(nullptr));
@@ -73,9 +93,9 @@ int main(int argc, char* argv[]) {
 		SMD_LOG_INFO("Key:%s Value:%s", key.data(), value.data());
 	}
 
+	SMD_LOG_INFO("completed");
 #ifdef _WIN32
-	int n = 0;
-	std::cin >> n;
+	system("PAUSE");
 #endif
 	return 0;
 }
