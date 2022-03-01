@@ -7,13 +7,13 @@ namespace smd {
 
 class Alloc {
 public:
-	Alloc(void* ptr, size_t off_set, unsigned level, bool create_new)
-		: m_basePtr((const char*)ptr + off_set) {
-		m_buddy = (SmdBuddyAlloc::buddy*)m_basePtr;
-		m_storagePtr = m_basePtr + SmdBuddyAlloc::get_index_size(level);
+	Alloc(void* ptr, size_t off_set, unsigned level, bool create_new) {
+		const char* basePtr = (const char*)ptr + off_set;
+		m_buddy = (SmdBuddyAlloc::buddy*)basePtr;
+		m_storagePtr = basePtr + SmdBuddyAlloc::get_index_size(level);
 
 		if (create_new) {
-			m_buddy = SmdBuddyAlloc::buddy_new(m_basePtr, level);
+			m_buddy = SmdBuddyAlloc::buddy_new(basePtr, level);
 
 			//
 			// 这样能让以后分配的地址不会为0，也不用回收
@@ -62,7 +62,7 @@ public:
 	}
 
 	size_t GetUsed() const { return m_used; }
-	const char* StorageBasePtr() const { return m_storagePtr; }
+	const char* StoragePtr() const { return m_storagePtr; }
 
 	template <class T>
 	shm_pointer<T> null_ptr() const {
@@ -95,18 +95,11 @@ private:
 	}
 
 private:
-	const char* m_basePtr;
 	SmdBuddyAlloc::buddy* m_buddy;
 	size_t m_used = 0;
 	const char* m_storagePtr;
 };
 
 Alloc* g_alloc = nullptr;
-
-template <typename T>
-T* shm_pointer<T>::Ptr() const {
-	assert(m_offSet != shm_nullptr && m_offSet != 0);
-	return (T*)(g_alloc->StorageBasePtr() + m_offSet);
-}
 
 } // namespace smd

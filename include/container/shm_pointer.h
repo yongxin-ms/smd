@@ -14,7 +14,11 @@ public:
 	shm_pointer(const shm_pointer&) = default;
 	shm_pointer& operator=(const shm_pointer&) = default;
 
-	T* Ptr() const;
+	T* Ptr() const {
+		assert(m_offSet != shm_nullptr && m_offSet != 0);
+		return (T*)(g_alloc->StoragePtr() + m_offSet);
+	}
+
 	T* operator->() const { return Ptr(); }
 	T& operator*() const { return *Ptr(); }
 
