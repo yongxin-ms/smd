@@ -10,7 +10,7 @@ public:
 	Alloc(void* ptr, size_t off_set, unsigned level, bool create_new) {
 		const char* basePtr = (const char*)ptr + off_set;
 		m_buddy = (SmdBuddyAlloc::buddy*)basePtr;
-		m_storagePtr = basePtr + SmdBuddyAlloc::get_index_size(level);
+		g_storagePtr = basePtr + SmdBuddyAlloc::get_index_size(level);
 
 		if (create_new) {
 			m_buddy = SmdBuddyAlloc::buddy_new(basePtr, level);
@@ -62,16 +62,10 @@ public:
 	}
 
 	size_t GetUsed() const { return m_used; }
-	const char* StoragePtr() const { return m_storagePtr; }
-
-	template <class T>
-	shm_pointer<T> null_ptr() const {
-		return shm_pointer<T>(m_storagePtr);
-	}
 
 	template <class T>
 	shm_pointer<T> ToShmPointer(void* p) const {
-		int64_t offset = (const char*)p - m_storagePtr;
+		int64_t offset = (const char*)p - g_storagePtr;
 		return shm_pointer<T>(offset);
 	}
 
@@ -97,7 +91,6 @@ private:
 private:
 	SmdBuddyAlloc::buddy* m_buddy;
 	size_t m_used = 0;
-	const char* m_storagePtr;
 };
 
 Alloc* g_alloc = nullptr;

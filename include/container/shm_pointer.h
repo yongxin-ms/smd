@@ -16,7 +16,7 @@ public:
 
 	T* Ptr() const {
 		assert(m_offSet != shm_nullptr && m_offSet != 0);
-		return (T*)(g_alloc->StoragePtr() + m_offSet);
+		return (T*)(g_storagePtr + m_offSet);
 	}
 
 	T* operator->() const { return Ptr(); }
@@ -70,5 +70,7 @@ public:
 private:
 	int64_t m_offSet;
 };
+
+static const char* g_storagePtr = nullptr;
 
 } // namespace smd
