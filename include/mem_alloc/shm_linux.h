@@ -31,29 +31,29 @@ class ShmLinux {
 public:
 	void* acquire(int shm_key, size_t size, ShareMemOpenMode mode) {
 		size_ = calc_size(size);
-		shm_id_ = shmget(shm_key, size_, 0);
+		auto shm_id = shmget(shm_key, size_, 0);
 
 		if (mode == ShareMemOpenMode::kCreateAlways) {
-			if (shm_id_ > 0) {
-				if (shmctl(shm_id_, IPC_RMID, nullptr) < 0) {
+			if (shm_id > 0) {
+				if (shmctl(shm_id, IPC_RMID, nullptr) < 0) {
 					SMD_LOG_ERROR("fail shmctl IPC_RMID[%08x]: %d\n", shm_key, errno);
 					return nullptr;
 				}
 			}
 
-			shm_id_ = shmget(shm_key, size_, 0640 | IPC_CREAT | IPC_EXCL);
-			if (shm_id_ < 0) {
+			shm_id = shmget(shm_key, size_, 0640 | IPC_CREAT | IPC_EXCL);
+			if (shm_id < 0) {
 				SMD_LOG_ERROR("fail shmget IPC_EXCL [%08x]: %d\n", shm_key, errno);
 				return nullptr;
 			}
 		} else {
-			if (shm_id_ < 0) {
+			if (shm_id < 0) {
 				SMD_LOG_ERROR("fail shmget IPC_CREAT [%08x]: %d\n", shm_key, errno);
 				return nullptr;
 			}
 		}
 
-		mem_ = shmat(shm_id_, nullptr, 0);
+		mem_ = shmat(shm_id, nullptr, 0);
 		if (mem_ == reinterpret_cast<void*>(-1)) {
 			SMD_LOG_ERROR("fail shmat[%08x]: %d, size = %zd\n", shm_key, errno, size_);
 			return nullptr;
@@ -72,7 +72,6 @@ public:
 	}
 
 private:
-	int shm_id_ = -1;
 	void* mem_ = nullptr;
 	size_t size_ = 0;
 };

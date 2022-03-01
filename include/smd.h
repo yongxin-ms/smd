@@ -13,8 +13,6 @@ namespace smd {
 class Env {
 public:
 	static Env* Create(int shm_key, unsigned level, ShareMemOpenMode option);
-
-	Env(void* ptr, bool create_new);
 	~Env() {}
 
 	//
@@ -45,6 +43,9 @@ public:
 	bool SGet(const Slice& key, Slice* value);
 	// 删除操作
 	bool SDel(const Slice& key);
+
+private:
+	Env(void* ptr, bool create_new);
 
 private:
 	ShmHead& m_head;
@@ -129,17 +130,8 @@ bool Env::SDel(const Slice& key) {
 }
 
 Env* Env::Create(int shm_key, unsigned level, ShareMemOpenMode option) {
-	if (g_shm_handle == nullptr) {
-		g_shm_handle = new ShmHandle;
-	}
-
-	if (g_alloc != nullptr) {
-		delete g_alloc;
-		g_alloc = nullptr;
-	}
-
 	size_t size = sizeof(ShmHead) + SmdBuddyAlloc::get_index_size(level) + SmdBuddyAlloc::get_storage_size(level);
-	void* ptr = g_shm_handle->acquire(shm_key, size, option);
+	void* ptr = g_shmHandle.acquire(shm_key, size, option);
 	if (ptr == nullptr) {
 		SMD_LOG_ERROR("acquire failed, %08x:%llu", shm_key, size);
 		return nullptr;
@@ -160,6 +152,11 @@ Env* Env::Create(int shm_key, unsigned level, ShareMemOpenMode option) {
 		head->magic_num = MAGIC_NUM;
 
 		SMD_LOG_INFO("create new memory, %08x:%llu", shm_key, size);
+	}
+
+	if (g_alloc != nullptr) {
+		delete g_alloc;
+		g_alloc = nullptr;
 	}
 
 	g_alloc = new Alloc(ptr, sizeof(ShmHead), level, create_new);

@@ -37,7 +37,6 @@ public:
 			return nullptr;
 		}
 
-		m_size = size;
 		return m_memPtr;
 	}
 
@@ -55,7 +54,6 @@ public:
 
 private:
 	HANDLE m_handle = NULL;
-	size_t m_size = 0;
 	void* m_memPtr = nullptr;
 };
 

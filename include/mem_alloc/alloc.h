@@ -27,7 +27,7 @@ public:
 	shm_pointer<T> Malloc(size_t n = 1) {
 		auto size = sizeof(T) * n;
 		auto addr = _Malloc(size);
-		//SMD_LOG_DEBUG("malloc: 0x%p:(%d)", ptr, size);
+		// SMD_LOG_DEBUG("malloc: 0x%p:(%d)", ptr, size);
 		return shm_pointer<T>(addr);
 	}
 
@@ -35,7 +35,7 @@ public:
 	void Free(shm_pointer<T>& p, size_t n = 1) {
 		assert(p != shm_nullptr && p != 0);
 		auto size = sizeof(T) * n;
-		//SMD_LOG_DEBUG("free: 0x%p:(%d)", p, size);
+		// SMD_LOG_DEBUG("free: 0x%p:(%d)", p, size);
 		_Free(p.Raw(), size);
 		p = shm_nullptr;
 	}
@@ -61,7 +61,9 @@ public:
 		p = nullptr;
 	}
 
-	size_t GetUsed() const { return m_used; }
+	size_t GetUsed() const {
+		return m_used;
+	}
 
 	template <class T>
 	shm_pointer<T> ToShmPointer(void* p) const {

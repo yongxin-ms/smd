@@ -27,6 +27,6 @@ private:
 #endif
 };
 
-static ShmHandle* g_shm_handle = nullptr;
+static ShmHandle g_shmHandle;
 
 } // namespace smd
