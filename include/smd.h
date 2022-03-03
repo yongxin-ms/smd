@@ -157,9 +157,17 @@ Env* Env::Create(int shm_key, unsigned level, bool enable_attach) {
 	}
 
 	ShmHead* head = (ShmHead*)ptr;
-	if (!is_attached || head->magic_num != MAGIC_NUM || head->total_size != size) {
+	if (is_attached && head->magic_num != MAGIC_NUM) {
+		SMD_LOG_ERROR("Attach failed, magic_num 0x%x mismatch 0x%x", head->magic_num, MAGIC_NUM);
 		is_attached = false;
+	}
 
+	if (is_attached && head->total_size != size) {
+		SMD_LOG_ERROR("Attach failed, total_size %llu mismatch %llu", head->total_size, size);
+		is_attached = false;
+	}
+
+	if (!is_attached) {
 		memset(ptr, 0, sizeof(ShmHead));
 		head->total_size = size;
 		head->create_time = time(nullptr);
