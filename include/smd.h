@@ -10,7 +10,6 @@
 
 namespace smd {
 enum {
-	GUID_SIZE = 15,
 	MAGIC_NUM = 0x12345678,
 };
 
