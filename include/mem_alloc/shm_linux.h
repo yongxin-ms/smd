@@ -12,7 +12,6 @@
 #include <cstring>
 
 #include <common/log.h>
-#include <container/shm_defines.h>
 
 namespace smd {
 struct info_t {
@@ -50,6 +49,10 @@ public:
 
 			attached = false;
 		} else {
+			if (shm_id < 0) {
+				shm_id = shmget(shm_key, size_, 0640 | IPC_CREAT | IPC_EXCL);
+			}
+			
 			if (shm_id < 0) {
 				SMD_LOG_ERROR("fail shmget IPC_CREAT [%08x]: %d\n", shm_key, errno);
 				return std::make_pair(nullptr, attached);

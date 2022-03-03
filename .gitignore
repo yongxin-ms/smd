@@ -18,5 +18,5 @@ cmake-build-debug
 .DS_Store
 x64
 examples/1_function_test/bin/
-examples/2_string_op/bin/
+examples/2_log/bin/
 examples/build/
