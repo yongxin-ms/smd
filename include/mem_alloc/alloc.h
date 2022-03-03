@@ -7,12 +7,12 @@ namespace smd {
 
 class Alloc {
 public:
-	Alloc(void* ptr, size_t off_set, unsigned level, bool create_new) {
+	Alloc(void* ptr, size_t off_set, unsigned level, bool attached) {
 		const char* basePtr = (const char*)ptr + off_set;
 		m_buddy = (SmdBuddyAlloc::buddy*)basePtr;
 		g_storagePtr = basePtr + SmdBuddyAlloc::get_index_size(level);
 
-		if (create_new) {
+		if (!attached) {
 			m_buddy = SmdBuddyAlloc::buddy_new(basePtr, level);
 
 			//
@@ -97,13 +97,13 @@ private:
 
 static Alloc* g_alloc = nullptr;
 
-static void CreateAlloc(void* ptr, size_t off_set, unsigned level, bool create_new) {
+static void CreateAlloc(void* ptr, size_t off_set, unsigned level, bool attached) {
 	if (g_alloc != nullptr) {
 		delete g_alloc;
 		g_alloc = nullptr;
 	}
 
-	g_alloc = new Alloc(ptr, off_set, level, create_new);
+	g_alloc = new Alloc(ptr, off_set, level, attached);
 }
 
 } // namespace smd

@@ -12,8 +12,11 @@ namespace smd {
 
 class Env {
 public:
-	static Env* Create(int shm_key, unsigned level, ShareMemOpenMode option);
+	static Env* Create(int shm_key, unsigned level, bool enable_attach);
 	~Env() {}
+	bool GetAttached() const {
+		return m_attached;
+	}
 
 	//
 	// 内置string, list, map, hash 四种基本数据类型
@@ -48,6 +51,7 @@ private:
 	Env(void* ptr, bool create_new);
 
 private:
+	const bool m_attached;
 	ShmHead& m_head;
 	shm_pointer<shm_map<shm_string, shm_string>>& m_allStrings;
 	shm_pointer<shm_map<shm_string, shm_list<shm_string>>>& m_allLists;
@@ -55,28 +59,33 @@ private:
 	shm_pointer<shm_map<shm_string, shm_hash<shm_string>>>& m_allHashes;
 };
 
-Env::Env(void* ptr, bool create_new)
-	: m_head(*((ShmHead*)ptr))
+Env::Env(void* ptr, bool attached)
+	: m_attached(attached)
+	, m_head(*((ShmHead*)ptr))
 	, m_allStrings(m_head.global_variable.allStrings)
 	, m_allLists(m_head.global_variable.allLists)
 	, m_allMaps(m_head.global_variable.allMaps)
 	, m_allHashes(m_head.global_variable.allHashes) {
 	m_head.visit_num++;
 	m_head.last_visit_time = time(nullptr);
-	if (create_new) {
+	if (!attached) {
 		if (m_allStrings != shm_nullptr && m_allStrings != 0) {
+			SMD_LOG_INFO("clear m_allStrings");
 			g_alloc->Delete(m_allStrings);
 		}
 
 		if (m_allLists != shm_nullptr && m_allLists != 0) {
+			SMD_LOG_INFO("clear m_allLists");
 			g_alloc->Delete(m_allLists);
 		}
 
 		if (m_allMaps != shm_nullptr && m_allMaps != 0) {
+			SMD_LOG_INFO("clear m_allMaps");
 			g_alloc->Delete(m_allMaps);
 		}
 
 		if (m_allHashes != shm_nullptr && m_allHashes != 0) {
+			SMD_LOG_INFO("clear m_allHashes");
 			g_alloc->Delete(m_allHashes);
 		}
 
@@ -84,6 +93,10 @@ Env::Env(void* ptr, bool create_new)
 		m_allLists = g_alloc->New<shm_map<shm_string, shm_list<shm_string>>>();
 		m_allMaps = g_alloc->New<shm_map<shm_string, shm_map<shm_string, shm_string>>>();
 		m_allHashes = g_alloc->New<shm_map<shm_string, shm_hash<shm_string>>>();
+
+		SMD_LOG_INFO("New env created");
+	} else {
+		SMD_LOG_INFO("Env attached");
 	}
 }
 
@@ -129,23 +142,21 @@ bool Env::SDel(const Slice& key) {
 	return true;
 }
 
-Env* Env::Create(int shm_key, unsigned level, ShareMemOpenMode option) {
+Env* Env::Create(int shm_key, unsigned level, bool enable_attach) {
 	size_t size = sizeof(ShmHead) + SmdBuddyAlloc::get_index_size(level) + SmdBuddyAlloc::get_storage_size(level);
-	void* ptr = g_shmHandle.acquire(shm_key, size, option);
+	auto [ptr, attached] = g_shmHandle.acquire(shm_key, size, enable_attach);
 	if (ptr == nullptr) {
 		SMD_LOG_ERROR("acquire failed, %08x:%llu", shm_key, size);
 		return nullptr;
 	}
 
 	ShmHead* head = (ShmHead*)ptr;
-	bool create_new = false;
-	if (option == ShareMemOpenMode::kOpenExist && head->shm_key == shm_key && head->magic_num == MAGIC_NUM &&
+	if (attached && head->magic_num == MAGIC_NUM &&
 		head->total_size == size) {
 		SMD_LOG_INFO("attach existed memory, %08x:%llu", shm_key, size);
 	} else {
-		create_new = true;
+		attached = false;
 		memset(ptr, 0, sizeof(ShmHead));
-		head->shm_key = shm_key;
 		head->total_size = size;
 		head->create_time = time(nullptr);
 		head->visit_num = 0;
@@ -159,8 +170,8 @@ Env* Env::Create(int shm_key, unsigned level, ShareMemOpenMode option) {
 		g_alloc = nullptr;
 	}
 
-	CreateAlloc(ptr, sizeof(ShmHead), level, create_new);
-	auto env = new Env(ptr, create_new);
+	CreateAlloc(ptr, sizeof(ShmHead), level, attached);
+	auto env = new Env(ptr, attached);
 	return env;
 }
 

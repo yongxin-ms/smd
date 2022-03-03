@@ -11,8 +11,8 @@ namespace smd {
 
 class ShmHandle {
 public:
-	void* acquire(int shm_key, size_t size, ShareMemOpenMode mode) {
-		return m_shm.acquire(shm_key, size, mode);
+	std::pair<void*, bool> acquire(int shm_key, size_t size, bool enable_attach) {
+		return m_shm.acquire(shm_key, size, enable_attach);
 	}
 
 	void release() {

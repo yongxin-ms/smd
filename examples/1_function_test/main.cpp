@@ -35,12 +35,8 @@ int main(int argc, char* argv[]) {
 		smd::Log::LogLevel::kInfo);
 
 	//缺省是冷启动，加入参数1表示热启动
-	smd::ShareMemOpenMode openMode = smd::ShareMemOpenMode::kCreateAlways;
-	if (argc == 2 && atoi(argv[1]) == 1) {
-		openMode = smd::ShareMemOpenMode::kOpenExist;
-	}
-
-	auto env = smd::Env::Create(0x001187fb, 25, openMode);
+	bool enable_attach = argc == 2 && atoi(argv[1]) == 1;
+	auto env = smd::Env::Create(0x001187fb, 25, enable_attach);
 	assert(env != nullptr);
 
 	std::srand((unsigned int)std::time(nullptr));

@@ -1,20 +1,6 @@
 ﻿#pragma once
 
 namespace smd {
-
-//
-// 共享内存的两种开启模式
-//
-enum class ShareMemOpenMode {
-
-	// 冷重启，总是创建新的，不管之前是否存在
-	// 如果之前有数据，会覆盖掉已有的数据
-	kCreateAlways = 1,
-
-	// 热重启，打开已存在的，如果不存在则失败
-	kOpenExist,
-};
-
 enum {
 	GUID_SIZE = 15,
 	MAGIC_NUM = 0x12345678,
@@ -43,7 +29,6 @@ struct StGlobalVariable {
 };
 
 struct ShmHead {
-	int shm_key;
 	size_t total_size;
 	time_t create_time;
 	time_t last_visit_time;
