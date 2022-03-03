@@ -42,7 +42,7 @@ public:
 				SMD_LOG_INFO("Existed has been removed");
 			}
 
-			shm_id = shmget(shm_key, size_, 0x0640 | IPC_CREAT | IPC_EXCL);
+			shm_id = shmget(shm_key, size_, 0666 | IPC_CREAT | IPC_EXCL);
 			if (shm_id < 0) {
 				SMD_LOG_ERROR("fail shmget IPC_EXCL, key:0x%08x, errno:%d", shm_key, errno);
 				return std::make_pair(nullptr, is_attached);
@@ -51,7 +51,7 @@ public:
 			is_attached = false;
 		} else {
 			if (shm_id < 0) {
-				shm_id = shmget(shm_key, size_, 0x0640 | IPC_CREAT | IPC_EXCL);
+				shm_id = shmget(shm_key, size_, 0666 | IPC_CREAT | IPC_EXCL);
 			}
 
 			if (shm_id < 0) {
