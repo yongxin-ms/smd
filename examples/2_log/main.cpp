@@ -27,7 +27,10 @@ int main(int argc, char* argv[]) {
 	// 缺省是冷启动，加入参数1表示热启动
 	const bool enable_attach = argc == 2 && atoi(argv[1]) == 1;
 	auto env = smd::Env::Create(0x001187ca, 25, enable_attach);
-	assert(env != nullptr);
+	if (env == nullptr) {
+		SMD_LOG_ERROR("not enough memory");
+		return 0;
+	}
 
 	auto& all_lists = env->GetAllLists();
 	auto key = smd::shm_string("app_log");
