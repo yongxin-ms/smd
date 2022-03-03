@@ -96,7 +96,7 @@ Env::Env(void* ptr, bool attached)
 
 		SMD_LOG_INFO("New env created");
 	} else {
-		SMD_LOG_INFO("Env attached");
+		SMD_LOG_INFO("Existing Env attached");
 	}
 }
 
@@ -150,11 +150,12 @@ Env* Env::Create(int shm_key, unsigned level, bool enable_attach) {
 		return nullptr;
 	}
 
+	if (enable_attach && !attached) {
+		SMD_LOG_INFO("Attach failed");
+	}
+
 	ShmHead* head = (ShmHead*)ptr;
-	if (attached && head->magic_num == MAGIC_NUM &&
-		head->total_size == size) {
-		SMD_LOG_INFO("attach existed memory, %08x:%llu", shm_key, size);
-	} else {
+	if (!attached || head->magic_num != MAGIC_NUM || head->total_size != size) {
 		attached = false;
 		memset(ptr, 0, sizeof(ShmHead));
 		head->total_size = size;
@@ -162,7 +163,7 @@ Env* Env::Create(int shm_key, unsigned level, bool enable_attach) {
 		head->visit_num = 0;
 		head->magic_num = MAGIC_NUM;
 
-		SMD_LOG_INFO("create new memory, %08x:%llu", shm_key, size);
+		SMD_LOG_INFO("Create new %08x:%llu", shm_key, size);
 	}
 
 	if (g_alloc != nullptr) {
