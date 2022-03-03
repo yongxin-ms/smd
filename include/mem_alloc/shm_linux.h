@@ -31,23 +31,23 @@ public:
 	std::pair<void*, bool> acquire(int shm_key, size_t size, bool enable_attach) {
 		size_ = calc_size(size);
 		auto shm_id = shmget(shm_key, size_, 0);
-		bool attached = true;
+		bool is_attached = true;
 
 		if (!enable_attach) {
 			if (shm_id > 0) {
 				if (shmctl(shm_id, IPC_RMID, nullptr) < 0) {
 					SMD_LOG_ERROR("fail shmctl IPC_RMID[%08x]: %d\n", shm_key, errno);
-					return std::make_pair(nullptr, attached);
+					return std::make_pair(nullptr, is_attached);
 				}
 			}
 
 			shm_id = shmget(shm_key, size_, 0640 | IPC_CREAT | IPC_EXCL);
 			if (shm_id < 0) {
 				SMD_LOG_ERROR("fail shmget IPC_EXCL [%08x]: %d\n", shm_key, errno);
-				return std::make_pair(nullptr, attached);
+				return std::make_pair(nullptr, is_attached);
 			}
 
-			attached = false;
+			is_attached = false;
 		} else {
 			if (shm_id < 0) {
 				shm_id = shmget(shm_key, size_, 0640 | IPC_CREAT | IPC_EXCL);
@@ -55,18 +55,18 @@ public:
 			
 			if (shm_id < 0) {
 				SMD_LOG_ERROR("fail shmget IPC_CREAT [%08x]: %d\n", shm_key, errno);
-				return std::make_pair(nullptr, attached);
+				return std::make_pair(nullptr, is_attached);
 			}
 		}
 
 		mem_ = shmat(shm_id, nullptr, 0);
 		if (mem_ == reinterpret_cast<void*>(-1)) {
 			SMD_LOG_ERROR("fail shmat[%08x]: %d, size = %zd\n", shm_key, errno, size_);
-			return std::make_pair(nullptr, attached);
+			return std::make_pair(nullptr, is_attached);
 		}
 
 		acc_of(mem_, size_).fetch_add(1, std::memory_order_release);
-		return std::make_pair(mem_, attached);
+		return std::make_pair(mem_, is_attached);
 	}
 
 	void release() {

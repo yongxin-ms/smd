@@ -14,32 +14,32 @@ public:
 
 		DWORD dwMaximumSizeHigh = static_cast<DWORD>(size >> 32);
 		DWORD dwMaximumSizeLow = static_cast<DWORD>(size);
-		bool attached = true;
+		bool is_attached = true;
 		if (enable_attach) {
 			m_handle = ::OpenFileMapping(FILE_MAP_ALL_ACCESS, FALSE, fmt_name);
 			if (m_handle == NULL) {
 				m_handle = ::CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE | SEC_COMMIT,
 											   dwMaximumSizeHigh, dwMaximumSizeLow, fmt_name);
-				attached = false;
+				is_attached = false;
 			}
 		} else {
 			m_handle = ::CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE | SEC_COMMIT, dwMaximumSizeHigh,
 										   dwMaximumSizeLow, fmt_name);
-			attached = false;
+			is_attached = false;
 		}
 
 		if (m_handle == NULL) {
 			SMD_LOG_ERROR("fail CreateFileMapping/OpenFileMapping[%u]: %s\n", ::GetLastError(), fmt_name);
-			return std::make_pair(nullptr, attached);
+			return std::make_pair(nullptr, is_attached);
 		}
 
 		m_memPtr = ::MapViewOfFile(m_handle, FILE_MAP_ALL_ACCESS, 0, 0, 0);
 		if (m_memPtr == nullptr) {
 			SMD_LOG_ERROR("fail MapViewOfFile[%u]\n", ::GetLastError());
-			return std::make_pair(nullptr, attached);
+			return std::make_pair(nullptr, is_attached);
 		}
 
-		return std::make_pair(m_memPtr, attached);
+		return std::make_pair(m_memPtr, is_attached);
 	}
 
 	void release() {

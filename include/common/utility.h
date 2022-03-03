@@ -324,6 +324,7 @@ public:
 	static inline uint32_t IsPowOf2(uint32_t x) {
 		return !(x & (x - 1));
 	}
+
 	static inline uint32_t NextPowOf2(uint32_t x) {
 		if (IsPowOf2(x))
 			return x;

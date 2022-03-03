@@ -63,14 +63,22 @@ public:
 		return res;
 	}
 
-	T& operator*() { return (*p).data; }
-	T* operator->() { return &((*p).data); }
+	T& operator*() {
+		return (*p).data;
+	}
 
-	void swap(ListIterator<T>& x) { swap(p, x.p); }
+	T* operator->() {
+		return &((*p).data);
+	}
+
+	void swap(ListIterator<T>& x) {
+		swap(p, x.p);
+	}
 
 	friend bool operator!=(const ListIterator<T>& x, const ListIterator<T>& y) {
 		return x.p != y.p;
 	}
+
 	friend bool operator==(const ListIterator<T>& x, const ListIterator<T>& y) {
 		return x.p == y.p;
 	}
@@ -111,8 +119,13 @@ public:
 		m_tail = shm_nullptr;
 	}
 
-	T& front() { return (m_head.p->data); }
-	T& back() { return (m_tail.p->prev->data); }
+	T& front() {
+		return (m_head.p->data);
+	}
+
+	T& back() {
+		return (m_tail.p->prev->data);
+	}
 
 	void push_front(const T& val) {
 		auto node = NewNode(val);
@@ -164,10 +177,18 @@ public:
 		DeleteNode(node);
 	}
 
-	iterator begin() { return m_head; }
-	iterator end() { return m_tail; }
+	iterator begin() {
+		return m_head;
+	}
 
-	bool empty() const { return m_head == m_tail; }
+	iterator end() {
+		return m_tail;
+	}
+
+	bool empty() const {
+		return m_head == m_tail;
+	}
+
 	size_t size() const {
 		size_t length = 0;
 		for (auto h = m_head; h != m_tail; ++h)
@@ -175,7 +196,10 @@ public:
 		return length;
 	}
 
-	void clear() { erase(begin(), end()); }
+	void clear() {
+		erase(begin(), end());
+	}
+
 	iterator erase(iterator position) {
 		if (position == m_head) {
 			pop_front();
@@ -200,8 +224,7 @@ public:
 
 private:
 	nodePtr NewNode(const T& val) {
-		auto p = g_alloc->New<ListNode<T>>(
-			g_alloc->ToShmPointer<shm_list<T>>(this), val, shm_nullptr, shm_nullptr);
+		auto p = g_alloc->New<ListNode<T>>(g_alloc->ToShmPointer<shm_list<T>>(this), val, shm_nullptr, shm_nullptr);
 		return p;
 	}
 

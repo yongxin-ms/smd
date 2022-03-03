@@ -8,12 +8,12 @@ namespace smd {
 class Alloc {
 public:
 	Alloc(void* ptr, size_t off_set, unsigned level, bool attached) {
-		const char* basePtr = (const char*)ptr + off_set;
-		m_buddy = (SmdBuddyAlloc::buddy*)basePtr;
-		g_storagePtr = basePtr + SmdBuddyAlloc::get_index_size(level);
+		const char* base_ptr = (const char*)ptr + off_set;
+		m_buddy = (SmdBuddyAlloc::buddy*)base_ptr;
+		g_storage_ptr = base_ptr + SmdBuddyAlloc::get_index_size(level);
 
 		if (!attached) {
-			m_buddy = SmdBuddyAlloc::buddy_new(basePtr, level);
+			m_buddy = SmdBuddyAlloc::buddy_new(base_ptr, level);
 
 			//
 			// 这样能让以后分配的地址不会为0，也不用回收
@@ -67,7 +67,7 @@ public:
 
 	template <class T>
 	shm_pointer<T> ToShmPointer(void* p) const {
-		int64_t offset = (const char*)p - g_storagePtr;
+		int64_t offset = (const char*)p - g_storage_ptr;
 		return shm_pointer<T>(offset);
 	}
 

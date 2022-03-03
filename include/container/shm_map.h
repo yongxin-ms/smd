@@ -81,8 +81,13 @@ struct rbtree_iterator {
 		: _ptr(pNode) {}
 	rbtree_iterator(const this_type& x) = default;
 
-	Reference operator*() const { return _ptr->value; }
-	Pointer operator->() const { return &(_ptr->value); }
+	Reference operator*() const {
+		return _ptr->value;
+	}
+
+	Pointer operator->() const {
+		return &(_ptr->value);
+	}
 
 	rbtree_iterator& operator++() {
 		_ptr = rbtree_next<T>(_ptr);
@@ -106,8 +111,13 @@ struct rbtree_iterator {
 		return tmp;
 	}
 
-	bool operator==(const this_type& x) { return _ptr == x._ptr; }
-	bool operator!=(const this_type& x) { return _ptr != x._ptr; }
+	bool operator==(const this_type& x) {
+		return _ptr == x._ptr;
+	}
+
+	bool operator!=(const this_type& x) {
+		return _ptr != x._ptr;
+	}
 };
 
 template <typename Key, typename Value>
@@ -122,6 +132,7 @@ public:
 	shm_map()
 		: root_(shm_nullptr)
 		, size_(0) {}
+
 	shm_map(const this_type& r)
 		: root_(shm_nullptr)
 		, size_(0) {
@@ -137,15 +148,34 @@ public:
 		return *this;
 	}
 
-	~shm_map() { clear(); }
+	~shm_map() {
+		clear();
+	}
 
-	iterator begin() { return iterator(rbtree_first()); }
-	const_iterator begin() const { return const_iterator(rbtree_first()); }
-	iterator end() { return iterator(shm_nullptr); }
-	const_iterator end() const { return const_iterator(shm_nullptr); }
+	iterator begin() {
+		return iterator(rbtree_first());
+	}
 
-	size_t size() const { return size_; }
-	bool empty() { return size_ == 0; }
+	const_iterator begin() const {
+		return const_iterator(rbtree_first());
+	}
+
+	iterator end() {
+		return iterator(shm_nullptr);
+	}
+
+	const_iterator end() const {
+		return const_iterator(shm_nullptr);
+	}
+
+	size_t size() const {
+		return size_;
+	}
+
+	bool empty() {
+		return size_ == 0;
+	}
+
 	rbtree_node_ptr insert(const value_type& value) {
 		auto node = createNode(value);
 
@@ -193,9 +223,18 @@ public:
 		return node;
 	}
 
-	iterator find(const Key& key) { return iterator(rbtree_lookup_key(key)); }
-	const_iterator find(const Key& key) const { return const_iterator(rbtree_lookup_key(key)); }
-	iterator erase(iterator it) { return iterator(rbtree_remove(it._ptr)); }
+	iterator find(const Key& key) {
+		return iterator(rbtree_lookup_key(key));
+	}
+
+	const_iterator find(const Key& key) const {
+		return const_iterator(rbtree_lookup_key(key));
+	}
+
+	iterator erase(iterator it) {
+		return iterator(rbtree_remove(it._ptr));
+	}
+
 	void clear() {
 		recurErase(root_);
 		root_ = shm_nullptr;
@@ -225,15 +264,13 @@ protected:
 	}
 
 	static rbtree_node_ptr grandparent(rbtree_node_ptr node) {
-		assert(node != shm_nullptr && node->parent != shm_nullptr &&
-			   node->parent->parent != shm_nullptr);
+		assert(node != shm_nullptr && node->parent != shm_nullptr && node->parent->parent != shm_nullptr);
 
 		return node->parent->parent;
 	}
 
 	static rbtree_node_ptr uncle(rbtree_node_ptr node) {
-		assert(node != shm_nullptr && node->parent != shm_nullptr &&
-			   node->parent->parent != shm_nullptr);
+		assert(node != shm_nullptr && node->parent != shm_nullptr && node->parent->parent != shm_nullptr);
 
 		return sibling(node->parent);
 	}
@@ -241,10 +278,18 @@ protected:
 	rbtree_node_ptr createNode(const value_type& val) {
 		return g_alloc->New<RBTreeNode<value_type>>(val);
 	}
-	void deleteNode(rbtree_node_ptr& p) { g_alloc->Delete(p); }
 
-	static value_type& value(rbtree_node_ptr x) { return x->value; }
-	static const Key& key(rbtree_node_ptr x) { return value(x).first; }
+	void deleteNode(rbtree_node_ptr& p) {
+		g_alloc->Delete(p);
+	}
+
+	static value_type& value(rbtree_node_ptr x) {
+		return x->value;
+	}
+
+	static const Key& key(rbtree_node_ptr x) {
+		return value(x).first;
+	}
 
 	void transplant(rbtree_node_ptr old_node, rbtree_node_ptr new_node) {
 		assert(old_node != shm_nullptr);
@@ -319,13 +364,11 @@ protected:
 				continue;
 			}
 
-			if (node == node->parent->right_child &&
-				node->parent == grandparent(node)->left_child) {
+			if (node == node->parent->right_child && node->parent == grandparent(node)->left_child) {
 				rotate_left(node->parent);
 
 				node = node->left_child;
-			} else if (node == node->parent->left_child &&
-					   node->parent == grandparent(node)->right_child) {
+			} else if (node == node->parent->left_child && node->parent == grandparent(node)->right_child) {
 				rotate_right(node->parent);
 
 				node = node->right_child;
@@ -363,8 +406,7 @@ protected:
 				}
 			}
 
-			if (color(node->parent) == RBTREE_NODE_BLACK &&
-				color(sibling(node)) == RBTREE_NODE_BLACK &&
+			if (color(node->parent) == RBTREE_NODE_BLACK && color(sibling(node)) == RBTREE_NODE_BLACK &&
 				color(sibling(node)->left_child) == RBTREE_NODE_BLACK &&
 				color(sibling(node)->right_child) == RBTREE_NODE_BLACK) {
 				sibling(node)->color = RBTREE_NODE_RED;
@@ -373,8 +415,7 @@ protected:
 				continue;
 			}
 
-			if (color(node->parent) == RBTREE_NODE_RED &&
-				color(sibling(node)) == RBTREE_NODE_BLACK &&
+			if (color(node->parent) == RBTREE_NODE_RED && color(sibling(node)) == RBTREE_NODE_BLACK &&
 				color(sibling(node)->left_child) == RBTREE_NODE_BLACK &&
 				color(sibling(node)->right_child) == RBTREE_NODE_BLACK) {
 				sibling(node)->color = RBTREE_NODE_RED;
@@ -390,8 +431,7 @@ protected:
 				sibling(node)->left_child->color = RBTREE_NODE_BLACK;
 
 				rotate_right(sibling(node));
-			} else if (node == node->parent->right_child &&
-					   color(sibling(node)) == RBTREE_NODE_BLACK &&
+			} else if (node == node->parent->right_child && color(sibling(node)) == RBTREE_NODE_BLACK &&
 					   color(sibling(node)->left_child) == RBTREE_NODE_BLACK &&
 					   color(sibling(node)->right_child) == RBTREE_NODE_RED) {
 				sibling(node)->color = RBTREE_NODE_RED;

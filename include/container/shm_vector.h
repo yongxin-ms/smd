@@ -38,21 +38,40 @@ public:
 		//实际分配的空间比容量大1.
 		g_alloc->Free(m_start, capacity() + 1);
 		m_finish = shm_nullptr;
-		m_endOfStorage = shm_nullptr;
+		m_end_of_storage = shm_nullptr;
 	}
 
-	size_t size() const { return m_finish - m_start; }
-	bool empty() { return m_finish == m_start; }
-	size_t capacity() const { return m_endOfStorage - m_start; }
+	size_t size() const {
+		return m_finish - m_start;
+	}
+
+	bool empty() {
+		return m_finish == m_start;
+	}
+
+	size_t capacity() const {
+		return m_end_of_storage - m_start;
+	}
 
 	//访问元素相关
-	reference operator[](size_t i) { return *m_start[i]; }
-	reference operator[](size_t i) const { return *m_start[i]; }
-	reference front() { return **m_start; }
-	reference back() { return *(m_start[size() - 1]); }
+	reference operator[](size_t i) {
+		return *m_start[i];
+	}
+
+	reference operator[](size_t i) const {
+		return *m_start[i];
+	}
+
+	reference front() {
+		return **m_start;
+	}
+
+	reference back() {
+		return *(m_start[size() - 1]);
+	}
 
 	void push_back(const value_type& value) {
-		if (m_finish != m_endOfStorage) {
+		if (m_finish != m_end_of_storage) {
 			auto new_element = g_alloc->New<value_type>(value);
 			*m_finish = new_element;
 			++m_finish;
@@ -88,7 +107,7 @@ public:
 
 		m_start = new_list;
 		m_finish = m_start + old_size;
-		m_endOfStorage = m_start + new_capacity;
+		m_end_of_storage = m_start + new_capacity;
 	}
 
 	// 改变vector中元素的数目
@@ -124,7 +143,7 @@ private:
 	void swap(shm_vector& x) {
 		std::swap(m_start, x.m_start);
 		std::swap(m_finish, x.m_finish);
-		std::swap(m_endOfStorage, x.m_endOfStorage);
+		std::swap(m_end_of_storage, x.m_end_of_storage);
 	}
 
 	size_t GetSuitableCapacity(size_t size) {
@@ -140,7 +159,7 @@ private:
 private:
 	shm_pointer<shm_pointer<value_type>> m_start = shm_nullptr;
 	shm_pointer<shm_pointer<value_type>> m_finish = shm_nullptr;
-	shm_pointer<shm_pointer<value_type>> m_endOfStorage = shm_nullptr;
+	shm_pointer<shm_pointer<value_type>> m_end_of_storage = shm_nullptr;
 };
 
 } // namespace smd

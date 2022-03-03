@@ -15,11 +15,11 @@ enum {
 };
 
 #pragma pack(push, 1)
-struct StGlobalVariable {
-	shm_pointer<shm_map<shm_string, shm_string>> allStrings;
-	shm_pointer<shm_map<shm_string, shm_list<shm_string>>> allLists;
-	shm_pointer<shm_map<shm_string, shm_map<shm_string, shm_string>>> allMaps;
-	shm_pointer<shm_map<shm_string, shm_hash<shm_string>>> allHashes;
+struct GlobalVariable {
+	shm_pointer<shm_map<shm_string, shm_string>> all_strings;
+	shm_pointer<shm_map<shm_string, shm_list<shm_string>>> all_lists;
+	shm_pointer<shm_map<shm_string, shm_map<shm_string, shm_string>>> all_maps;
+	shm_pointer<shm_map<shm_string, shm_hash<shm_string>>> all_hashes;
 };
 
 struct ShmHead {
@@ -28,7 +28,7 @@ struct ShmHead {
 	time_t last_visit_time;
 	uint32_t visit_num;
 	uint32_t magic_num;
-	StGlobalVariable global_variable;
+	GlobalVariable global_variable;
 };
 #pragma pack(pop)
 
@@ -36,27 +36,27 @@ class Env {
 public:
 	static Env* Create(int shm_key, unsigned level, bool enable_attach);
 
-	bool GetAttached() const {
-		return m_attached;
+	bool IsAttached() const {
+		return m_is_attached;
 	}
 
 	//
 	// 内置string, list, map, hash 四种基本数据类型
 	//
 	shm_map<shm_string, shm_string>& GetAllStrings() {
-		return *m_allStrings;
+		return *m_all_strings;
 	}
 
 	shm_map<shm_string, shm_list<shm_string>>& GetAllLists() {
-		return *m_allLists;
+		return *m_all_lists;
 	}
 
 	shm_map<shm_string, shm_map<shm_string, shm_string>>& GetAllMaps() {
-		return *m_allMaps;
+		return *m_all_maps;
 	}
 
 	shm_map<shm_string, shm_hash<shm_string>>& GetAllHashes() {
-		return *m_allHashes;
+		return *m_all_hashes;
 	}
 
 	//
@@ -70,31 +70,31 @@ public:
 	bool SDel(const Slice& key);
 
 private:
-	Env(void* ptr, bool create_new);
+	Env(void* ptr, bool is_attached);
 
 private:
-	const bool m_attached;
+	const bool m_is_attached;
 	ShmHead& m_head;
-	shm_pointer<shm_map<shm_string, shm_string>>& m_allStrings;
-	shm_pointer<shm_map<shm_string, shm_list<shm_string>>>& m_allLists;
-	shm_pointer<shm_map<shm_string, shm_map<shm_string, shm_string>>>& m_allMaps;
-	shm_pointer<shm_map<shm_string, shm_hash<shm_string>>>& m_allHashes;
+	shm_pointer<shm_map<shm_string, shm_string>>& m_all_strings;
+	shm_pointer<shm_map<shm_string, shm_list<shm_string>>>& m_all_lists;
+	shm_pointer<shm_map<shm_string, shm_map<shm_string, shm_string>>>& m_all_maps;
+	shm_pointer<shm_map<shm_string, shm_hash<shm_string>>>& m_all_hashes;
 };
 
-Env::Env(void* ptr, bool attached)
-	: m_attached(attached)
+Env::Env(void* ptr, bool is_attached)
+	: m_is_attached(is_attached)
 	, m_head(*((ShmHead*)ptr))
-	, m_allStrings(m_head.global_variable.allStrings)
-	, m_allLists(m_head.global_variable.allLists)
-	, m_allMaps(m_head.global_variable.allMaps)
-	, m_allHashes(m_head.global_variable.allHashes) {
+	, m_all_strings(m_head.global_variable.all_strings)
+	, m_all_lists(m_head.global_variable.all_lists)
+	, m_all_maps(m_head.global_variable.all_maps)
+	, m_all_hashes(m_head.global_variable.all_hashes) {
 	m_head.visit_num++;
 	m_head.last_visit_time = time(nullptr);
-	if (!attached) {
-		m_allStrings = g_alloc->New<shm_map<shm_string, shm_string>>();
-		m_allLists = g_alloc->New<shm_map<shm_string, shm_list<shm_string>>>();
-		m_allMaps = g_alloc->New<shm_map<shm_string, shm_map<shm_string, shm_string>>>();
-		m_allHashes = g_alloc->New<shm_map<shm_string, shm_hash<shm_string>>>();
+	if (!is_attached) {
+		m_all_strings = g_alloc->New<shm_map<shm_string, shm_string>>();
+		m_all_lists = g_alloc->New<shm_map<shm_string, shm_list<shm_string>>>();
+		m_all_maps = g_alloc->New<shm_map<shm_string, shm_map<shm_string, shm_string>>>();
+		m_all_hashes = g_alloc->New<shm_map<shm_string, shm_hash<shm_string>>>();
 
 		SMD_LOG_INFO("New env created");
 	} else {
@@ -104,11 +104,11 @@ Env::Env(void* ptr, bool attached)
 
 // 写操作
 void Env::SSet(const Slice& key, const Slice& value) {
-	shm_string strKey(key.data(), key.size());
-	auto it = m_allStrings->find(strKey);
-	if (it == m_allStrings->end()) {
-		shm_string strValue(value.data(), value.size());
-		m_allStrings->insert(std::make_pair(strKey, strValue));
+	shm_string str_key(key.data(), key.size());
+	auto it = m_all_strings->find(str_key);
+	if (it == m_all_strings->end()) {
+		shm_string str_value(value.data(), value.size());
+		m_all_strings->insert(std::make_pair(str_key, str_value));
 	} else {
 		it->second = value.ToString();
 	}
@@ -116,16 +116,16 @@ void Env::SSet(const Slice& key, const Slice& value) {
 
 // 读操作
 bool Env::SGet(const Slice& key, Slice* value) {
-	shm_string strKey(key.data(), key.size());
-	auto it = m_allStrings->find(strKey);
-	if (it == m_allStrings->end()) {
+	shm_string str_value(key.data(), key.size());
+	auto it = m_all_strings->find(str_value);
+	if (it == m_all_strings->end()) {
 		return false;
 	} else {
 		if (value != nullptr) {
-			const auto& strValue = it->second;
+			const auto& str_value = it->second;
 
 			// 返回的是数据指针，调用者自己决定是否需要拷贝
-			*value = Slice(strValue.data(), strValue.size());
+			*value = Slice(str_value.data(), str_value.size());
 		}
 
 		return true;
@@ -134,31 +134,31 @@ bool Env::SGet(const Slice& key, Slice* value) {
 
 // 删除操作
 bool Env::SDel(const Slice& key) {
-	shm_string strKey(key.data(), key.size());
-	auto it = m_allStrings->find(strKey);
-	if (it == m_allStrings->end()) {
+	shm_string str_value(key.data(), key.size());
+	auto it = m_all_strings->find(str_value);
+	if (it == m_all_strings->end()) {
 		return false;
 	}
 
-	it = m_allStrings->erase(it);
+	it = m_all_strings->erase(it);
 	return true;
 }
 
 Env* Env::Create(int shm_key, unsigned level, bool enable_attach) {
 	size_t size = sizeof(ShmHead) + SmdBuddyAlloc::get_index_size(level) + SmdBuddyAlloc::get_storage_size(level);
-	auto [ptr, attached] = g_shmHandle.acquire(shm_key, size, enable_attach);
+	auto [ptr, is_attached] = g_shmHandle.acquire(shm_key, size, enable_attach);
 	if (ptr == nullptr) {
 		SMD_LOG_ERROR("acquire failed, %08x:%llu", shm_key, size);
 		return nullptr;
 	}
 
-	if (enable_attach && !attached) {
+	if (enable_attach && !is_attached) {
 		SMD_LOG_INFO("Attach failed");
 	}
 
 	ShmHead* head = (ShmHead*)ptr;
-	if (!attached || head->magic_num != MAGIC_NUM || head->total_size != size) {
-		attached = false;
+	if (!is_attached || head->magic_num != MAGIC_NUM || head->total_size != size) {
+		is_attached = false;
 
 		memset(ptr, 0, sizeof(ShmHead));
 		head->total_size = size;
@@ -169,8 +169,8 @@ Env* Env::Create(int shm_key, unsigned level, bool enable_attach) {
 		SMD_LOG_INFO("Create new %08x:%llu", shm_key, size);
 	}
 
-	CreateAlloc(ptr, sizeof(ShmHead), level, attached);
-	auto env = new Env(ptr, attached);
+	CreateAlloc(ptr, sizeof(ShmHead), level, is_attached);
+	auto env = new Env(ptr, is_attached);
 	return env;
 }
 

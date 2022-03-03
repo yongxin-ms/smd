@@ -42,15 +42,20 @@ public:
 		return res;
 	}
 
-	Key& operator*() { return *iterator_; }
-	Key* operator->() { return &(operator*()); }
-
-	bool operator==(const HashIterator<Key, ListIterator>& rhs) const {
-		return bucket_index_ == rhs.bucket_index_ && iterator_ == rhs.iterator_ &&
-			   container_ == rhs.container_;
+	Key& operator*() {
+		return *iterator_;
+	}
+	Key* operator->() {
+		return &(operator*());
 	}
 
-	bool operator!=(const HashIterator<Key, ListIterator>& rhs) const { return !(*this == rhs); }
+	bool operator==(const HashIterator<Key, ListIterator>& rhs) const {
+		return bucket_index_ == rhs.bucket_index_ && iterator_ == rhs.iterator_ && container_ == rhs.container_;
+	}
+
+	bool operator!=(const HashIterator<Key, ListIterator>& rhs) const {
+		return !(*this == rhs);
+	}
 
 public:
 	size_t bucket_index_;
@@ -69,20 +74,46 @@ public:
 	typedef typename shm_list<key_type>::iterator local_iterator;
 
 	shm_hash(size_t bucket_count = 1)
-		: m_buckets(m_primeUtil.NextPrime(bucket_count)) {
+		: m_buckets(m_prime_util.NextPrime(bucket_count)) {
 		m_buckets.resize(m_buckets.capacity(), shm_list<key_type>());
 	}
 
-	~shm_hash() { m_buckets.clear(); }
+	~shm_hash() {
+		m_buckets.clear();
+	}
 
-	bool empty() const { return m_size == 0; }
-	size_t size() const { return m_size; }
-	size_type bucket_count() const { return m_buckets.size(); }
-	size_type bucket_size(size_type i) const { return m_buckets[i].size(); }
-	size_type bucket(const key_type& key) const { return bucket_index(key); }
-	float load_factor() const { return (float)size() / (float)bucket_count(); }
-	float max_load_factor() const { return m_max_load_factor; }
-	void max_load_factor(float z) { m_max_load_factor = z; }
+	bool empty() const {
+		return m_size == 0;
+	}
+
+	size_t size() const {
+		return m_size;
+	}
+
+	size_type bucket_count() const {
+		return m_buckets.size();
+	}
+
+	size_type bucket_size(size_type i) const {
+		return m_buckets[i].size();
+	}
+
+	size_type bucket(const key_type& key) const {
+		return bucket_index(key);
+	}
+
+	float load_factor() const {
+		return (float)size() / (float)bucket_count();
+	}
+
+	float max_load_factor() const {
+		return m_max_load_factor;
+	}
+
+	void max_load_factor(float z) {
+		m_max_load_factor = z;
+	}
+
 	void rehash(size_type n) {
 		if (n <= m_buckets.size())
 			return;
@@ -106,11 +137,16 @@ public:
 
 	iterator end() {
 		return iterator(m_buckets.size() - 1, m_buckets[m_buckets.size() - 1].end(),
-			g_alloc->ToShmPointer<shm_hash<Key>>(this));
+						g_alloc->ToShmPointer<shm_hash<Key>>(this));
 	}
 
-	local_iterator begin(size_type i) { return m_buckets[i].begin(); }
-	local_iterator end(size_type i) { return m_buckets[i].end(); }
+	local_iterator begin(size_type i) {
+		return m_buckets[i].begin();
+	}
+
+	local_iterator end(size_type i) {
+		return m_buckets[i].end();
+	}
 
 	iterator find(const key_type& key) {
 		auto index = bucket_index(key);
@@ -133,8 +169,8 @@ public:
 			auto index = bucket_index(val);
 			m_buckets[index].push_front(val);
 			++m_size;
-			return std::pair<iterator, bool>(iterator(
-				index, m_buckets[index].begin(), g_alloc->ToShmPointer<shm_hash<Key>>(this)), true);
+			return std::pair<iterator, bool>(
+				iterator(index, m_buckets[index].begin(), g_alloc->ToShmPointer<shm_hash<Key>>(this)), true);
 		}
 		return std::pair<iterator, bool>(end(), false);
 	}
@@ -171,7 +207,10 @@ public:
 	}
 
 private:
-	size_type next_prime(size_type n) const { return m_primeUtil.NextPrime(n); }
+	size_type next_prime(size_type n) const {
+		return m_prime_util.NextPrime(n);
+	}
+
 	size_type bucket_index(const key_type& key) const {
 		return std::hash<key_type>()(key) % m_buckets.size();
 	}
@@ -190,10 +229,10 @@ private:
 	size_t m_size = 0;
 	float m_max_load_factor = 0.0f;
 
-	static util::PrimeUtil m_primeUtil;
+	static util::PrimeUtil m_prime_util;
 };
 
 template <class Key>
-util::PrimeUtil shm_hash<Key>::m_primeUtil;
+util::PrimeUtil shm_hash<Key>::m_prime_util;
 
 } // namespace smd
