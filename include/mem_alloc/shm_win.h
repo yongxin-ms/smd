@@ -1,7 +1,6 @@
 ﻿#pragma once
 #include <windows.h>
 #include <string>
-#include <container/shm_defines.h>
 
 namespace smd {
 

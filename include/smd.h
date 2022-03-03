@@ -9,11 +9,33 @@
 #include <mem_alloc/shm_handle.h>
 
 namespace smd {
+enum {
+	GUID_SIZE = 15,
+	MAGIC_NUM = 0x12345678,
+};
+
+#pragma pack(push, 1)
+struct StGlobalVariable {
+	shm_pointer<shm_map<shm_string, shm_string>> allStrings;
+	shm_pointer<shm_map<shm_string, shm_list<shm_string>>> allLists;
+	shm_pointer<shm_map<shm_string, shm_map<shm_string, shm_string>>> allMaps;
+	shm_pointer<shm_map<shm_string, shm_hash<shm_string>>> allHashes;
+};
+
+struct ShmHead {
+	size_t total_size;
+	time_t create_time;
+	time_t last_visit_time;
+	uint32_t visit_num;
+	uint32_t magic_num;
+	StGlobalVariable global_variable;
+};
+#pragma pack(pop)
 
 class Env {
 public:
 	static Env* Create(int shm_key, unsigned level, bool enable_attach);
-	~Env() {}
+
 	bool GetAttached() const {
 		return m_attached;
 	}
@@ -69,26 +91,6 @@ Env::Env(void* ptr, bool attached)
 	m_head.visit_num++;
 	m_head.last_visit_time = time(nullptr);
 	if (!attached) {
-		if (m_allStrings != shm_nullptr && m_allStrings != 0) {
-			SMD_LOG_INFO("clear m_allStrings");
-			g_alloc->Delete(m_allStrings);
-		}
-
-		if (m_allLists != shm_nullptr && m_allLists != 0) {
-			SMD_LOG_INFO("clear m_allLists");
-			g_alloc->Delete(m_allLists);
-		}
-
-		if (m_allMaps != shm_nullptr && m_allMaps != 0) {
-			SMD_LOG_INFO("clear m_allMaps");
-			g_alloc->Delete(m_allMaps);
-		}
-
-		if (m_allHashes != shm_nullptr && m_allHashes != 0) {
-			SMD_LOG_INFO("clear m_allHashes");
-			g_alloc->Delete(m_allHashes);
-		}
-
 		m_allStrings = g_alloc->New<shm_map<shm_string, shm_string>>();
 		m_allLists = g_alloc->New<shm_map<shm_string, shm_list<shm_string>>>();
 		m_allMaps = g_alloc->New<shm_map<shm_string, shm_map<shm_string, shm_string>>>();
@@ -157,6 +159,7 @@ Env* Env::Create(int shm_key, unsigned level, bool enable_attach) {
 	ShmHead* head = (ShmHead*)ptr;
 	if (!attached || head->magic_num != MAGIC_NUM || head->total_size != size) {
 		attached = false;
+
 		memset(ptr, 0, sizeof(ShmHead));
 		head->total_size = size;
 		head->create_time = time(nullptr);
@@ -164,11 +167,6 @@ Env* Env::Create(int shm_key, unsigned level, bool enable_attach) {
 		head->magic_num = MAGIC_NUM;
 
 		SMD_LOG_INFO("Create new %08x:%llu", shm_key, size);
-	}
-
-	if (g_alloc != nullptr) {
-		delete g_alloc;
-		g_alloc = nullptr;
 	}
 
 	CreateAlloc(ptr, sizeof(ShmHead), level, attached);
