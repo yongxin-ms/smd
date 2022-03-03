@@ -147,7 +147,7 @@ Env* Env::Create(int shm_key, unsigned level, bool enable_attach) {
 	size_t size = sizeof(ShmHead) + SmdBuddyAlloc::get_index_size(level) + SmdBuddyAlloc::get_storage_size(level);
 	auto [ptr, is_attached] = g_shmHandle.acquire(shm_key, size, enable_attach);
 	if (ptr == nullptr) {
-		SMD_LOG_ERROR("acquire failed, %08x:%llu", shm_key, size);
+		SMD_LOG_ERROR("acquire failed, key:%08x, size:%llu", shm_key, size);
 		return nullptr;
 	}
 

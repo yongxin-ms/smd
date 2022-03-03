@@ -36,32 +36,33 @@ public:
 		if (!enable_attach) {
 			if (shm_id > 0) {
 				if (shmctl(shm_id, IPC_RMID, nullptr) < 0) {
-					SMD_LOG_ERROR("fail shmctl IPC_RMID[%08x]: %d\n", shm_key, errno);
+					SMD_LOG_ERROR("fail shmctl IPC_RMID, key:0x%08x, errno:%d", shm_key, errno);
 					return std::make_pair(nullptr, is_attached);
 				}
+				SMD_LOG_INFO("Existed has been removed");
 			}
 
-			shm_id = shmget(shm_key, size_, 0640 | IPC_CREAT | IPC_EXCL);
+			shm_id = shmget(shm_key, size_, 0x0640 | IPC_CREAT | IPC_EXCL);
 			if (shm_id < 0) {
-				SMD_LOG_ERROR("fail shmget IPC_EXCL [%08x]: %d\n", shm_key, errno);
+				SMD_LOG_ERROR("fail shmget IPC_EXCL, key:0x%08x, errno:%d", shm_key, errno);
 				return std::make_pair(nullptr, is_attached);
 			}
 
 			is_attached = false;
 		} else {
 			if (shm_id < 0) {
-				shm_id = shmget(shm_key, size_, 0640 | IPC_CREAT | IPC_EXCL);
+				shm_id = shmget(shm_key, size_, 0x0640 | IPC_CREAT | IPC_EXCL);
 			}
-			
+
 			if (shm_id < 0) {
-				SMD_LOG_ERROR("fail shmget IPC_CREAT [%08x]: %d\n", shm_key, errno);
+				SMD_LOG_ERROR("fail shmget IPC_CREAT key:0x%08x, errno:%d", shm_key, errno);
 				return std::make_pair(nullptr, is_attached);
 			}
 		}
 
 		mem_ = shmat(shm_id, nullptr, 0);
 		if (mem_ == reinterpret_cast<void*>(-1)) {
-			SMD_LOG_ERROR("fail shmat[%08x]: %d, size = %zd\n", shm_key, errno, size_);
+			SMD_LOG_ERROR("fail shmat key:0x%08x, errno:%d, size:%llu", shm_key, errno, size_);
 			return std::make_pair(nullptr, is_attached);
 		}
 

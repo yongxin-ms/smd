@@ -28,7 +28,7 @@ int main(int argc, char* argv[]) {
 	const bool enable_attach = argc == 2 && atoi(argv[1]) == 1;
 	auto env = smd::Env::Create(0x001187ca, 25, enable_attach);
 	if (env == nullptr) {
-		SMD_LOG_ERROR("not enough memory");
+		SMD_LOG_ERROR("Create env failed");
 		return 0;
 	}
 
