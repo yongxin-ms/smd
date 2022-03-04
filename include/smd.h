@@ -69,6 +69,9 @@ public:
 private:
 	Env(void* ptr, bool is_attached);
 
+	Env(const Env&) = delete;
+	Env& operator=(const Env&) = delete;
+
 private:
 	const bool m_is_attached;
 	ShmHead& m_head;
@@ -92,10 +95,6 @@ Env::Env(void* ptr, bool is_attached)
 		m_all_lists = g_alloc->New<shm_map<shm_string, shm_list<shm_string>>>();
 		m_all_maps = g_alloc->New<shm_map<shm_string, shm_map<shm_string, shm_string>>>();
 		m_all_hashes = g_alloc->New<shm_map<shm_string, shm_hash<shm_string>>>();
-
-		SMD_LOG_INFO("New env created");
-	} else {
-		SMD_LOG_INFO("Existing Env attached");
 	}
 }
 
@@ -145,12 +144,12 @@ Env* Env::Create(int shm_key, unsigned level, bool enable_attach) {
 	size_t size = sizeof(ShmHead) + SmdBuddyAlloc::get_index_size(level) + SmdBuddyAlloc::get_storage_size(level);
 	auto [ptr, is_attached] = g_shmHandle.acquire(shm_key, size, enable_attach);
 	if (ptr == nullptr) {
-		SMD_LOG_ERROR("acquire failed, key:0x%08x, size:%llu", shm_key, size);
+		SMD_LOG_ERROR("acquire failed, key:%d, size:%llu", shm_key, size);
 		return nullptr;
 	}
 
 	if (enable_attach && !is_attached) {
-		SMD_LOG_INFO("Attach failed");
+		SMD_LOG_INFO("Attach failed, not exist?");
 	}
 
 	ShmHead* head = (ShmHead*)ptr;
@@ -171,7 +170,9 @@ Env* Env::Create(int shm_key, unsigned level, bool enable_attach) {
 		head->visit_num = 0;
 		head->magic_num = MAGIC_NUM;
 
-		SMD_LOG_INFO("Create new key:0x%08x, size:%llu", shm_key, size);
+		SMD_LOG_INFO("New env has been created, key:%d, size:%llu", shm_key, size);
+	} else {
+		SMD_LOG_INFO("Existed env has been attached, key:%d, size:%llu", shm_key, size);
 	}
 
 	CreateAlloc(ptr, sizeof(ShmHead), level, is_attached);

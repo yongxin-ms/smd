@@ -36,15 +36,15 @@ public:
 		if (!enable_attach) {
 			if (shm_id > 0) {
 				if (shmctl(shm_id, IPC_RMID, nullptr) < 0) {
-					SMD_LOG_ERROR("fail shmctl IPC_RMID, key:0x%08x, errno:%d", shm_key, errno);
+					SMD_LOG_ERROR("Remove block failed, key:%d, errno:%d", shm_key, errno);
 					return std::make_pair(nullptr, is_attached);
 				}
-				SMD_LOG_INFO("Existed has been removed");
+				SMD_LOG_INFO("Existed block has been removed");
 			}
 
 			shm_id = shmget(shm_key, size_, 0666 | IPC_CREAT | IPC_EXCL);
 			if (shm_id < 0) {
-				SMD_LOG_ERROR("fail shmget IPC_EXCL, key:0x%08x, errno:%d", shm_key, errno);
+				SMD_LOG_ERROR("Create block failed, key:%d, errno:%d", shm_key, errno);
 				return std::make_pair(nullptr, is_attached);
 			}
 
@@ -55,17 +55,19 @@ public:
 			}
 
 			if (shm_id < 0) {
-				SMD_LOG_ERROR("fail shmget IPC_CREAT key:0x%08x, errno:%d", shm_key, errno);
+				SMD_LOG_ERROR("Create block failed key:%d, errno:%d", shm_key, errno);
 				return std::make_pair(nullptr, is_attached);
 			}
 		}
 
+		SMD_LOG_INFO("Create block successfully, key:%d, size:%llu", shm_key, size_);
 		mem_ = shmat(shm_id, nullptr, 0);
 		if (mem_ == reinterpret_cast<void*>(-1)) {
-			SMD_LOG_ERROR("fail shmat key:0x%08x, errno:%d, size:%llu", shm_key, errno, size_);
+			SMD_LOG_ERROR("Link block failed key:%d, errno:%d, size:%llu", shm_key, errno, size_);
 			return std::make_pair(nullptr, is_attached);
 		}
 
+		SMD_LOG_INFO("Link block successfully, key:%d, size:%llu", shm_key, size_);
 		acc_of(mem_, size_).fetch_add(1, std::memory_order_release);
 		return std::make_pair(mem_, is_attached);
 	}
