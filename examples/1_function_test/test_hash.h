@@ -137,7 +137,7 @@ private:
 private:
 
 	static std::string GetKey(int key) {
-		return Util::Text::Format("Key%05d", key);
+		return smd::util::Text::Format("Key%05d", key);
 	}
 
 	// 这段代码可以优化下，这里主要用于测试

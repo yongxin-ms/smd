@@ -13,7 +13,6 @@ enum {
 	MAGIC_NUM = 0x12345678,
 };
 
-#pragma pack(push, 1)
 struct GlobalVariable {
 	shm_pointer<shm_map<shm_string, shm_string>> all_strings;
 	shm_pointer<shm_map<shm_string, shm_list<shm_string>>> all_lists;
@@ -29,7 +28,6 @@ struct ShmHead {
 	uint32_t magic_num;
 	GlobalVariable global_variable;
 };
-#pragma pack(pop)
 
 class Env {
 public:

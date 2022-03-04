@@ -23,7 +23,7 @@ private:
 		do {
 			smd::shm_vector<smd::shm_string> v1(*v);
 			for (int i = 0; i < 100; ++i) {
-				v1.push_back(smd::shm_string(Util::Text::Format("TestText%02d", i)));
+				v1.push_back(smd::shm_string(smd::util::Text::Format("TestText%02d", i)));
 			}
 			assert(v1.size() == 101);
 			assert(v1[0].ToString() == "hello");
@@ -36,7 +36,7 @@ private:
 			assert(v1[0].ToString() == "hello");
 
 			for (int i = 0; i < 100; ++i) {
-				v1.push_back(smd::shm_string(Util::Text::Format("TestText%02d", i)));
+				v1.push_back(smd::shm_string(smd::util::Text::Format("TestText%02d", i)));
 			}
 			assert(v1.size() == 101);
 			assert(v1[0].ToString() == "hello");

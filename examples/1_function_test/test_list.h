@@ -27,7 +27,7 @@ private:
 
 			// 验证在尾部添加多个元素
 			for (int i = 0; i < 100; i++) {
-				l->push_back(smd::shm_string(Util::Text::Format("TestText%02d", i)));
+				l->push_back(smd::shm_string(smd::util::Text::Format("TestText%02d", i)));
 			}
 			assert(l->size() == 101);
 			assert(l->front().ToString() == "hello");
@@ -43,7 +43,7 @@ private:
 
 			// 验证在头部添加多个元素
 			for (int i = 0; i < 100; i++) {
-				l->push_front(smd::shm_string(Util::Text::Format("TestText%02d", i)));
+				l->push_front(smd::shm_string(smd::util::Text::Format("TestText%02d", i)));
 			}
 			assert(l->size() == 101);
 			assert(l->front().ToString() == "TestText99");
@@ -59,7 +59,7 @@ private:
 
 			// 验证在尾部添加多个元素
 			for (int i = 0; i < 100; i++) {
-				l->push_back(smd::shm_string(Util::Text::Format("TestText%02d", i)));
+				l->push_back(smd::shm_string(smd::util::Text::Format("TestText%02d", i)));
 			}
 			assert(l->size() == 101);
 			assert(l->front().ToString() == "hello");
@@ -82,7 +82,7 @@ private:
 			smd::shm_list<smd::shm_string> l1(*l);
 			// 验证在尾部添加多个元素
 			for (int i = 0; i < 100; i++) {
-				l1.push_back(smd::shm_string(Util::Text::Format("TestText%02d", i)));
+				l1.push_back(smd::shm_string(smd::util::Text::Format("TestText%02d", i)));
 			}
 			assert(l1.size() == 101);
 			assert(l1.front().ToString() == "hello");
@@ -92,7 +92,7 @@ private:
 			l2 = *l;
 			// 验证在尾部添加多个元素
 			for (int i = 0; i < 100; i++) {
-				l2.push_back(smd::shm_string(Util::Text::Format("TestText%02d", i)));
+				l2.push_back(smd::shm_string(smd::util::Text::Format("TestText%02d", i)));
 			}
 			assert(l2.size() == 101);
 			assert(l2.front().ToString() == "hello");
@@ -139,7 +139,7 @@ private:
 		std::shuffle(vRoleIds.begin(), vRoleIds.end(), generator);
 
 		for (size_t i = 0; i < vRoleIds.size(); i++) {
-			auto key = Util::Text::Format("Key%05d", vRoleIds[i]);
+			auto key = smd::util::Text::Format("Key%05d", vRoleIds[i]);
 
 			l->push_back(key);
 			list_ref.push_back(key);

@@ -2,7 +2,6 @@
 #include <iostream>
 #include <algorithm>
 #include <smd.h>
-#include "util.h"
 
 #include "test_pointer.h"
 #include "test_string.h"
@@ -80,8 +79,8 @@ int main(int argc, char* argv[]) {
 	all_strings.insert(std::make_pair(smd::shm_string("will6"), smd::shm_string("6")));
 
 	for (int i = 0; i < 20; i++) {
-		std::string key1 = Util::Text::Format("Hello%03d%03d", count, i);
-		std::string value1 = Util::Text::Format("World%03d", i);
+		std::string key1 = smd::util::Text::Format("Hello%03d%03d", count, i);
+		std::string value1 = smd::util::Text::Format("World%03d", i);
 		all_strings.insert(std::make_pair(smd::shm_string(key1), smd::shm_string(value1)));
 	}
 

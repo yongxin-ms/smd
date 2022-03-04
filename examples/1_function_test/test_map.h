@@ -147,11 +147,11 @@ private:
 
 private:
 	static std::string GetKey(int key) {
-		return Util::Text::Format("Key%05d", key);
+		return smd::util::Text::Format("Key%05d", key);
 	}
 
 	static std::string GetValue(int val) {
-		return Util::Text::Format("Value%05d", val);
+		return smd::util::Text::Format("Value%05d", val);
 	}
 
 	//测试专用
