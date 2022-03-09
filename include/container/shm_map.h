@@ -148,6 +148,11 @@ public:
 		return *this;
 	}
 
+	void swap(this_type& r) {
+		std::swap(root_, r.root_);
+		std::swap(size_, r.size_);
+	}
+
 	~shm_map() {
 		clear();
 	}

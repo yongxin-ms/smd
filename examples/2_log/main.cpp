@@ -26,7 +26,7 @@ int main(int argc, char* argv[]) {
 
 	// 缺省是冷启动，加入参数1表示热启动
 	const bool enable_attach = argc == 2 && atoi(argv[1]) == 1;
-	auto env = smd::Env::Create(0x001187ca, 18, enable_attach);
+	auto env = smd::Env::Create(0x001187ca, 25, enable_attach);
 	if (env == nullptr) {
 		SMD_LOG_ERROR("Create env failed");
 		return 0;
@@ -50,6 +50,13 @@ int main(int argc, char* argv[]) {
 		auto& s = *itr;
 		printf("[%d] %s\n", i, s.ToString().data());
 	}
+
+	auto& all_maps = env->GetAllMaps();
+	if (auto it = all_maps.find(key); it != all_maps.end()) {
+		it = all_maps.erase(it);
+	}
+
+	all_maps.insert(std::make_pair(key, smd::shm_map<smd::shm_string, smd::shm_string>()));
 
 #ifdef _WIN32
 	system("PAUSE");
