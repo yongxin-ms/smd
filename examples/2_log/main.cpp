@@ -51,13 +51,6 @@ int main(int argc, char* argv[]) {
 		printf("[%d] %s\n", i, s.ToString().data());
 	}
 
-	auto& all_maps = env->GetAllMaps();
-	if (auto it = all_maps.find(key); it != all_maps.end()) {
-		it = all_maps.erase(it);
-	}
-
-	all_maps.insert(std::make_pair(key, smd::shm_map<smd::shm_string, smd::shm_string>()));
-
 #ifdef _WIN32
 	system("PAUSE");
 #endif
