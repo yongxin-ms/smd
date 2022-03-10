@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
 
-set(PROJECT_NAME GameAndDb)
+set(PROJECT_NAME Game)
 PROJECT(${PROJECT_NAME} LANGUAGES CXX)
 
 set(CMAKE_UNITY_BUILD yes)
@@ -13,11 +13,12 @@ else()
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -Wall -g -pthread")
 endif()
 
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/../bin)
 
 INCLUDE_DIRECTORIES(
 	${CMAKE_CURRENT_SOURCE_DIR}
-	${CMAKE_CURRENT_SOURCE_DIR}/../../include
+	${CMAKE_CURRENT_SOURCE_DIR}/../gen/
+	${CMAKE_CURRENT_SOURCE_DIR}/../../../include
 	)
 	
 file(GLOB SELF_TEMP_SRC_FILES
@@ -31,25 +32,25 @@ source_group(src FILES ${SELF_TEMP_SRC_FILES})
 list(APPEND SELF_SRC_FILES ${SELF_TEMP_SRC_FILES})
 
 file(GLOB SELF_TEMP_SRC_FILES
-	"../../include/*.h"
+	"../../../../include/*.h"
 	)
 source_group(include FILES ${SELF_TEMP_SRC_FILES})
 list(APPEND SELF_SRC_FILES ${SELF_TEMP_SRC_FILES})
 	
 file(GLOB SELF_TEMP_SRC_FILES
-	"../../include/common/*.h"
+	"../../../../include/common/*.h"
 	)
 source_group(include\\common FILES ${SELF_TEMP_SRC_FILES})
 list(APPEND SELF_SRC_FILES ${SELF_TEMP_SRC_FILES})
 
 file(GLOB SELF_TEMP_SRC_FILES
-	"../../include/container/*.h"
+	"../../../../include/container/*.h"
 	)
 source_group(include\\container FILES ${SELF_TEMP_SRC_FILES})
 list(APPEND SELF_SRC_FILES ${SELF_TEMP_SRC_FILES})
 
 file(GLOB SELF_TEMP_SRC_FILES
-	"../../include/mem_alloc/*.h"
+	"../../../../include/mem_alloc/*.h"
 	)
 source_group(include\\mem_alloc FILES ${SELF_TEMP_SRC_FILES})
 list(APPEND SELF_SRC_FILES ${SELF_TEMP_SRC_FILES})

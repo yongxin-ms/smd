@@ -4,27 +4,9 @@
 #include <smd.h>
 
 #include "main_game.h"
-#include "main_db.h"
 #include "../server_common/server_common_def.h"
 
-#define SERVER_NAME "game"
-
-void help() {
-	std::cout << "todo" << std::endl;
-}
-
 int main(int argc, char* argv[]) {
-
-	if (argc < 2) {
-		help();
-		return -1;
-	}
-	std::string server = argv[1];
-	if (server != SERVER_NAME) {
-		help();
-		return -2;
-	}
-
 	int ret = 0;
 
 	smd::SetLogHandler(
