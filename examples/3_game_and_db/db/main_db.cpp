@@ -29,6 +29,7 @@ int main_db() {
 		std::transform(input.begin(), input.end(), input.begin(), [](char c) { return std::tolower(c); });
 		if (input == "x" || input == "e" || input == "exit" || input == "q" || input == "quit") {
 			working = false;
+			break;
 		}
 		
 		std::string op;
