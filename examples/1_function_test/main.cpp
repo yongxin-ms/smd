@@ -35,7 +35,7 @@ int main(int argc, char* argv[]) {
 
 	//缺省是冷启动，加入参数1表示热启动
 	const bool enable_attach = argc == 2 && atoi(argv[1]) == 1;
-	auto env = smd::Env::Create(0x001187fb, 25, enable_attach);
+	auto env = (smd::SmdEnv*)smd::SmdEnv::Create(0x001187fb, 25, enable_attach);
 	if (env == nullptr) {
 		SMD_LOG_ERROR("Create env failed");
 		return 0;

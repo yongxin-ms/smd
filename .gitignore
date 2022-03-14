@@ -4,6 +4,7 @@
 cmake-build-debug
 ~$*
 .vscode
+.vs
 *.obj
 *.tlog
 *.log
@@ -19,4 +20,5 @@ cmake-build-debug
 x64
 examples/1_function_test/bin/
 examples/2_log/bin/
+examples/3_game_and_db/
 examples/build/

@@ -6,18 +6,13 @@
 #include "smd.h"
 #include "Player.h"
 
-namespace UniqsModel
-{
-	// 数据中心
-	class DataCenter
-	{
-	public:
-		// 所有玩家
-		smd::shm_map<int64_t, Player> players;
+namespace UniqsModel {
+struct StData {
+	smd::shm_map<int64_t, UniqsModel::Player> players;
+};
+} // namespace UniqsModel
 
-	public:
-		DataCenter(){ Clear(true); }
-
-		void Clear(bool bDestruct);
-	};
-}
+// 数据中心
+class DataCenter : public smd::Env<UniqsModel::StData> {
+public:
+};

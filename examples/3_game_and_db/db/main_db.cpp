@@ -1,8 +1,8 @@
-#include "main_db.h"
-#include "smd.h"
-#include "Player.h"
+﻿#include "main_db.h"
 #include <iostream>
 #include <limits.h>
+#include "DataCenter.h"
+
 using std::cin;
 using std::cout;
 using std::endl;
@@ -19,10 +19,10 @@ std::string getTime() {
 	return sztmp;
 }
 
-int main_db() {
+int main_db(DataCenter* data_center) {
 	working = true;
 
-	auto obj = smd::g_alloc->New<smd::shm_map<int64_t, UniqsModel::Player>>().Ptr();
+	auto obj = &data_center->GetEntry().players;
 	std::string input;
 	while (working) {
 		cin >> input;

@@ -4,10 +4,4 @@
 #include "DataCenter.h"
 #include "uniqsmodelDefines.h"
 
-namespace UniqsModel
-{
-	void DataCenter::Clear(bool bDestruct)
-	{
-		players.clear();
-	}
-}
+namespace UniqsModel {}

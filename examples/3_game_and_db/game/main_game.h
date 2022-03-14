@@ -1,3 +1,4 @@
-#pragma once
+﻿#pragma once
+class DataCenter;
 
-int main_game();
+int main_game(DataCenter* data_center);

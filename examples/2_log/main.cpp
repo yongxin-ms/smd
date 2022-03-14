@@ -1,6 +1,12 @@
 ﻿#include <stdio.h>
 #include <smd.h>
 
+struct StSmdLog {
+	smd::shm_list<smd::shm_string> logs;
+};
+
+class SmdLog : public smd::Env<StSmdLog> {};
+
 int main(int argc, char* argv[]) {
 	smd::SetLogHandler(
 		[](smd::Log::LogLevel lv, const char* msg) {
@@ -26,20 +32,13 @@ int main(int argc, char* argv[]) {
 
 	// 缺省是冷启动，加入参数1表示热启动
 	const bool enable_attach = argc == 2 && atoi(argv[1]) == 1;
-	auto env = smd::Env::Create(0x001187ca, 25, enable_attach);
+	auto env = (SmdLog*)SmdLog::Create(0x001187ca, 25, enable_attach);
 	if (env == nullptr) {
 		SMD_LOG_ERROR("Create env failed");
 		return 0;
 	}
 
-	auto& all_lists = env->GetAllLists();
-	auto key = smd::shm_string("app_log");
-	auto it = all_lists.find(key);
-	if (it == all_lists.end()) {
-		all_lists.insert(std::make_pair(key, smd::shm_list<smd::shm_string>()));
-		it = all_lists.find(key);
-	}
-	auto& app_log = it->second;
+	auto& app_log = env->GetEntry().logs;
 
 	// 往日志库里面写入一条日志
 	app_log.push_back("app started at: " + smd::util::Time::FormatDateTime(time(nullptr)));
