@@ -23,7 +23,7 @@ struct ShmHead {
 template <typename T>
 class Env {
 public:
-	static Env<T>* Create(int shm_key, unsigned level, bool enable_attach);
+	static Env* Create(int shm_key, unsigned level, bool enable_attach);
 
 	bool IsAttached() const {
 		return m_is_attached;
@@ -34,9 +34,9 @@ public:
 	}
 
 private:
-	Env<T>(void* ptr, bool is_attached);
-	Env<T>(const Env<T>&) = delete;
-	Env<T>& operator=(const Env<T>&) = delete;
+	Env(void* ptr, bool is_attached);
+	Env(const Env&) = delete;
+	Env& operator=(const Env&) = delete;
 
 private:
 	const bool m_is_attached;
@@ -91,7 +91,7 @@ Env<T>* Env<T>::Create(int shm_key, unsigned level, bool enable_attach) {
 	}
 
 	CreateAlloc(ptr, sizeof(ShmHead<T>), level, is_attached);
-	auto env = new Env<T>(ptr, is_attached);
+	auto env = new Env(ptr, is_attached);
 	return env;
 }
 
