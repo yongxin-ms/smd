@@ -4,10 +4,10 @@
 namespace smd {
 
 struct StSmd {
-	shm_pointer<shm_map<shm_string, shm_string>> all_strings;
-	shm_pointer<shm_map<shm_string, shm_list<shm_string>>> all_lists;
-	shm_pointer<shm_map<shm_string, shm_map<shm_string, shm_string>>> all_maps;
-	shm_pointer<shm_map<shm_string, shm_hash<shm_string>>> all_hashes;
+	shm_map<shm_string, shm_string> all_strings;
+	shm_map<shm_string, shm_list<shm_string>> all_lists;
+	shm_map<shm_string, shm_map<shm_string, shm_string>> all_maps;
+	shm_map<shm_string, shm_hash<shm_string>> all_hashes;
 };
 
 class SmdEnv : public smd::Env<StSmd> {
@@ -16,19 +16,19 @@ public:
 	// 内置string, list, map, hash 四种基本数据类型
 	//
 	shm_map<shm_string, shm_string>& GetAllStrings() {
-		return *GetEntry().all_strings;
+		return GetEntry().all_strings;
 	}
 
 	shm_map<shm_string, shm_list<shm_string>>& GetAllLists() {
-		return *GetEntry().all_lists;
+		return GetEntry().all_lists;
 	}
 
 	shm_map<shm_string, shm_map<shm_string, shm_string>>& GetAllMaps() {
-		return *GetEntry().all_maps;
+		return GetEntry().all_maps;
 	}
 
 	shm_map<shm_string, shm_hash<shm_string>>& GetAllHashes() {
-		return *GetEntry().all_hashes;
+		return GetEntry().all_hashes;
 	}
 
 	//
