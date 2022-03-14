@@ -1,7 +1,7 @@
 ﻿#include <stdio.h>
 #include <iostream>
 #include <algorithm>
-#include <smd.h>
+#include "sm_env.h"
 
 #include "main_db.h"
 #include "DataCenter.h"
@@ -33,7 +33,7 @@ int main(int argc, char* argv[]) {
 		smd::Log::LogLevel::kInfo);
 
 	const bool attach_only = true; // db attach only, game create
-	auto env = (DataCenter*)DataCenter::Create(SHMID_GAME_DB_USER, 25, attach_only);
+	auto env = smd::Env<UniqsModel::DataCenter>::Create(SHMID_GAME_DB_USER, 25, attach_only);
 	if (env == nullptr) {
 		SMD_LOG_ERROR("Create env failed");
 		return 0;
@@ -41,7 +41,7 @@ int main(int argc, char* argv[]) {
 
 	std::srand((unsigned int)std::time(nullptr));
 
-	ret = main_db(env);
+	ret = main_db(env->GetEntry());
 
 #ifdef _WIN32
 	int n = 0;

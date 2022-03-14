@@ -3,5 +3,3 @@
 
 #include "DataCenter.h"
 #include "uniqsmodelDefines.h"
-
-namespace UniqsModel {}

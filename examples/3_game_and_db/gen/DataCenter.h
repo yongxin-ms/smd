@@ -3,16 +3,12 @@
 
 #pragma once
 
-#include "smd.h"
+#include "sm_env.h"
 #include "Player.h"
 
 namespace UniqsModel {
-struct StData {
+class DataCenter {
+public:
 	smd::shm_map<int64_t, UniqsModel::Player> players;
 };
 } // namespace UniqsModel
-
-// 数据中心
-class DataCenter : public smd::Env<UniqsModel::StData> {
-public:
-};

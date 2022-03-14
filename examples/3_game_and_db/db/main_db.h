@@ -1,4 +1,6 @@
 ﻿#pragma once
+namespace UniqsModel {
 class DataCenter;
+}
 
-int main_db(DataCenter* data_center);
+int main_db(UniqsModel::DataCenter& data_center);

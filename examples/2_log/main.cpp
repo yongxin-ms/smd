@@ -1,11 +1,9 @@
 ﻿#include <stdio.h>
-#include <smd.h>
+#include <sm_env.h>
 
 struct StSmdLog {
 	smd::shm_list<smd::shm_string> logs;
 };
-
-class SmdLog : public smd::Env<StSmdLog> {};
 
 int main(int argc, char* argv[]) {
 	smd::SetLogHandler(
@@ -32,7 +30,7 @@ int main(int argc, char* argv[]) {
 
 	// 缺省是冷启动，加入参数1表示热启动
 	const bool enable_attach = argc == 2 && atoi(argv[1]) == 1;
-	auto env = (SmdLog*)SmdLog::Create(0x001187ca, 25, enable_attach);
+	auto env = smd::Env<StSmdLog>::Create(0x001187ca, 25, enable_attach);
 	if (env == nullptr) {
 		SMD_LOG_ERROR("Create env failed");
 		return 0;

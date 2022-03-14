@@ -19,10 +19,10 @@ std::string getTime() {
 	return sztmp;
 }
 
-int main_db(DataCenter* data_center) {
+int main_db(UniqsModel::DataCenter& data_center) {
 	working = true;
 
-	auto obj = &data_center->GetEntry().players;
+	auto obj = &data_center.players;
 	std::string input;
 	while (working) {
 		cin >> input;
