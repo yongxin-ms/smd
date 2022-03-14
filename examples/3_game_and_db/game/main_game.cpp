@@ -32,13 +32,12 @@ int main_game(DataCenter* data_center) {
 			break;
 		}
 
-		std::string op;
 		int64_t playerId;
-		
-		auto parseInput = [&](const std::string& op){
+
+		auto parseInput = [&](const std::string& op) {
 			playerId = 0;
 			auto pos = input.find(op);
-			if (pos != std::string::npos){
+			if (pos != std::string::npos) {
 				std::string strPlayerId = input.substr(pos + op.size(), input.size());
 				playerId = std::atoll(strPlayerId.c_str());
 			}
@@ -107,6 +106,7 @@ int main_game(DataCenter* data_center) {
 				auto& player = it->second;
 				if (player.items.empty()) {
 					cout << "no item to delete" << endl;
+					break;
 				}
 				int64_t itemId = INT_MAX;
 				for (auto it_item : player.items) {

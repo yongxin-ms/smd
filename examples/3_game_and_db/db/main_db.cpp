@@ -31,14 +31,14 @@ int main_db(DataCenter* data_center) {
 			working = false;
 			break;
 		}
-		
+
 		std::string op;
 		int64_t playerId;
-		
-		auto parseInput = [&](const std::string& op){
+
+		auto parseInput = [&](const std::string& op) {
 			playerId = 0;
 			auto pos = input.find(op);
-			if (pos != std::string::npos){
+			if (pos != std::string::npos) {
 				std::string strPlayerId = input.substr(pos + op.size(), input.size());
 				playerId = std::atoll(strPlayerId.c_str());
 			}
@@ -54,13 +54,16 @@ int main_db(DataCenter* data_center) {
 				}
 				auto& player = it->second;
 				cout << player.playerid << "\t" << player.playername.ToString() << "\t" << player.level << "\t";
+				cout << endl;
 				cout << player.lastlogintime.ToString() << "\t" << player.lastlogouttime.ToString() << "\t";
+				cout << endl;
 				cout << "items:=============================" << endl;
 				for (auto it_item : player.items) {
 					cout << it_item.second.itemid << "\t";
 					cout << it_item.second.param1 << " | ";
 				}
 				cout << " ******************************************************************************** " << endl;
+				cout << endl;
 
 				break;
 			}
