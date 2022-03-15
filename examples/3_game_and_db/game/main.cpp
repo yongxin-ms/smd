@@ -32,8 +32,8 @@ int main(int argc, char* argv[]) {
 		},
 		smd::Log::LogLevel::kInfo);
 
-	const bool attach_only = false; // db attach only, game create
-	auto env = smd::Env<UniqsModel::DataCenter>::Create(SHMID_GAME_DB_USER, 25, attach_only);
+	const bool enable_attach = true;
+	auto env = smd::Env<UniqsModel::DataCenter>::Create(SHMID_GAME_DB_USER, 25, enable_attach);
 	if (env == nullptr) {
 		SMD_LOG_ERROR("Create env failed");
 		return 0;

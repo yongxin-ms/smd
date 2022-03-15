@@ -32,7 +32,6 @@ int main_db(UniqsModel::DataCenter& data_center) {
 			break;
 		}
 
-		std::string op;
 		int64_t playerId;
 
 		auto parseInput = [&](const std::string& op) {
@@ -53,15 +52,18 @@ int main_db(UniqsModel::DataCenter& data_center) {
 					break;
 				}
 				auto& player = it->second;
-				cout << player.playerid << "\t" << player.playername.ToString() << "\t" << player.level << "\t";
+				cout << "playerid:" << player.playerid << "\tplayername：" << player.playername.ToString()
+					 << "\tlevel:" << player.level << "\t";
 				cout << endl;
-				cout << player.lastlogintime.ToString() << "\t" << player.lastlogouttime.ToString() << "\t";
+				cout << "lastlogintime:" << player.lastlogintime.ToString()
+					 << "\tlastlogouttime:" << player.lastlogouttime.ToString() << "\t";
 				cout << endl;
 				cout << "items:=============================" << endl;
 				for (auto it_item : player.items) {
-					cout << it_item.second.itemid << "\t";
-					cout << it_item.second.param1 << " | ";
+					cout << "itemid:" << it_item.second.itemid << "\t";
+					cout << "param1:" << it_item.second.param1 << " | ";
 				}
+				cout << endl;
 				cout << " ******************************************************************************** " << endl;
 				cout << endl;
 
