@@ -1,9 +1,11 @@
 ---
 AccessModifierOffset: '-4'
 AlignTrailingComments: 'true'
+AlignAfterOpenBracket: 'DontAlign'
 AllowAllConstructorInitializersOnNextLine: 'true'
 AllowShortBlocksOnASingleLine: 'false'
 AllowShortFunctionsOnASingleLine: 'Empty'
+AllowShortLambdasOnASingleLine: 'None'
 AlwaysBreakTemplateDeclarations: 'Yes'
 BreakConstructorInitializers: BeforeComma
 BreakInheritanceList: BeforeComma
@@ -16,5 +18,8 @@ PointerAlignment: Left
 SortIncludes: 'false'
 TabWidth: '4'
 UseTab: Always
+
+BinPackArguments: 'false'
+BinPackParameters: 'false'
 
 ...
