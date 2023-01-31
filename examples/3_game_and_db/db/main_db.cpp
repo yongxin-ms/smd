@@ -7,8 +7,6 @@ using std::cin;
 using std::cout;
 using std::endl;
 
-bool working = false;
-
 std::string getTime() {
 	time_t curr_time = time(NULL);
 	struct tm* stm = localtime(&curr_time);
@@ -20,15 +18,12 @@ std::string getTime() {
 }
 
 int main_db(UniqsModel::DataCenter& data_center) {
-	working = true;
-
 	auto obj = &data_center.players;
 	std::string input;
-	while (working) {
+	while (true) {
 		cin >> input;
 		std::transform(input.begin(), input.end(), input.begin(), [](char c) { return std::tolower(c); });
 		if (input == "x" || input == "e" || input == "exit" || input == "q" || input == "quit") {
-			working = false;
 			break;
 		}
 
